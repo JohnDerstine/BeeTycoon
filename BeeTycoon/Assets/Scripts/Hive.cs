@@ -1,14 +1,29 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+
+public enum FlowerType
+{
+    Empty = 0,
+    Clover = 1,
+    Alfalfa = 2,
+    Blossom = 3,
+    Buckwheat = 4
+}
 
 public class Hive : MonoBehaviour
 {
+    private MapLoader map;
+
+    public int x;
+    public int y;
+
     private int size = 1;
     private float population = 5000;
     private float popCap = 20000; //what population the hive can currently house
     private float popSizeCap = 20000; //how much each level of size changes the popCap
-    private float comb;
+    private float comb = 0;
     private float combCap = 8; //how much honey the hive can currently store
     private float combSizeCap = 8; //how much each level of size changes the honeyCap
     private float nectar;
@@ -30,6 +45,12 @@ public class Hive : MonoBehaviour
 
     private QueenBee queen;
 
+    private Dictionary<FlowerType, float> flowerValues = new Dictionary<FlowerType, float>();
+    private Dictionary<FlowerType, float> nectarValues = new Dictionary<FlowerType, float>();
+    private float totalFlowerWeight = 0;
+    private FlowerType honeyType = FlowerType.Empty;
+    private float honeyPurity = 0;
+
     public int Size
     {
         get { return size; }
@@ -44,6 +65,15 @@ public class Hive : MonoBehaviour
     void Start()
     {
         queen = gameObject.GetComponent<QueenBee>();
+        map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
+
+        var values = System.Enum.GetValues(typeof(FlowerType));
+        foreach (var v in values)
+        {
+            FlowerType fType = (FlowerType)v;
+            flowerValues.Add(fType, 0);
+            nectarValues.Add(fType, 0);
+        }
     }
 
     void Update()
@@ -53,6 +83,8 @@ public class Hive : MonoBehaviour
 
     public void UpdateHive()
     {
+        GetFlowerRatios();
+
         float possibleComb = construction * queen.constructionMult * hiveEfficency;
         if (possibleComb + comb > combCap)
             possibleComb = combCap - comb;
@@ -63,11 +95,15 @@ public class Hive : MonoBehaviour
         if (possibleHoney > nectar)
             possibleHoney = nectar;
         honey += possibleHoney;
+        nectar -= possibleHoney;
 
         float possibleNectar = collection * queen.collectionMult * hiveEfficency;
         if (possibleNectar + nectar + honey > storage)
             possibleNectar = storage - (nectar + honey);
         nectar += possibleNectar;
+
+        if (possibleNectar > 0)
+            SplitNectar(possibleNectar);
 
         float possiblePop = birthRate;
         if (possiblePop + population > popCap)
@@ -76,11 +112,73 @@ public class Hive : MonoBehaviour
 
         hiveEfficency = (population / popCap) * size;
 
-        Debug.Log("Population: " + population);
-        Debug.Log("Comb: " + comb);
+        //Debug.Log("Population: " + population);
+        //Debug.Log("Comb: " + comb);
         Debug.Log("Nectar: " + nectar);
         Debug.Log("Honey: " + honey);
         Debug.Log("Storage: " + storage);
-        Debug.Log("Efficiency: " + hiveEfficency);
+        //Debug.Log("Efficiency: " + hiveEfficency);
+
+        //reset flowerValues
+        foreach (FlowerType key in flowerValues.Keys.ToList())
+            flowerValues[key] = 0f;
+        totalFlowerWeight = 0f;
+
+        CalcHoneyStats();
+    }
+
+    private void GetFlowerRatios()
+    {
+        for (int i = 0; i < map.mapWidth; i++)
+        {
+            for (int j = 0; j < map.mapHeight; j++)
+            {
+                int distance = Mathf.CeilToInt((Mathf.Abs(x - i) + Mathf.Abs(y - j)) / 2);
+                if (distance == 0)
+                    distance = 1;
+                switch (map.tiles[i,j].Flower)
+                {
+                    case FlowerType.Clover:
+                        flowerValues[FlowerType.Clover] += 1f / distance;
+                        break;
+                    case FlowerType.Alfalfa:
+                        flowerValues[FlowerType.Alfalfa] += 1f / distance;
+                        break;
+                    case FlowerType.Blossom:
+                        flowerValues[FlowerType.Blossom] += 1f / distance;
+                        break;
+                    case FlowerType.Buckwheat:
+                        flowerValues[FlowerType.Buckwheat] += 1f / distance;
+                        break;
+                    case FlowerType.Empty:
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        totalFlowerWeight = flowerValues.Values.Sum();
+
+        //foreach (KeyValuePair<FlowerType, float> kvp in flowerValues)
+        //    Debug.Log(kvp.Key + ": " + kvp.Value);
+    }
+
+    private void SplitNectar(float inputNectar)
+    {
+        //Apply the weights of each type of flower to the nectar being gained this turn
+        foreach (FlowerType key in nectarValues.Keys.ToList())
+            nectarValues[key] += inputNectar * (flowerValues[key] / totalFlowerWeight);
+    }
+
+    private void CalcHoneyStats()
+    {
+        //set honeyType and honeyPurity to the type of honey that is most appundant from the available flowers this turn
+        if (honey > 0)
+        {
+            honeyType = nectarValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+            honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();
+            Debug.Log(honeyType);
+            Debug.Log(honeyPurity);
+        }
     }
 }
