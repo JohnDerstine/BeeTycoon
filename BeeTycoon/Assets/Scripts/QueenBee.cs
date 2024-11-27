@@ -13,7 +13,7 @@ public class QueenBee : MonoBehaviour
 
     void Start()
     {
-        productionMult = Random.Range(.6f,2.5f);
+        productionMult = Random.Range(.6f, 2.5f);
         constructionMult = Random.Range(.6f, 2.5f);
         collectionMult = Random.Range(.6f, 2.5f);
         resilienceMult = Random.Range(.6f, 2.5f);

@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/tabUSS.uss?fileID=7433441132597879392&amp;guid=582f5e79cf7420f45b08d8ac3b33c0a6&amp;type=3#tabUSS" />
+    <ui:VisualElement name="Base" style="flex-grow: 1; flex-direction: row;">
+        <ui:VisualElement name="Left" style="flex-grow: 1; flex-direction: row; flex-basis: 15%; position: relative;">
+            <ui:VisualElement name="Tabs" style="flex-grow: 1; flex-basis: 100%; padding-bottom: 5%;">
+                <CustomVisualElement name="tab1" class="tab" />
+                <CustomVisualElement name="tab2" class="tab" />
+                <CustomVisualElement name="tab3" class="tab" />
+                <CustomVisualElement name="tab4" class="tab" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="Right" style="flex-grow: 1; flex-basis: 85%; background-image: none;" />
+    </ui:VisualElement>
+</ui:UXML>
