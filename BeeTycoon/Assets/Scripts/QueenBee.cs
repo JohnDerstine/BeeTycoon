@@ -4,19 +4,29 @@ using UnityEngine;
 
 public class QueenBee : MonoBehaviour
 {
+    public bool nullQueen;
+
     //stat multipliers;
-    public float productionMult;
-    public float constructionMult;
-    public float collectionMult;
-    public float resilienceMult;
-    public float aggressivnessMult;
+    public float productionMult = 0.5f;
+    public float constructionMult = 0.5f;
+    public float collectionMult = 0.5f;
+    public float resilienceMult = 0.5f;
+    public float aggressivnessMult = 0.5f;
+
+    public QueenBee(bool nullQueen)
+    {
+        this.nullQueen = nullQueen;
+    }
 
     void Start()
     {
-        productionMult = Random.Range(.6f, 2.5f);
-        constructionMult = Random.Range(.6f, 2.5f);
-        collectionMult = Random.Range(.6f, 2.5f);
-        resilienceMult = Random.Range(.6f, 2.5f);
-        aggressivnessMult = Random.Range(.6f, 2.5f);
+        if (nullQueen != true)
+        {
+            productionMult = Random.Range(.75f, 2.0f);
+            constructionMult = Random.Range(.75f, 2.0f);
+            collectionMult = Random.Range(.75f, 2.0f);
+            resilienceMult = Random.Range(.75f, 2.0f);
+            aggressivnessMult = Random.Range(.75f, 2.0f);
+        }
     }
 }

@@ -16,6 +16,8 @@ public class Hive : MonoBehaviour
 {
     private MapLoader map;
 
+    public bool empty = true;
+
     public int x;
     public int y;
 
@@ -64,7 +66,6 @@ public class Hive : MonoBehaviour
 
     void Start()
     {
-        queen = gameObject.GetComponent<QueenBee>();
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
 
         var values = System.Enum.GetValues(typeof(FlowerType));
@@ -83,6 +84,9 @@ public class Hive : MonoBehaviour
 
     public void UpdateHive()
     {
+        if (empty)
+            return;
+
         GetFlowerRatios();
 
         float possibleComb = construction * queen.constructionMult * hiveEfficency;
@@ -180,5 +184,14 @@ public class Hive : MonoBehaviour
             Debug.Log(honeyType);
             Debug.Log(honeyPurity);
         }
+    }
+
+    public void Populate(QueenBee q = null)
+    {
+        if (q == null)
+            queen = new QueenBee(false);
+        else 
+            queen = q;
+        empty = false;
     }
 }

@@ -15,6 +15,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     UIDocument ui;
 
+    [SerializeField]
+    HoneyMarket honeyMarket;
+
     private List<Hive> hives = new List<Hive>();
 
     private bool placing;
@@ -25,16 +28,22 @@ public class PlayerController : MonoBehaviour
     private CustomVisualElement tab3;
     private CustomVisualElement tab4;
 
+    private int tab1ItemCount = 4;
+    private int tab2ItemCount = 8;
+    private int tab3ItemCount = 15;
+    private int tab4ItemCount = 22;
+
     [SerializeField]
     Texture2D hex;
 
     [SerializeField]
     StyleSheet tabStyle;
 
-    int tabItemsPerRow = 7;
+    int tabItemsPerRow = 8;
 
     private List<CustomVisualElement> tabHexes = new List<CustomVisualElement>();
     private List<CustomVisualElement> tabs = new List<CustomVisualElement>();
+    private List<int> tabItemCounts = new List<int>();
     private CustomVisualElement activeTab;
 
     private Manipulator close;
@@ -67,14 +76,22 @@ public class PlayerController : MonoBehaviour
         tab4 = root.Q<CustomVisualElement>("tab4");
         tab4.AddManipulator(open4);
         tabs.Add(tab4);
+
+        tabItemCounts.Add(tab1ItemCount);
+        tabItemCounts.Add(tab2ItemCount);
+        tabItemCounts.Add(tab3ItemCount);
+        tabItemCounts.Add(tab4ItemCount);
     }
 
     // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
             foreach (Hive h in hives)
                 h.UpdateHive();
+            honeyMarket.UpdateMarket();
+        }
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             map.GenerateFlowers();
@@ -126,6 +143,10 @@ public class PlayerController : MonoBehaviour
             CloseTab();
         }
 
+        int items = tabItemCounts[tabs.IndexOf(tab)];
+        int itemsInRow = 0;
+        int rows = 1;
+
         activeTab = tab;
         tab.AddManipulator(close);
         tab.RemoveManipulator(open);
@@ -137,7 +158,40 @@ public class PlayerController : MonoBehaviour
                 t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 0f, 1f);
         }
 
+        for (int i = 0; i < items; i++)
+        {
+            CustomVisualElement hex = new CustomVisualElement();
+            if (i % tabItemsPerRow == 0)
+                SpawnTopTab();
+            else
+            {
+                CustomVisualElement lastHex = tabHexes[tabHexes.Count - 1];
+                hex.styleSheets.Add(tabStyle);
+                float modifier = (itemsInRow == 0) ? 1 : .625f;
+                Debug.Log(itemsInRow);
+                float hexTop = (tab1.resolvedStyle.height * itemsInRow * modifier) + (tab1.resolvedStyle.height * .5f) + (tab1.resolvedStyle.marginBottom * .5f);
+                hex.style.top = hexTop;
+                StyleLength hexLeft = (itemsInRow % 2) == 0 ? lastHex.resolvedStyle.left - (tab1.resolvedStyle.width * .125f) + (tab1.resolvedStyle.width * .75f * (rows - 1)) : lastHex.resolvedStyle.left + (tab1.resolvedStyle.width * .24f) + (tab1.resolvedStyle.width * .75f * (rows - 1));
+                hex.style.left = hexLeft;
 
+                hex.style.height = tab1.resolvedStyle.height;
+                hex.style.width = tab1.resolvedStyle.width;
+                left.Add(hex);
+                tabHexes.Add(hex);
+                itemsInRow++;
+            }
+
+            //itemsInRow++;
+            if (itemsInRow == tabItemsPerRow - 1)
+            {
+                itemsInRow = -1;
+                rows++;
+            }
+        }
+    }
+
+    private void SpawnTopTab()
+    {
         CustomVisualElement starterHex = new CustomVisualElement();
         starterHex.styleSheets.Add(tabStyle);
         float itemTop = tab1.resolvedStyle.top;
@@ -149,23 +203,6 @@ public class PlayerController : MonoBehaviour
         starterHex.style.width = tab1.resolvedStyle.width;
         left.Add(starterHex);
         tabHexes.Add(starterHex);
-
-        for (int i = 0; i < tabItemsPerRow; i++)
-        {
-            CustomVisualElement hex = new CustomVisualElement();
-            CustomVisualElement lastHex = tabHexes[tabHexes.Count - 1];
-            hex.styleSheets.Add(tabStyle);
-            float modifier = (i == 0) ? 1 : .625f;
-            float hexTop = (tab1.resolvedStyle.height * i * modifier) + (tab1.resolvedStyle.height * .5f) + (tab1.resolvedStyle.marginBottom * .5f);
-            hex.style.top = hexTop;
-            StyleLength hexLeft = (i % 2) == 0 ? lastHex.resolvedStyle.left - (tab1.resolvedStyle.width * .125f) : lastHex.resolvedStyle.left + (tab1.resolvedStyle.width * .24f);
-            hex.style.left = hexLeft;
-
-            hex.style.height = tab1.resolvedStyle.height;
-            hex.style.width = tab1.resolvedStyle.width;
-            left.Add(hex);
-            tabHexes.Add(hex);
-        }
     }
 
     private void CloseTab()
