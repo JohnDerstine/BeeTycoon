@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Base" style="flex-grow: 1; flex-direction: row; background-image: url(&quot;project://database/Assets/Sprites/HiveUIPanelRender.png?fileID=2800000&amp;guid=bb76cb5a969880446b1bab89bd1bd652&amp;type=3#HiveUIPanelRender&quot;); width: 600px; height: 810px;">
+        <ui:VisualElement name="LeftMargin" style="flex-grow: 1; flex-basis: 7.5%;" />
+        <ui:VisualElement name="Left" style="flex-grow: 1; flex-basis: 27.5%;" />
+        <ui:VisualElement name="Center" style="flex-grow: 1; flex-basis: 30%;">
+            <ui:VisualElement style="flex-grow: 1; flex-basis: 72.5%;" />
+            <ui:VisualElement name="HarvestButton" style="flex-grow: 1; flex-basis: 27.5%; align-self: auto; justify-content: center;">
+                <ui:Button text="Harvest" parse-escape-sequences="true" display-tooltip-when-elided="true" style="align-self: center; width: 90%; -unity-font-style: bold; font-size: 24px; border-top-left-radius: 15%; border-top-right-radius: 15%; border-bottom-right-radius: 15%; border-bottom-left-radius: 15%; height: 30%;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="Right" style="flex-grow: 1; flex-basis: 27.5%;" />
+        <ui:VisualElement name="RightMargin" style="flex-grow: 1; flex-basis: 7.5%;">
+            <ui:VisualElement name="Close" style="flex-grow: 1; flex-basis: 5.55%; background-color: rgb(186, 16, 16);" />
+            <ui:VisualElement style="flex-grow: 1; flex-basis: 96.3%;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

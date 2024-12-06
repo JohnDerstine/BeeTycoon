@@ -1,0 +1,7 @@
+VisualElement {
+	align-self: center;
+	flex-grow: 0;
+	flex-shrink: 0;
+	width: 96px;
+	height: 96px;
+}

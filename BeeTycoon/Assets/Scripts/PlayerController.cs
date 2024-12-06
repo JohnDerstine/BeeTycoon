@@ -18,6 +18,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     HoneyMarket honeyMarket;
 
+    [SerializeField]
+    private VisualTreeAsset hiveUI;
+
+    private TemplateContainer activeUI;
+
     private List<Hive> hives = new List<Hive>();
 
     private bool placing;
@@ -37,7 +42,13 @@ public class PlayerController : MonoBehaviour
     Texture2D hex;
 
     [SerializeField]
+    Texture2D hexIcon;
+
+    [SerializeField]
     StyleSheet tabStyle;
+
+    [SerializeField]
+    StyleSheet itemStyle;
 
     int tabItemsPerRow = 8;
 
@@ -99,6 +110,10 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             placing = !placing;
+        }
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            OpenHiveUI();
         }
 
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -178,6 +193,11 @@ public class PlayerController : MonoBehaviour
                 hex.style.width = tab1.resolvedStyle.width;
                 left.Add(hex);
                 tabHexes.Add(hex);
+
+                VisualElement icon = new VisualElement();
+                icon.styleSheets.Add(itemStyle);
+                icon.style.backgroundImage = hexIcon;
+                hex.Add(icon);
                 itemsInRow++;
             }
 
@@ -203,6 +223,11 @@ public class PlayerController : MonoBehaviour
         starterHex.style.width = tab1.resolvedStyle.width;
         left.Add(starterHex);
         tabHexes.Add(starterHex);
+
+        VisualElement icon = new VisualElement();
+        icon.styleSheets.Add(itemStyle);
+        icon.style.backgroundImage = hexIcon;
+        starterHex.Add(icon);
     }
 
     private void CloseTab()
@@ -230,5 +255,14 @@ public class PlayerController : MonoBehaviour
             activeTab = null;
             tabHexes.Clear();
         }
+    }
+
+    private void OpenHiveUI()
+    {
+        activeUI = hiveUI.Instantiate();
+        activeUI.style.top = 0f;
+        activeUI.style.left = 0f;
+
+        ui.rootVisualElement.Q("Right").Add(activeUI);
     }
 }
