@@ -9,6 +9,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     GameObject hivePrefab;
 
+    List<List<Texture2D>> spriteList = new List<List<Texture2D>>();
+
+    List<List<GameObject>> objectList = new List<List<GameObject>>();
+
+    [SerializeField]
+    List<Texture2D> flowerSprites = new List<Texture2D>();
+
+    [SerializeField]
+    List<GameObject> flowerObjectList = new List<GameObject>();
+
     [SerializeField]
     MapLoader map;
 
@@ -25,7 +35,6 @@ public class PlayerController : MonoBehaviour
 
     private List<Hive> hives = new List<Hive>();
 
-    private bool placing;
     private VisualElement root;
     private VisualElement left;
     private CustomVisualElement tab1;
@@ -34,15 +43,12 @@ public class PlayerController : MonoBehaviour
     private CustomVisualElement tab4;
 
     private int tab1ItemCount = 4;
-    private int tab2ItemCount = 8;
-    private int tab3ItemCount = 15;
-    private int tab4ItemCount = 22;
+    private int tab2ItemCount = 5;
+    private int tab3ItemCount = 6;
+    private int tab4ItemCount = 7;
 
     [SerializeField]
     Texture2D hex;
-
-    [SerializeField]
-    Texture2D hexIcon;
 
     [SerializeField]
     StyleSheet tabStyle;
@@ -63,6 +69,8 @@ public class PlayerController : MonoBehaviour
     private Manipulator open3;
     private Manipulator open4;
 
+    private GameObject selectedItem = null;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -70,10 +78,10 @@ public class PlayerController : MonoBehaviour
         left = root.Q<VisualElement>("Left");
 
         close = new Clickable(close => CloseTab());
-        open1 = new Clickable(open => OpenTab(tab1, open1));
-        open2 = new Clickable(open => OpenTab(tab2, open2));
-        open3 = new Clickable(open => OpenTab(tab3, open3));
-        open4 = new Clickable(open => OpenTab(tab4, open4));
+        open1 = new Clickable(open => OpenTab(0, open1));
+        open2 = new Clickable(open => OpenTab(1, open2));
+        open3 = new Clickable(open => OpenTab(2, open3));
+        open4 = new Clickable(open => OpenTab(3, open4));
 
         tab1 = root.Q<CustomVisualElement>("tab1");
         tab1.AddManipulator(open1);
@@ -92,6 +100,16 @@ public class PlayerController : MonoBehaviour
         tabItemCounts.Add(tab2ItemCount);
         tabItemCounts.Add(tab3ItemCount);
         tabItemCounts.Add(tab4ItemCount);
+
+        spriteList.Add(flowerSprites);
+        spriteList.Add(flowerSprites);
+        spriteList.Add(flowerSprites);
+        spriteList.Add(flowerSprites);
+
+        objectList.Add(flowerObjectList);
+        objectList.Add(flowerObjectList);
+        objectList.Add(flowerObjectList);
+        objectList.Add(flowerObjectList);
     }
 
     // Update is called once per frame
@@ -107,22 +125,29 @@ public class PlayerController : MonoBehaviour
         {
             map.GenerateFlowers();
         }
-        if (Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            placing = !placing;
-        }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
             OpenHiveUI();
         }
+        if (Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            selectedItem = hivePrefab;
+        }
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            CloseTab();
+            if (selectedItem != null)
+                selectedItem = null;
+            else
+                CloseTab();
         }
 
-            if (placing)
+        if (selectedItem != null)
             checkForClick();
+
+        //Map Controls
+        CheckZoom();
+        PanCamera();
     }
 
     private void checkForClick()
@@ -137,26 +162,30 @@ public class PlayerController : MonoBehaviour
 
             if (Physics.Raycast(ray, out var hit, 1000, LayerMask.GetMask("Tile")))
             {
-                Debug.Log("clicked");
                 if (hit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
                 {
-                    GameObject temp = Instantiate(hivePrefab, t.transform.position, Quaternion.identity);
-                    hives.Add(temp.GetComponent<Hive>());
-                    temp.GetComponent<Hive>().x = (int)t.transform.position.x;
-                    temp.GetComponent<Hive>().x = (int)t.transform.position.z;
-                    Debug.Log((int)t.transform.position.x + " " + (int)t.transform.position.z);
-                    placing = false;
+                    GameObject temp = Instantiate(selectedItem, t.transform.position, Quaternion.identity);
+                    if (temp.TryGetComponent(out Hive h))
+                    {
+                        hives.Add(h);
+                        h.x = (int)t.transform.position.x;
+                        h.y = (int)t.transform.position.z;
+                    }
                 }
             }
         }
     }
 
-    private void OpenTab(CustomVisualElement tab, Manipulator open)
+    #region Hex Tab Menus
+    private void OpenTab(int num, Manipulator open)
     {
+        //Close any open tabs
         if (activeTab != null)
         {
             CloseTab();
         }
+
+        CustomVisualElement tab = tabs[num];
 
         int items = tabItemCounts[tabs.IndexOf(tab)];
         int itemsInRow = 0;
@@ -165,6 +194,8 @@ public class PlayerController : MonoBehaviour
         activeTab = tab;
         tab.AddManipulator(close);
         tab.RemoveManipulator(open);
+        
+        //Grey out other tabs, highlight clicked tab
         foreach (CustomVisualElement t in tabs)
         {
             if (t != tab)
@@ -173,11 +204,14 @@ public class PlayerController : MonoBehaviour
                 t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 0f, 1f);
         }
 
+        //Create hex items that belong to that tab
         for (int i = 0; i < items; i++)
         {
             CustomVisualElement hex = new CustomVisualElement();
+
+            //Separate calculations for first item of each row
             if (i % tabItemsPerRow == 0)
-                SpawnTopTab();
+                SpawnTopTab(num, i);
             else
             {
                 CustomVisualElement lastHex = tabHexes[tabHexes.Count - 1];
@@ -194,14 +228,15 @@ public class PlayerController : MonoBehaviour
                 left.Add(hex);
                 tabHexes.Add(hex);
 
+                //Add Icon to each hex item
                 VisualElement icon = new VisualElement();
                 icon.styleSheets.Add(itemStyle);
-                icon.style.backgroundImage = hexIcon;
+                icon.style.backgroundImage = spriteList[num][i];
+                hex.AddManipulator(new Clickable(e => SelectItem(objectList[num][i])));
                 hex.Add(icon);
                 itemsInRow++;
             }
 
-            //itemsInRow++;
             if (itemsInRow == tabItemsPerRow - 1)
             {
                 itemsInRow = -1;
@@ -210,7 +245,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void SpawnTopTab()
+    private void SpawnTopTab(int num, int i)
     {
         CustomVisualElement starterHex = new CustomVisualElement();
         starterHex.styleSheets.Add(tabStyle);
@@ -226,7 +261,8 @@ public class PlayerController : MonoBehaviour
 
         VisualElement icon = new VisualElement();
         icon.styleSheets.Add(itemStyle);
-        icon.style.backgroundImage = hexIcon;
+        icon.style.backgroundImage = spriteList[num][i];
+        starterHex.AddManipulator(new Clickable(e => SelectItem(objectList[num][i])));
         starterHex.Add(icon);
     }
 
@@ -257,6 +293,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void SelectItem(GameObject item)
+    {
+        selectedItem = item;
+    }
+    #endregion
+
     private void OpenHiveUI()
     {
         activeUI = hiveUI.Instantiate();
@@ -265,4 +307,47 @@ public class PlayerController : MonoBehaviour
 
         ui.rootVisualElement.Q("Right").Add(activeUI);
     }
+
+    #region Camera Control
+    private void CheckZoom()
+    {
+        Vector3 cameraPos = Camera.main.transform.position;
+        Vector3 scrollY = new Vector3(0, Input.mouseScrollDelta.y * Time.deltaTime * 75f, 0);
+        if (cameraPos.y - scrollY.y > 22.5)
+            Camera.main.transform.position = new Vector3(cameraPos.x, 22.5f, cameraPos.z);
+        else if (cameraPos.y - scrollY.y < 10)
+            Camera.main.transform.position = new Vector3(cameraPos.x, 10f, cameraPos.z);
+        else
+            Camera.main.transform.position -= scrollY;
+    }
+
+    private void PanCamera()
+    {
+        Vector3 cameraPos = Camera.main.transform.position;
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S))
+        {
+            float sens = Input.GetKey(KeyCode.S) ? -10f : 10f;
+            Vector3 panZ = new Vector3(0, 0, sens * Time.deltaTime);
+            if (cameraPos.z + panZ.z > map.mapHeight * .75f * 2f)
+                Camera.main.transform.position = new Vector3(cameraPos.x, cameraPos.y, map.mapHeight * .75f * 2f);
+            else if (cameraPos.z + panZ.z < 0)
+                Camera.main.transform.position = new Vector3(cameraPos.x, cameraPos.y, 0f);
+            else
+                Camera.main.transform.position += panZ;
+        }
+
+        cameraPos = Camera.main.transform.position;
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        {
+            float sens = Input.GetKey(KeyCode.A) ? -10f : 10f;
+            Vector3 panX = new Vector3(sens * Time.deltaTime, 0, 0);
+            if (cameraPos.x + panX.x > map.mapWidth * 2f)
+                Camera.main.transform.position = new Vector3(map.mapWidth * 2f, cameraPos.y, cameraPos.z);
+            else if (cameraPos.x + panX.x < 0)
+                Camera.main.transform.position = new Vector3(0f, cameraPos.y, cameraPos.z);
+            else
+                Camera.main.transform.position += panX;
+        }
+    }
+    #endregion
 }
