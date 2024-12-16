@@ -70,6 +70,28 @@ public class PlayerController : MonoBehaviour
     private Manipulator open4;
 
     private GameObject selectedItem = null;
+    private GameObject hoverObject = null;
+    private bool hovering;
+
+    public GameObject SelectedItem
+    {
+        get { return selectedItem; }
+        set
+        {
+            Debug.Log(value);
+            selectedItem = value;
+            if (value == null)
+            {
+                hovering = false;
+                hoverObject = null;
+            }
+            else
+            {
+                hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
+                hovering = true;
+            }
+        }
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -131,19 +153,31 @@ public class PlayerController : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
-            selectedItem = hivePrefab;
+            SelectedItem = hivePrefab;
         }
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (selectedItem != null)
-                selectedItem = null;
+            if (SelectedItem != null)
+                SelectedItem = null;
             else
                 CloseTab();
         }
 
-        if (selectedItem != null)
+        if (SelectedItem != null && hoverObject != null)
             checkForClick();
+
+        if (hovering && hoverObject != null && selectedItem != null)
+        {
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out var hit, 1000, LayerMask.GetMask("Tile")))
+            {
+                if (hit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
+                {
+                    hoverObject.transform.position = t.gameObject.transform.position;
+                }
+            }
+        }
 
         //Map Controls
         CheckZoom();
@@ -154,23 +188,20 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            PointerEventData pointer = new PointerEventData(EventSystem.current);
-            pointer.position = Input.mousePosition;
-            pointer.position = new Vector3(pointer.position.x, Screen.height - pointer.position.y);
-
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
             if (Physics.Raycast(ray, out var hit, 1000, LayerMask.GetMask("Tile")))
             {
                 if (hit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
                 {
-                    GameObject temp = Instantiate(selectedItem, t.transform.position, Quaternion.identity);
-                    if (temp.TryGetComponent(out Hive h))
+                    hoverObject.transform.position = t.gameObject.transform.position;
+                    if (hoverObject.TryGetComponent(out Hive h))
                     {
                         hives.Add(h);
                         h.x = (int)t.transform.position.x;
                         h.y = (int)t.transform.position.z;
                     }
+                    SelectedItem = null;
                 }
             }
         }
@@ -295,7 +326,7 @@ public class PlayerController : MonoBehaviour
 
     private void SelectItem(GameObject item)
     {
-        selectedItem = item;
+        SelectedItem = item;
     }
     #endregion
 
