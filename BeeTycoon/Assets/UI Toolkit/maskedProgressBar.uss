@@ -1,0 +1,16 @@
+.unity-progress-bar__container {
+    max-height: none;
+    height: 300px;
+    width: 250px;
+    rotate: 270deg;
+}
+
+.unity-progress-bar__progress {
+    background-image: url("project://database/Assets/Sprites/honeycomb-pattern-background-4.png?fileID=21300000&guid=a412bcd8228d57e46a41851eac51290f&type=3#honeycomb-pattern-background-4");
+    background-color: rgba(0, 0, 0, 0);
+    -unity-background-scale-mode: scale-and-crop;
+}
+
+.unity-progress-bar__background {
+    background-color: rgb(133, 71, 5);
+}

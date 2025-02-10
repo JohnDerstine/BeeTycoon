@@ -45,7 +45,7 @@ public class PlayerController : MonoBehaviour
     private int tab1ItemCount = 4;
     private int tab2ItemCount = 5;
     private int tab3ItemCount = 6;
-    private int tab4ItemCount = 7;
+    private int tab4ItemCount = 20;
 
     [SerializeField]
     Texture2D hex;
@@ -78,7 +78,6 @@ public class PlayerController : MonoBehaviour
         get { return selectedItem; }
         set
         {
-            Debug.Log(value);
             selectedItem = value;
             if (value == null)
             {
@@ -238,24 +237,32 @@ public class PlayerController : MonoBehaviour
         //Create hex items that belong to that tab
         for (int i = 0; i < items; i++)
         {
+            //hex to be added
             CustomVisualElement hex = new CustomVisualElement();
 
             //Separate calculations for first item of each row
             if (i % tabItemsPerRow == 0)
-                SpawnTopTab(num, i);
+                SpawnTopHex(num, i);
             else
             {
+                //Get the last hex created
                 CustomVisualElement lastHex = tabHexes[tabHexes.Count - 1];
                 hex.styleSheets.Add(tabStyle);
-                float modifier = (itemsInRow == 0) ? 1 : .625f;
-                Debug.Log(itemsInRow);
-                float hexTop = (tab1.resolvedStyle.height * itemsInRow * modifier) + (tab1.resolvedStyle.height * .5f) + (tab1.resolvedStyle.marginBottom * .5f);
+
+                //Calculate and set position of new hex to be flush with the previous hexes
+                //NOTE: tab1.resolvedStyle is used as the basis calculations since it is placed before runtime
+                //and the resolvedStyle of it will give back dimensions that take into account scaling with screen size.
+                float hexTop = (tab1.resolvedStyle.height * itemsInRow * .625f) + (tab1.resolvedStyle.height * .5f) + (tab1.resolvedStyle.marginBottom * .5f);
                 hex.style.top = hexTop;
-                StyleLength hexLeft = (itemsInRow % 2) == 0 ? lastHex.resolvedStyle.left - (tab1.resolvedStyle.width * .125f) + (tab1.resolvedStyle.width * .75f * (rows - 1)) : lastHex.resolvedStyle.left + (tab1.resolvedStyle.width * .24f) + (tab1.resolvedStyle.width * .75f * (rows - 1));
+                StyleLength hexLeft = (itemsInRow % 2) == 0 ? lastHex.resolvedStyle.left - (tab1.resolvedStyle.width * .125f) + (tab1.resolvedStyle.width * .75f * (rows - 1)) 
+                    : lastHex.resolvedStyle.left + (tab1.resolvedStyle.width * .24f) + (tab1.resolvedStyle.width * .75f * (rows - 1));
                 hex.style.left = hexLeft;
 
+                //Set the width and height
                 hex.style.height = tab1.resolvedStyle.height;
                 hex.style.width = tab1.resolvedStyle.width;
+
+                //Add to UI container and the list of active hexes
                 left.Add(hex);
                 tabHexes.Add(hex);
 
@@ -268,6 +275,7 @@ public class PlayerController : MonoBehaviour
                 itemsInRow++;
             }
 
+            //Start a new row when end of the row is reached.
             if (itemsInRow == tabItemsPerRow - 1)
             {
                 itemsInRow = -1;
@@ -276,7 +284,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void SpawnTopTab(int num, int i)
+    private void SpawnTopHex(int num, int i)
     {
         CustomVisualElement starterHex = new CustomVisualElement();
         starterHex.styleSheets.Add(tabStyle);

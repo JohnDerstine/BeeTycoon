@@ -1,5 +1,5 @@
 .tab {
-    background-image: url("project://database/Assets/Sprites/HoneyCombUIOpenRender.png?fileID=2800000&guid=38522a5f81ab10a4392ffed8ef29445d&type=3#HoneyCombUIOpenRender");
+    background-image: url("project://database/Assets/Sprites/HoneyCombUIOpenRender.png?fileID=21300000&guid=38522a5f81ab10a4392ffed8ef29445d&type=3#HoneyCombUIOpenRender");
     -unity-background-scale-mode: stretch-to-fill;
     left: -100px;
     padding-bottom: 0;

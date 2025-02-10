@@ -1,0 +1,31 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/maskedProgressBar.uss?fileID=7433441132597879392&amp;guid=ee3b3d175c91cb84f8d152724e64c7c5&amp;type=3#maskedProgressBar" />
+    <ui:VisualElement name="Base" style="flex-grow: 1; flex-direction: row; background-image: url(&quot;project://database/Assets/Sprites/newHiveUI3.png?fileID=2800000&amp;guid=2b5a292fbb359a34a80e1e2b63ca4dde&amp;type=3#newHiveUI3&quot;); width: 750px; height: 950px;">
+        <ui:VisualElement name="LeftMargin" style="flex-grow: 1; flex-basis: 7.5%;" />
+        <ui:VisualElement name="Left" style="flex-grow: 1; flex-basis: 27.5%; justify-content: flex-start; align-items: center;">
+            <ui:VisualElement name="VisualElement" style="flex-grow: 1; flex-basis: 23%; color: rgb(0, 0, 0); position: relative; left: auto; top: auto;">
+                <ui:VisualElement name="CombHex" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/UI%20Toolkit/SVGMask.svg?fileID=7388822144124034973&amp;guid=b1fc95558e2950949b5c85864a991daf&amp;type=3#SVGMask&quot;); overflow: hidden; width: 258px; height: 225px; justify-content: center; align-items: center; rotate: 0; position: absolute; left: -126px; top: 168px; -unity-background-scale-mode: stretch-to-fill;">
+                    <ui:ProgressBar value="25" name="CombBar" class="maskedProgessBar" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="Center" style="flex-grow: 1; flex-basis: 30%;">
+            <ui:VisualElement style="flex-grow: 1; flex-basis: 72.5%; align-items: center; justify-content: space-around;">
+                <ui:VisualElement name="HoneyHex" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/UI%20Toolkit/SVGMask.svg?fileID=7388822144124034973&amp;guid=b1fc95558e2950949b5c85864a991daf&amp;type=3#SVGMask&quot;); overflow: hidden; width: 258px; height: 225px; justify-content: center; align-items: center; rotate: 0; position: absolute; left: -17px; top: 45px; -unity-background-scale-mode: stretch-to-fill;">
+                    <ui:ProgressBar value="75" name="HoneyBar" class="maskedProgessBar" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="Right" style="flex-grow: 1; flex-basis: 27.5%;">
+            <ui:VisualElement style="flex-grow: 1;">
+                <ui:VisualElement name="NectarHex" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/UI%20Toolkit/SVGMask.svg?fileID=7388822144124034973&amp;guid=b1fc95558e2950949b5c85864a991daf&amp;type=3#SVGMask&quot;); overflow: hidden; width: 258px; height: 225px; justify-content: center; align-items: center; rotate: 0; position: absolute; left: -28px; top: 168px; -unity-background-scale-mode: stretch-to-fill;">
+                    <ui:ProgressBar value="50" name="NectarBar" class="maskedProgessBar" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="RightMargin" style="flex-grow: 1; flex-basis: 7.5%;">
+            <ui:VisualElement name="Close" style="flex-grow: 1; flex-basis: 5.55%; background-color: rgb(186, 16, 16);" />
+            <ui:VisualElement style="flex-grow: 1; flex-basis: 96.3%;" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
