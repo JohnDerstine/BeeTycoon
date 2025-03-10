@@ -119,6 +119,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5769c740e47dc3645a188ffbf685f978, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hiveUI: {fileID: 9197481963319205126, guid: fc2d44516520a4e47ac454e4bfa3e3cb, type: 3}
   empty: 1
   x: 0
   y: 0

@@ -29,7 +29,10 @@ public class PlayerController : MonoBehaviour
     HoneyMarket honeyMarket;
 
     [SerializeField]
-    private VisualTreeAsset hiveUI;
+    public Sprite honey;
+
+    //[SerializeField]
+    //private VisualTreeAsset hiveUI;
 
     private TemplateContainer activeUI;
 
@@ -131,6 +134,8 @@ public class PlayerController : MonoBehaviour
         objectList.Add(flowerObjectList);
         objectList.Add(flowerObjectList);
         objectList.Add(flowerObjectList);
+
+        Debug.Log(honey.texture.name);
     }
 
     // Update is called once per frame
@@ -146,10 +151,10 @@ public class PlayerController : MonoBehaviour
         {
             map.GenerateFlowers();
         }
-        if (Input.GetKeyDown(KeyCode.UpArrow))
-        {
-            OpenHiveUI();
-        }
+        //if (Input.GetKeyDown(KeyCode.UpArrow))
+        //{
+        //    OpenHiveUI();
+        //}
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             SelectedItem = hivePrefab;
@@ -159,6 +164,8 @@ public class PlayerController : MonoBehaviour
         {
             if (SelectedItem != null)
                 SelectedItem = null;
+            else if (activeUI != null)
+                CloseHiveUI();
             else
                 CloseTab();
         }
@@ -338,13 +345,37 @@ public class PlayerController : MonoBehaviour
     }
     #endregion
 
-    private void OpenHiveUI()
+    public void OpenHiveUI(TemplateContainer template, VisualTreeAsset hiveUI, Hive hive)
     {
-        activeUI = hiveUI.Instantiate();
-        activeUI.style.top = 0f;
-        activeUI.style.left = 0f;
+        //Check to see if the same hive is being clicked to close the hiveUI
+        bool reclicked = false;
+        if (activeUI == template && activeUI != null)
+            reclicked = true;
 
-        ui.rootVisualElement.Q("Right").Add(activeUI);
+        if (activeUI != null)
+            CloseHiveUI();
+
+        if (reclicked)
+            return;
+
+        if (template == null)
+        {
+            template = hiveUI.Instantiate();
+            template.style.top = 0f;
+            template.style.left = 0f;
+            template.style.scale = new StyleScale(new Scale(new Vector3(0.8f, 0.8f, 1)));
+        }
+
+        ui.rootVisualElement.Q("Right").Add(template);
+
+        hive.template = template;
+        activeUI = template;
+    }
+
+    public void CloseHiveUI()
+    {
+        ui.rootVisualElement.Q("Right").Remove(activeUI);
+        activeUI = null;
     }
 
     #region Camera Control

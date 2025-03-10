@@ -69,7 +69,7 @@ public class HoneyMarket : MonoBehaviour
         foreach (var v in values)
         {
             FlowerType fType = (FlowerType)v;
-            Debug.Log(marketValues[fType][0] + " " + marketValues[fType][1]);
+            //Debug.Log(marketValues[fType][0] + " " + marketValues[fType][1]);
         }
     }
 }
