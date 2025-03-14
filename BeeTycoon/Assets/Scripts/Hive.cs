@@ -62,7 +62,6 @@ public class Hive : MonoBehaviour
     private float honeyPurity = 0;
 
     //UI
-    private VisualElement root;
     private VisualElement smallHarvest;
     private VisualElement mediumHarvest;
     private VisualElement largeHarvest;
@@ -71,6 +70,14 @@ public class Hive : MonoBehaviour
     private ProgressBar honeyMeter;
     private Dictionary<VisualElement, bool> harvestDict = new Dictionary<VisualElement, bool>();
     private Toggle noHarvest;
+    private CustomVisualElement nectarHover;
+    private CustomVisualElement honeyHover;
+    private CustomVisualElement combHover;
+    EventCallback<PointerMoveEvent> moveCallback;
+    EventCallback<PointerLeaveEvent> exitCallback;
+    private CustomVisualElement currentHover;
+    private StyleColor darkTint;
+    private StyleColor lightTint;
 
     public int Size
     {
@@ -83,13 +90,37 @@ public class Hive : MonoBehaviour
         }
     }
 
+    public CustomVisualElement CurrentHover
+    {
+        get { return currentHover; }
+        set
+        {
+            if (value == null && currentHover != null)
+            {
+                currentHover.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
+                currentHover.Q<Label>("Percent").style.visibility = Visibility.Hidden;
+                currentHover.Q<Label>("PercentOf").style.visibility = Visibility.Hidden;
+                currentHover.Q<Label>("Flat").style.visibility = Visibility.Hidden;
+                currentHover.Q<Label>("FlatOf").style.visibility = Visibility.Hidden;
+                currentHover = value;
+            }
+            else if (value != null)
+            {
+                currentHover = value;
+                currentHover.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+                currentHover.Q<Label>("Percent").style.visibility = Visibility.Visible;
+                currentHover.Q<Label>("PercentOf").style.visibility = Visibility.Visible;
+                currentHover.Q<Label>("Flat").style.visibility = Visibility.Visible;
+                currentHover.Q<Label>("FlatOf").style.visibility = Visibility.Visible;
+            }
+        }
+    }
+
     void Start()
     {
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
-
-        root = document.rootVisualElement;
 
         var values = System.Enum.GetValues(typeof(FlowerType));
         foreach (var v in values)
@@ -99,12 +130,14 @@ public class Hive : MonoBehaviour
             nectarValues.Add(fType, 0);
         }
 
+        Color darkTintColor = Color.black;
+        darkTintColor.a = 0.6f;
+        darkTint = new StyleColor(darkTintColor);
+        Color lightTintColor = Color.black;
+        lightTintColor.a = 0.0f;
+        lightTint = new StyleColor(lightTintColor);
+
         Populate();
-    }
-
-    void Update()
-    {
-
     }
 
     public void UpdateHive()
@@ -215,10 +248,18 @@ public class Hive : MonoBehaviour
 
     private void UpdateMeters()
     {
-        combMeter.value = (comb / combCap) * 100;
-        //nectarMeter.value = (nectar / storage) * 100;
-        nectarMeter.value = (nectar / production * queen.productionMult * hiveEfficency) * 100;
-        honeyMeter.value = (honey / (combCap * storagePerComb)) * 100;
+        combMeter.value = comb / combCap * 100;
+        nectarMeter.value = collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100;
+        honeyMeter.value = honey / (combCap * storagePerComb) * 100;
+
+        nectarHover.Q<Label>("Percent").text = (Mathf.Round(collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100 * 10) / 10.0f).ToString() + "%";
+        nectarHover.Q<Label>("Flat").text = (collection * queen.collectionMult * hiveEfficency).ToString();
+
+        honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (combCap * storagePerComb) * 100 * 10) / 10.0f).ToString() + "%";
+        honeyHover.Q<Label>("Flat").text = (production * queen.productionMult * hiveEfficency).ToString();
+
+        combHover.Q<Label>("Percent").text = (Mathf.Round(comb / combCap) * 100 * 10 / 10.0f).ToString() + "%";
+        combHover.Q<Label>("Flat").text = (construction * queen.constructionMult * hiveEfficency).ToString();
     }
 
     public void Populate(QueenBee q = null)
@@ -239,20 +280,38 @@ public class Hive : MonoBehaviour
         if (harvestDict.Keys.Count == 0)
         {
             noHarvest = template.Q<Toggle>();
-            smallHarvest = template.Q<VisualElement>("SmallTint");
-            mediumHarvest = template.Q<VisualElement>("MediumTint");
-            largeHarvest = template.Q<VisualElement>("LargeTint");
-            combMeter = template.Q<ProgressBar>("CombBar");
-            nectarMeter = template.Q<ProgressBar>("NectarBar");
-            honeyMeter = template.Q<ProgressBar>("HoneyBar");
             noHarvest.RegisterValueChangedCallback(OnHarvestToggled);
+
+            smallHarvest = template.Q<VisualElement>("SmallClick");
+            mediumHarvest = template.Q<VisualElement>("MediumClick");
+            largeHarvest = template.Q<VisualElement>("LargeClick");
+
             smallHarvest.AddManipulator(new Clickable(e => SelectHarvest(smallHarvest)));
             mediumHarvest.AddManipulator(new Clickable(e => SelectHarvest(mediumHarvest)));
             largeHarvest.AddManipulator(new Clickable(e => SelectHarvest(largeHarvest)));
 
+            combMeter = template.Q<ProgressBar>("CombBar");
+            nectarMeter = template.Q<ProgressBar>("NectarBar");
+            honeyMeter = template.Q<ProgressBar>("HoneyBar");
+
             harvestDict.Add(smallHarvest, false);
             harvestDict.Add(mediumHarvest, true);
             harvestDict.Add(largeHarvest, false);
+
+            exitCallback = new EventCallback<PointerLeaveEvent>(OnExit);
+            moveCallback = new EventCallback<PointerMoveEvent>(OnMove);
+
+            nectarHover = template.Q<CustomVisualElement>("NectarHover");
+            nectarHover.RegisterCallback(moveCallback);
+            nectarHover.RegisterCallback(exitCallback);
+
+            honeyHover = template.Q<CustomVisualElement>("HoneyHover");
+            honeyHover.RegisterCallback(moveCallback);
+            honeyHover.RegisterCallback(exitCallback);
+
+            combHover = template.Q<CustomVisualElement>("CombHover");
+            combHover.RegisterCallback(moveCallback);
+            combHover.RegisterCallback(exitCallback);
         }
     }
 
@@ -272,16 +331,6 @@ public class Hive : MonoBehaviour
                 else
                     harvestDict[kvp.Key] = true;
             }
-        }
-
-        foreach (KeyValuePair<VisualElement, bool> kvp in harvestDict)
-        {
-            Color current = kvp.Key.resolvedStyle.unityBackgroundImageTintColor;
-            if (kvp.Value == false)
-                current.a = 0.5f;
-            else
-                current.a = 0.0f;
-            kvp.Key.style.unityBackgroundImageTintColor = current;
         }
         AdjustTints();
     }
@@ -303,13 +352,28 @@ public class Hive : MonoBehaviour
     {
         foreach (KeyValuePair<VisualElement, bool> kvp in harvestDict)
         {
-            Color current = kvp.Key.resolvedStyle.unityBackgroundImageTintColor;
+            VisualElement tint = kvp.Key.Q<VisualElement>("Tint");
             if (kvp.Value == false)
-                current.a = 0.5f;
+                tint.style.unityBackgroundImageTintColor = darkTint;
             else
-                current.a = 0.0f;
-            kvp.Key.style.unityBackgroundImageTintColor = current;
+                tint.style.unityBackgroundImageTintColor = lightTint;
+
         }
+    }
+
+    private void OnMove(PointerMoveEvent e)
+    {
+        CurrentHover = null;
+        CustomVisualElement target = e.currentTarget as CustomVisualElement;
+        if (target.ContainsPoint(e.localPosition))
+            CurrentHover = target;
+        else
+            CurrentHover = null;
+    }
+
+    private void OnExit(PointerLeaveEvent e)
+    {
+        CurrentHover = null;
     }
     #endregion
 }

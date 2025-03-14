@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class MapLoader : MonoBehaviour
 {
+    [SerializeField]
+    private List<GameObject> flowerList;
+
     public int mapWidth = 10;
     public int mapHeight = 10;
     private int foliageDensityMin = 5;
@@ -115,12 +118,13 @@ public class MapLoader : MonoBehaviour
 
     public void GenerateFlowers()
     {
-        int rand = Random.Range(1, 5);
         for (int i = 0; i < mapWidth; i++)
         {
             for (int j = 0; j < mapHeight; j++)
             {
+                int rand = Random.Range(1, 5);
                 tiles[i, j].Flower = (FlowerType)rand;
+                Instantiate(flowerList[rand], tiles[i, j].transform.position, Quaternion.identity);
             }
         }
     }

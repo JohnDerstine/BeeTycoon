@@ -3,7 +3,7 @@
     <ui:VisualElement name="Base" style="flex-grow: 1; flex-direction: row;">
         <ui:VisualElement name="Left" style="flex-grow: 1; flex-direction: row; flex-basis: 15%; position: relative;">
             <ui:VisualElement name="Tabs" style="flex-grow: 1; flex-basis: 100%; padding-bottom: 5%;">
-                <CustomVisualElement name="tab1" class="tab">
+                <CustomVisualElement name="tab1" class="tab" style="-unity-background-image-tint-color: rgb(255, 255, 255);">
                     <ui:VisualElement style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/CloverIcon.png?fileID=2800000&amp;guid=76429e278b12a0f46a56fba1d235c8e1&amp;type=3#CloverIcon&quot;); width: 64px; height: 64px; align-self: center; justify-content: flex-start; align-items: stretch; flex-shrink: 0; flex-basis: auto; left: 32px; top: 64px;" />
                 </CustomVisualElement>
                 <CustomVisualElement name="tab2" class="tab" />

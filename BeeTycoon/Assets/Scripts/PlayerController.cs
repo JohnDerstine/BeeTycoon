@@ -46,9 +46,9 @@ public class PlayerController : MonoBehaviour
     private CustomVisualElement tab4;
 
     private int tab1ItemCount = 4;
-    private int tab2ItemCount = 5;
-    private int tab3ItemCount = 6;
-    private int tab4ItemCount = 20;
+    private int tab2ItemCount = 4;
+    private int tab3ItemCount = 4;
+    private int tab4ItemCount = 4;
 
     [SerializeField]
     Texture2D hex;
@@ -277,7 +277,9 @@ public class PlayerController : MonoBehaviour
                 VisualElement icon = new VisualElement();
                 icon.styleSheets.Add(itemStyle);
                 icon.style.backgroundImage = spriteList[num][i];
-                hex.AddManipulator(new Clickable(e => SelectItem(objectList[num][i])));
+                int list = num; //For some reason, when the clickable event is triggered, it goes back to find
+                int item = i; //what num and i are equal to retroactivly. This causes index out of bounds. Store values as ints to avoid.
+                hex.AddManipulator(new Clickable(e => SelectItem(objectList[list][item])));
                 hex.Add(icon);
                 itemsInRow++;
             }
