@@ -7,11 +7,11 @@ public class QueenBee : MonoBehaviour
     public bool nullQueen;
 
     //stat multipliers;
-    public float productionMult = 0.5f;
-    public float constructionMult = 0.5f;
-    public float collectionMult = 0.5f;
-    public float resilienceMult = 0.5f;
-    public float aggressivnessMult = 0.5f;
+    public float productionMult = 0.0f;
+    public float constructionMult = 0.0f;
+    public float collectionMult = 0.0f;
+    public float resilienceMult = 0.0f;
+    public float aggressivnessMult = 0.0f;
 
     public QueenBee(bool nullQueen)
     {

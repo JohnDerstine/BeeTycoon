@@ -20,6 +20,12 @@ public class PlayerController : MonoBehaviour
     List<GameObject> flowerObjectList = new List<GameObject>();
 
     [SerializeField]
+    List<Texture2D> beeSprites = new List<Texture2D>();
+
+    [SerializeField]
+    List<GameObject> beeObjectList = new List<GameObject>();
+
+    [SerializeField]
     MapLoader map;
 
     [SerializeField]
@@ -30,6 +36,12 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField]
     public Sprite honey;
+
+    [SerializeField]
+    private GameObject testQueen;
+
+    [SerializeField]
+    private Texture2D testQueenSprite;
 
     //[SerializeField]
     //private VisualTreeAsset hiveUI;
@@ -45,7 +57,7 @@ public class PlayerController : MonoBehaviour
     private CustomVisualElement tab3;
     private CustomVisualElement tab4;
 
-    private int tab1ItemCount = 4;
+    private int tab1ItemCount = 0;
     private int tab2ItemCount = 4;
     private int tab3ItemCount = 4;
     private int tab4ItemCount = 4;
@@ -73,6 +85,7 @@ public class PlayerController : MonoBehaviour
     private Manipulator open4;
 
     private GameObject selectedItem = null;
+    private Texture2D selectedItemSprite;
     private GameObject hoverObject = null;
     private bool hovering;
 
@@ -89,7 +102,10 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
+                if (selectedItem.tag == "placeable")
+                    hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
+                else
+                    hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.Euler(new Vector3(70,0,0)));
                 hovering = true;
             }
         }
@@ -125,17 +141,15 @@ public class PlayerController : MonoBehaviour
         tabItemCounts.Add(tab3ItemCount);
         tabItemCounts.Add(tab4ItemCount);
 
-        spriteList.Add(flowerSprites);
+        spriteList.Add(beeSprites);
         spriteList.Add(flowerSprites);
         spriteList.Add(flowerSprites);
         spriteList.Add(flowerSprites);
 
+        objectList.Add(beeObjectList);
         objectList.Add(flowerObjectList);
         objectList.Add(flowerObjectList);
         objectList.Add(flowerObjectList);
-        objectList.Add(flowerObjectList);
-
-        Debug.Log(honey.texture.name);
     }
 
     // Update is called once per frame
@@ -151,10 +165,10 @@ public class PlayerController : MonoBehaviour
         {
             map.GenerateFlowers();
         }
-        //if (Input.GetKeyDown(KeyCode.UpArrow))
-        //{
-        //    OpenHiveUI();
-        //}
+        if (Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            AddQueen();
+        }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
             SelectedItem = hivePrefab;
@@ -163,28 +177,38 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (SelectedItem != null)
+            {
+                Destroy(hoverObject);
                 SelectedItem = null;
+            }
             else if (activeUI != null)
                 CloseHiveUI();
             else
                 CloseTab();
         }
 
+        //Checks to see if selected item is placed
         if (SelectedItem != null && hoverObject != null)
             checkForClick();
 
+        //Displays selected item under mouse
         if (hovering && hoverObject != null && selectedItem != null)
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out var hit, 1000, LayerMask.GetMask("Tile")))
+            if (hoverObject.tag == "Placeable")
             {
-                if (hit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
+                if (Physics.Raycast(ray, out var hit, 1000, LayerMask.GetMask("Tile")))
                 {
-                    hoverObject.transform.position = t.gameObject.transform.position;
+                    if (hit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
+                        hoverObject.transform.position = t.gameObject.transform.position;                        
                 }
             }
+            else
+            {
+                if (Physics.Raycast(ray, out var hit, 1000))
+                    hoverObject.transform.position = hit.point + new Vector3(0, 1.5f, 0);
+            }
         }
-
         //Map Controls
         CheckZoom();
         PanCamera();
@@ -196,18 +220,37 @@ public class PlayerController : MonoBehaviour
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-            if (Physics.Raycast(ray, out var hit, 1000, LayerMask.GetMask("Tile")))
+            if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
             {
-                if (hit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
+                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
                 {
-                    hoverObject.transform.position = t.gameObject.transform.position;
-                    if (hoverObject.TryGetComponent(out Hive h))
+                    if (hoverObject.tag == "Placeable")
                     {
-                        hives.Add(h);
-                        h.x = (int)t.transform.position.x;
-                        h.y = (int)t.transform.position.z;
+                        hoverObject.transform.position = t.gameObject.transform.position;
+                        if (hoverObject.TryGetComponent(out Hive h))
+                        {
+                            hives.Add(h);
+                            h.x = (int)t.transform.position.x;
+                            h.y = (int)t.transform.position.z;
+                        }
+                        SelectedItem = null;
                     }
-                    SelectedItem = null;
+                }
+            }
+            if (Physics.Raycast(ray, out var hiveHit, 1000, LayerMask.GetMask("Hive")))
+            {
+                if (hiveHit.collider.gameObject.TryGetComponent<Hive>(out Hive h))
+                {
+                    Debug.Log("hive clicked");
+                    if (hoverObject.tag != "Placeable")
+                    {
+                        if (hoverObject.TryGetComponent(out QueenBee queen))
+                        {
+                            Debug.Log("queen set");
+                            h.Populate(queen, selectedItemSprite);
+                        }
+                        Destroy(hoverObject);
+                    }
                 }
             }
         }
@@ -225,7 +268,7 @@ public class PlayerController : MonoBehaviour
         CustomVisualElement tab = tabs[num];
 
         int items = tabItemCounts[tabs.IndexOf(tab)];
-        int itemsInRow = 0;
+        int itemsInRow = -1;
         int rows = 1;
 
         activeTab = tab;
@@ -241,48 +284,52 @@ public class PlayerController : MonoBehaviour
                 t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 0f, 1f);
         }
 
+        //Separate calculations for first item of each row
+        if (items != 0)
+        {
+            SpawnTopHex(num);
+            itemsInRow++;
+        }
+
+        if (items == 1)
+            return;
+
         //Create hex items that belong to that tab
-        for (int i = 0; i < items; i++)
+        for (int i = 0; i < items - 1; i++)
         {
             //hex to be added
             CustomVisualElement hex = new CustomVisualElement();
+            //Get the last hex created
+            CustomVisualElement lastHex = tabHexes[tabHexes.Count - 1];
+            hex.styleSheets.Add(tabStyle);
 
-            //Separate calculations for first item of each row
-            if (i % tabItemsPerRow == 0)
-                SpawnTopHex(num, i);
-            else
-            {
-                //Get the last hex created
-                CustomVisualElement lastHex = tabHexes[tabHexes.Count - 1];
-                hex.styleSheets.Add(tabStyle);
+            //Calculate and set position of new hex to be flush with the previous hexes
+            //NOTE: tab1.resolvedStyle is used as the basis calculations since it is placed before runtime
+            //and the resolvedStyle of it will give back dimensions that take into account scaling with screen size.
+            float hexTop = (tab1.resolvedStyle.height * itemsInRow * .625f) + (tab1.resolvedStyle.height * .5f) + (tab1.resolvedStyle.marginBottom * .5f);
+            hex.style.top = hexTop;
+            StyleLength hexLeft = (itemsInRow % 2) == 0 ? lastHex.resolvedStyle.left - (tab1.resolvedStyle.width * .125f) + (tab1.resolvedStyle.width * .75f * (rows - 1))
+                : lastHex.resolvedStyle.left + (tab1.resolvedStyle.width * .24f) + (tab1.resolvedStyle.width * .75f * (rows - 1));
+            hex.style.left = hexLeft;
 
-                //Calculate and set position of new hex to be flush with the previous hexes
-                //NOTE: tab1.resolvedStyle is used as the basis calculations since it is placed before runtime
-                //and the resolvedStyle of it will give back dimensions that take into account scaling with screen size.
-                float hexTop = (tab1.resolvedStyle.height * itemsInRow * .625f) + (tab1.resolvedStyle.height * .5f) + (tab1.resolvedStyle.marginBottom * .5f);
-                hex.style.top = hexTop;
-                StyleLength hexLeft = (itemsInRow % 2) == 0 ? lastHex.resolvedStyle.left - (tab1.resolvedStyle.width * .125f) + (tab1.resolvedStyle.width * .75f * (rows - 1)) 
-                    : lastHex.resolvedStyle.left + (tab1.resolvedStyle.width * .24f) + (tab1.resolvedStyle.width * .75f * (rows - 1));
-                hex.style.left = hexLeft;
+            //Set the width and height
+            hex.style.height = tab1.resolvedStyle.height;
+            hex.style.width = tab1.resolvedStyle.width;
 
-                //Set the width and height
-                hex.style.height = tab1.resolvedStyle.height;
-                hex.style.width = tab1.resolvedStyle.width;
+            //Add to UI container and the list of active hexes
+            left.Add(hex);
+            tabHexes.Add(hex);
 
-                //Add to UI container and the list of active hexes
-                left.Add(hex);
-                tabHexes.Add(hex);
-
-                //Add Icon to each hex item
-                VisualElement icon = new VisualElement();
-                icon.styleSheets.Add(itemStyle);
-                icon.style.backgroundImage = spriteList[num][i];
-                int list = num; //For some reason, when the clickable event is triggered, it goes back to find
-                int item = i; //what num and i are equal to retroactivly. This causes index out of bounds. Store values as ints to avoid.
-                hex.AddManipulator(new Clickable(e => SelectItem(objectList[list][item])));
-                hex.Add(icon);
-                itemsInRow++;
-            }
+            //Add Icon to each hex item
+            VisualElement icon = new VisualElement();
+            icon.styleSheets.Add(itemStyle);
+            icon.style.backgroundImage = spriteList[num][i];
+            int list = num; //For some reason, when the clickable event is triggered, it goes back to find
+            int item = i; //what num and i are equal to retroactivly. This causes index out of bounds. Store values as ints to avoid.
+            Texture2D sprite = spriteList[num][i];
+            hex.AddManipulator(new Clickable(e => SelectItem(objectList[list][item], sprite)));
+            hex.Add(icon);
+            itemsInRow++;
 
             //Start a new row when end of the row is reached.
             if (itemsInRow == tabItemsPerRow - 1)
@@ -293,7 +340,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void SpawnTopHex(int num, int i)
+    private void SpawnTopHex(int num)
     {
         CustomVisualElement starterHex = new CustomVisualElement();
         starterHex.styleSheets.Add(tabStyle);
@@ -309,8 +356,8 @@ public class PlayerController : MonoBehaviour
 
         VisualElement icon = new VisualElement();
         icon.styleSheets.Add(itemStyle);
-        icon.style.backgroundImage = spriteList[num][i];
-        starterHex.AddManipulator(new Clickable(e => SelectItem(objectList[num][i])));
+        icon.style.backgroundImage = spriteList[num][0];
+        starterHex.AddManipulator(new Clickable(e => SelectItem(objectList[num][0], spriteList[num][0])));
         starterHex.Add(icon);
     }
 
@@ -341,9 +388,10 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void SelectItem(GameObject item)
+    private void SelectItem(GameObject item, Texture2D sprite)
     {
         SelectedItem = item;
+        selectedItemSprite = sprite;
     }
     #endregion
 
@@ -378,6 +426,19 @@ public class PlayerController : MonoBehaviour
     {
         ui.rootVisualElement.Q("Right").Remove(activeUI);
         activeUI = null;
+    }
+
+    private void AddQueen()
+    {
+        beeObjectList.Add(testQueen);
+        beeSprites.Add(testQueenSprite);
+        tab1ItemCount++;
+        tabItemCounts[0] = tab1ItemCount;
+        if (activeTab == tab1)
+        {
+            CloseTab();
+            OpenTab(0, open1);
+        }
     }
 
     #region Camera Control

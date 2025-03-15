@@ -78,6 +78,7 @@ public class Hive : MonoBehaviour
     private CustomVisualElement currentHover;
     private StyleColor darkTint;
     private StyleColor lightTint;
+    private VisualElement queenHex;
 
     public int Size
     {
@@ -137,6 +138,7 @@ public class Hive : MonoBehaviour
         lightTintColor.a = 0.0f;
         lightTint = new StyleColor(lightTintColor);
 
+        hiveEfficency = (population / popCap) * size;
         Populate();
     }
 
@@ -251,7 +253,11 @@ public class Hive : MonoBehaviour
         combMeter.value = comb / combCap * 100;
         nectarMeter.value = collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100;
         honeyMeter.value = honey / (combCap * storagePerComb) * 100;
+        UpdateMeterLabels();
+    }
 
+    private void UpdateMeterLabels()
+    {
         nectarHover.Q<Label>("Percent").text = (Mathf.Round(collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100 * 10) / 10.0f).ToString() + "%";
         nectarHover.Q<Label>("Flat").text = (collection * queen.collectionMult * hiveEfficency).ToString();
 
@@ -262,13 +268,16 @@ public class Hive : MonoBehaviour
         combHover.Q<Label>("Flat").text = (construction * queen.constructionMult * hiveEfficency).ToString();
     }
 
-    public void Populate(QueenBee q = null)
+    public void Populate(QueenBee q = null, Texture2D sprite = null)
     {
         if (q == null)
             queen = new QueenBee(false);
         else 
             queen = q;
         empty = false;
+
+        if (sprite != null)
+            queenHex.style.backgroundImage = sprite;
     }
 
     #region UI
@@ -294,6 +303,8 @@ public class Hive : MonoBehaviour
             nectarMeter = template.Q<ProgressBar>("NectarBar");
             honeyMeter = template.Q<ProgressBar>("HoneyBar");
 
+            queenHex = template.Q<VisualElement>("QueenHex");
+
             harvestDict.Add(smallHarvest, false);
             harvestDict.Add(mediumHarvest, true);
             harvestDict.Add(largeHarvest, false);
@@ -312,6 +323,8 @@ public class Hive : MonoBehaviour
             combHover = template.Q<CustomVisualElement>("CombHover");
             combHover.RegisterCallback(moveCallback);
             combHover.RegisterCallback(exitCallback);
+
+            UpdateMeterLabels();
         }
     }
 

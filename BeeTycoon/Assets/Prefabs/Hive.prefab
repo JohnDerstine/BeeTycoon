@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 851952654681010231}
   - component: {fileID: 2622136574119187639}
   - component: {fileID: -2763537602791666697}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Hive
-  m_TagString: Untagged
+  m_TagString: Placeable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

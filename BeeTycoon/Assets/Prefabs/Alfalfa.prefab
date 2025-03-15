@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 338933797171009875}
   m_Layer: 0
   m_Name: Alfalfa
-  m_TagString: Untagged
+  m_TagString: Placeable
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
