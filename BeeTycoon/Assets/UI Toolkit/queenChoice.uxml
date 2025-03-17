@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/popupStyle.uss?fileID=7433441132597879392&amp;guid=1caa120a5e4b7c946be1af1820d7e3c3&amp;type=3#popupStyle" />
+    <ui:VisualElement name="Popup" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/HiveUIPanelRender.png?fileID=2800000&amp;guid=bb76cb5a969880446b1bab89bd1bd652&amp;type=3#HiveUIPanelRender&quot;); position: relative; left: auto; top: auto; width: 544px; height: 700px; align-self: auto; align-items: stretch; justify-content: flex-start; -unity-background-image-tint-color: rgb(255, 255, 255); flex-wrap: nowrap; white-space: normal; text-overflow: clip; -unity-text-align: upper-left;">
+        <ui:VisualElement name="Icon" style="flex-grow: 1; background-image: none; position: absolute; width: 128px; height: 128px; margin-top: 40px;" />
+        <ui:Label tabindex="-1" text="Species:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Species" class="Statistic" style="margin-top: 90px;" />
+        <ui:Label tabindex="-1" text="Age:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Age" class="Statistic" />
+        <ui:Label tabindex="-1" text="Grade:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Grade" class="Statistic" />
+        <ui:Label tabindex="-1" text="Quirks:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Quirks" class="Statistic" />
+        <ui:VisualElement name="QuirkContainer" style="flex-grow: 0; flex-direction: row; top: 110px; flex-wrap: wrap; align-items: center; justify-content: center; padding-left: 50px; padding-right: 50px;">
+            <ui:Label tabindex="-1" text="Territorial" parse-escape-sequences="true" display-tooltip-when-elided="true" class="Quirk" />
+            <ui:Label tabindex="-1" text="Territorial" parse-escape-sequences="true" display-tooltip-when-elided="true" class="Quirk" />
+            <ui:Label tabindex="-1" text="Territorial" parse-escape-sequences="true" display-tooltip-when-elided="true" class="Quirk" />
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -1,11 +1,11 @@
 .Statistic {
     color: rgb(255, 255, 255);
     -unity-font-style: bold;
-    font-size: 20px;
+    font-size: 32px;
     position: relative;
     left: 0;
     top: 120px;
-    margin-bottom: 14px;
+    margin-bottom: 24px;
     -unity-text-align: middle-left;
     align-self: center;
     align-items: stretch;
@@ -26,20 +26,21 @@
 .Quirk {
     background-color: rgb(115, 115, 115);
     color: rgb(0, 0, 0);
-    font-size: 20px;
+    font-size: 24px;
     -unity-font-style: bold;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;
-    border-top-width: 2px;
-    border-right-width: 2px;
-    border-bottom-width: 2px;
-    border-left-width: 2px;
+    border-top-width: 3px;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+    border-left-width: 3px;
     border-left-color: rgb(0, 0, 0);
     border-right-color: rgb(0, 0, 0);
     border-top-color: rgb(0, 0, 0);
     border-bottom-color: rgb(0, 0, 0);
     padding-right: 5px;
     padding-left: 5px;
+    margin-bottom: 10px;
 }
