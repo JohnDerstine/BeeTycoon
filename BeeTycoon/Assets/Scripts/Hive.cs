@@ -22,9 +22,13 @@ public class Hive : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset hiveUI;
 
-    public TemplateContainer template;
+    [SerializeField]
+    private VisualTreeAsset queenUI;
 
+    public TemplateContainer template;
+    private TemplateContainer hoverTemplate;
     public bool empty = true;
+    public bool placed;
 
     public int x;
     public int y;
@@ -75,10 +79,16 @@ public class Hive : MonoBehaviour
     private CustomVisualElement combHover;
     EventCallback<PointerMoveEvent> moveCallback;
     EventCallback<PointerLeaveEvent> exitCallback;
+    EventCallback<PointerMoveEvent> queenMoveCallback;
+    EventCallback<PointerLeaveEvent> queenExitCallback;
     private CustomVisualElement currentHover;
     private StyleColor darkTint;
-    private StyleColor lightTint;
+    public StyleColor lightTint;
     private VisualElement queenHex;
+    public CustomVisualElement queenClick;
+    public Clickable assignQueen;
+    public bool selectingQueen;
+    public bool isOpen;
 
     public int Size
     {
@@ -122,6 +132,7 @@ public class Hive : MonoBehaviour
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
+        queen = GetComponent<QueenBee>();
 
         var values = System.Enum.GetValues(typeof(FlowerType));
         foreach (var v in values)
@@ -138,8 +149,24 @@ public class Hive : MonoBehaviour
         lightTintColor.a = 0.0f;
         lightTint = new StyleColor(lightTintColor);
 
+        assignQueen = new Clickable(OpenQueenTab);
+
         hiveEfficency = (population / popCap) * size;
-        Populate();
+    }
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (selectingQueen)
+            {
+                selectingQueen = false;
+                queenClick.AddManipulator(assignQueen);
+                queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
+                player.CloseTab();
+            }
+            else if (isOpen && player.SelectedItem == null)
+                player.CloseHiveUI(this);
+        }
     }
 
     public void UpdateHive()
@@ -250,15 +277,21 @@ public class Hive : MonoBehaviour
 
     private void UpdateMeters()
     {
-        combMeter.value = comb / combCap * 100;
-        nectarMeter.value = collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100;
-        honeyMeter.value = honey / (combCap * storagePerComb) * 100;
+        combMeter.value = (comb / combCap * 100) + 8;
+        if (production * queen.productionMult * hiveEfficency != 0)
+            nectarMeter.value = (collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100) + 8;
+        else
+            nectarMeter.value = 8;
+        honeyMeter.value = (honey / (combCap * storagePerComb) * 100) + 8;
         UpdateMeterLabels();
     }
 
     private void UpdateMeterLabels()
     {
-        nectarHover.Q<Label>("Percent").text = (Mathf.Round(collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100 * 10) / 10.0f).ToString() + "%";
+        if (production * queen.productionMult * hiveEfficency != 0)
+            nectarHover.Q<Label>("Percent").text = (Mathf.Round(collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100 * 10) / 10.0f).ToString() + "%";
+        else
+            nectarHover.Q<Label>("Percent").text = "0%";
         nectarHover.Q<Label>("Flat").text = (collection * queen.collectionMult * hiveEfficency).ToString();
 
         honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (combCap * storagePerComb) * 100 * 10) / 10.0f).ToString() + "%";
@@ -268,12 +301,13 @@ public class Hive : MonoBehaviour
         combHover.Q<Label>("Flat").text = (construction * queen.constructionMult * hiveEfficency).ToString();
     }
 
-    public void Populate(QueenBee q = null, Texture2D sprite = null)
+    public void Populate(QueenBee q, Texture2D sprite = null)
     {
         if (q == null)
-            queen = new QueenBee(false);
-        else 
-            queen = q;
+            return;
+
+        StartCoroutine(queen.TransferStats(q));
+        Destroy(q.gameObject);
         empty = false;
 
         if (sprite != null)
@@ -284,6 +318,9 @@ public class Hive : MonoBehaviour
 
     void OnMouseDown()
     {
+        if (!placed)
+            return;
+
         player.OpenHiveUI(template, hiveUI, this);
 
         if (harvestDict.Keys.Count == 0)
@@ -304,6 +341,12 @@ public class Hive : MonoBehaviour
             honeyMeter = template.Q<ProgressBar>("HoneyBar");
 
             queenHex = template.Q<VisualElement>("QueenHex");
+            queenClick = template.Q<CustomVisualElement>("QueenClick");
+            queenClick.AddManipulator(assignQueen);
+            queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
+            queenMoveCallback = new EventCallback<PointerMoveEvent>(OnQueenMove);
+            queenClick.RegisterCallback(queenMoveCallback);
+            queenClick.RegisterCallback(queenExitCallback);
 
             harvestDict.Add(smallHarvest, false);
             harvestDict.Add(mediumHarvest, true);
@@ -374,6 +417,14 @@ public class Hive : MonoBehaviour
         }
     }
 
+    private void OpenQueenTab()
+    {
+        queenClick.RemoveManipulator(assignQueen);
+        selectingQueen = true;
+        queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+        player.OpenTab(0, player.open1, true, this);
+    }
+
     private void OnMove(PointerMoveEvent e)
     {
         CurrentHover = null;
@@ -387,6 +438,60 @@ public class Hive : MonoBehaviour
     private void OnExit(PointerLeaveEvent e)
     {
         CurrentHover = null;
+    }
+
+    private void OnQueenMove(PointerMoveEvent e)
+    {
+        if (queen.nullQueen)
+            return;
+
+        CustomVisualElement target = e.currentTarget as CustomVisualElement;
+        if (target.ContainsPoint(e.localPosition))
+        {
+            if (hoverTemplate == null)
+            {
+                hoverTemplate = queenUI.Instantiate();
+                document.rootVisualElement.Q("Base").Add(hoverTemplate);
+                VisualElement popup = hoverTemplate.Q<VisualElement>("Popup");
+
+                //Resolved style is NaN until updated
+                popup.RegisterCallback((GeometryChangedEvent evt) => {
+                    hoverTemplate.style.position = Position.Absolute;
+                    hoverTemplate.style.left = e.position.x - popup.resolvedStyle.width;
+                    hoverTemplate.style.top = Screen.height - e.position.y - popup.resolvedStyle.height / 1.5f;
+                });
+
+                popup.Q<VisualElement>("Icon").style.backgroundImage = queenHex.style.backgroundImage;
+                popup.Q<Label>("Species").text = "Species: " + queen.species;
+                popup.Q<Label>("Age").text = "Age: " + queen.age.ToString() + " Months";
+                popup.Q<Label>("Grade").text = "Grade: " + queen.grade.ToString() + "/10";
+                VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");
+                foreach (string s in queen.quirks)
+                {
+                    Label quirk = new Label();
+                    quirk.text = s;
+                    quirk.AddToClassList("Quirk");
+                    quirkContainer.Add(quirk);
+                }
+            }
+        }
+        else
+        {
+            if (hoverTemplate != null)
+            {
+                document.rootVisualElement.Q("Base").Remove(hoverTemplate);
+                hoverTemplate = null;
+            }
+        }
+    }
+
+    private void OnQueenExit(PointerLeaveEvent e)
+    {
+        if (hoverTemplate != null)
+        {
+            document.rootVisualElement.Q("Base").Remove(hoverTemplate);
+            hoverTemplate = null;
+        }
     }
     #endregion
 }

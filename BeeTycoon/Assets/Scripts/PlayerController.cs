@@ -43,6 +43,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private Texture2D testQueenSprite;
 
+    [SerializeField]
+    private VisualTreeAsset queenUI;
+
+    private TemplateContainer hoverTemplate;
+
     //[SerializeField]
     //private VisualTreeAsset hiveUI;
 
@@ -71,23 +76,35 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     StyleSheet itemStyle;
 
+    [SerializeField]
+    StyleSheet costStyle;
+
     int tabItemsPerRow = 8;
 
     private List<CustomVisualElement> tabHexes = new List<CustomVisualElement>();
     private List<CustomVisualElement> tabs = new List<CustomVisualElement>();
     private List<int> tabItemCounts = new List<int>();
     private CustomVisualElement activeTab;
+    private Label moneyLabel;
 
     private Manipulator close;
-    private Manipulator open1;
+    public Manipulator open1;
     private Manipulator open2;
     private Manipulator open3;
     private Manipulator open4;
+    private EventCallback<PointerUpEvent> endSelectionCallback;
+
+    private Hive selectedHive;
 
     private GameObject selectedItem = null;
     private Texture2D selectedItemSprite;
     private GameObject hoverObject = null;
     private bool hovering;
+
+    EventCallback<PointerMoveEvent, int> queenMoveCallback;
+    EventCallback<PointerLeaveEvent> queenExitCallback;
+
+    private int money = 50;
 
     public GameObject SelectedItem
     {
@@ -98,16 +115,32 @@ public class PlayerController : MonoBehaviour
             if (value == null)
             {
                 hovering = false;
+                if (hoverObject.tag != "Placeable")
+                    Destroy(hoverObject);
                 hoverObject = null;
             }
             else
             {
-                if (selectedItem.tag == "placeable")
+                if (selectedItem.tag == "Placeable")
                     hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
                 else
-                    hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.Euler(new Vector3(70,0,0)));
+                {
+                    hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.Euler(new Vector3(70, 0, 0)));
+                    if (selectedItem.tag == "Bee")
+                        StartCoroutine(hoverObject.GetComponent<QueenBee>().TransferStats(selectedItem.GetComponent<QueenBee>()));
+                }
                 hovering = true;
             }
+        }
+    }
+
+    public int Money
+    {
+        get { return money; }
+        set
+        {
+            money = value;
+            moneyLabel.text = "$" + money;
         }
     }
 
@@ -116,12 +149,15 @@ public class PlayerController : MonoBehaviour
     {
         root = ui.rootVisualElement;
         left = root.Q<VisualElement>("Left");
+        moneyLabel = root.Q<Label>("Money");
+        moneyLabel.text = "$" + money;
 
         close = new Clickable(close => CloseTab());
-        open1 = new Clickable(open => OpenTab(0, open1));
-        open2 = new Clickable(open => OpenTab(1, open2));
-        open3 = new Clickable(open => OpenTab(2, open3));
-        open4 = new Clickable(open => OpenTab(3, open4));
+        open1 = new Clickable(open => OpenTab(0, open1, false));
+        open2 = new Clickable(open => OpenTab(1, open2, false));
+        open3 = new Clickable(open => OpenTab(2, open3, false));
+        open4 = new Clickable(open => OpenTab(3, open4, false));
+        endSelectionCallback = new EventCallback<PointerUpEvent>(EndQueenSelection);
 
         tab1 = root.Q<CustomVisualElement>("tab1");
         tab1.AddManipulator(open1);
@@ -136,20 +172,10 @@ public class PlayerController : MonoBehaviour
         tab4.AddManipulator(open4);
         tabs.Add(tab4);
 
-        tabItemCounts.Add(tab1ItemCount);
-        tabItemCounts.Add(tab2ItemCount);
-        tabItemCounts.Add(tab3ItemCount);
-        tabItemCounts.Add(tab4ItemCount);
+        RefreshMenuLists();
 
-        spriteList.Add(beeSprites);
-        spriteList.Add(flowerSprites);
-        spriteList.Add(flowerSprites);
-        spriteList.Add(flowerSprites);
-
-        objectList.Add(beeObjectList);
-        objectList.Add(flowerObjectList);
-        objectList.Add(flowerObjectList);
-        objectList.Add(flowerObjectList);
+        queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
+        queenMoveCallback = new EventCallback<PointerMoveEvent, int>(OnQueenMove);
     }
 
     // Update is called once per frame
@@ -167,7 +193,7 @@ public class PlayerController : MonoBehaviour
         }
         if (Input.GetKeyDown(KeyCode.UpArrow))
         {
-            AddQueen();
+            StartCoroutine(AddQueen());
         }
         if (Input.GetKeyDown(KeyCode.DownArrow))
         {
@@ -181,8 +207,6 @@ public class PlayerController : MonoBehaviour
                 Destroy(hoverObject);
                 SelectedItem = null;
             }
-            else if (activeUI != null)
-                CloseHiveUI();
             else
                 CloseTab();
         }
@@ -232,8 +256,10 @@ public class PlayerController : MonoBehaviour
                             hives.Add(h);
                             h.x = (int)t.transform.position.x;
                             h.y = (int)t.transform.position.z;
+                            h.placed = true;
                         }
                         SelectedItem = null;
+                        return;
                     }
                 }
             }
@@ -241,15 +267,21 @@ public class PlayerController : MonoBehaviour
             {
                 if (hiveHit.collider.gameObject.TryGetComponent<Hive>(out Hive h))
                 {
-                    Debug.Log("hive clicked");
                     if (hoverObject.tag != "Placeable")
                     {
                         if (hoverObject.TryGetComponent(out QueenBee queen))
                         {
-                            Debug.Log("queen set");
                             h.Populate(queen, selectedItemSprite);
+                            Money -= hoverObject.GetComponent<Cost>().Price;
+                            beeObjectList.Remove(SelectedItem);
+                            beeSprites.Remove(selectedItemSprite);
                         }
                         Destroy(hoverObject);
+                        SelectedItem = null;
+                        selectedItemSprite = null;
+                        tab1ItemCount--;
+                        RefreshMenuLists();
+                        OpenTab(0, open1, false);
                     }
                 }
             }
@@ -257,12 +289,19 @@ public class PlayerController : MonoBehaviour
     }
 
     #region Hex Tab Menus
-    private void OpenTab(int num, Manipulator open)
+    public void OpenTab(int num, Manipulator open, bool fromHive, Hive hive = null)
     {
         //Close any open tabs
         if (activeTab != null)
         {
             CloseTab();
+        }
+
+        if (fromHive)
+        {
+            selectedHive = hive;
+            foreach (CustomVisualElement t in tabs)
+                t.RegisterCallback(endSelectionCallback);
         }
 
         CustomVisualElement tab = tabs[num];
@@ -274,7 +313,7 @@ public class PlayerController : MonoBehaviour
         activeTab = tab;
         tab.AddManipulator(close);
         tab.RemoveManipulator(open);
-        
+
         //Grey out other tabs, highlight clicked tab
         foreach (CustomVisualElement t in tabs)
         {
@@ -287,7 +326,7 @@ public class PlayerController : MonoBehaviour
         //Separate calculations for first item of each row
         if (items != 0)
         {
-            SpawnTopHex(num);
+            SpawnTopHex(num, fromHive);
             itemsInRow++;
         }
 
@@ -295,7 +334,7 @@ public class PlayerController : MonoBehaviour
             return;
 
         //Create hex items that belong to that tab
-        for (int i = 0; i < items - 1; i++)
+        for (int i = 1; i < items; i++)
         {
             //hex to be added
             CustomVisualElement hex = new CustomVisualElement();
@@ -324,11 +363,28 @@ public class PlayerController : MonoBehaviour
             VisualElement icon = new VisualElement();
             icon.styleSheets.Add(itemStyle);
             icon.style.backgroundImage = spriteList[num][i];
+            //Add Cost label to each hex item
+            Label costLabel = new Label();
+            costLabel.styleSheets.Add(costStyle);
+            int cost = objectList[num][i].GetComponent<Cost>().Price;
+            costLabel.text = "$" + cost;
+
             int list = num; //For some reason, when the clickable event is triggered, it goes back to find
             int item = i; //what num and i are equal to retroactivly. This causes index out of bounds. Store values as ints to avoid.
             Texture2D sprite = spriteList[num][i];
-            hex.AddManipulator(new Clickable(e => SelectItem(objectList[list][item], sprite)));
+            if (!fromHive)
+                hex.AddManipulator(new Clickable(e => SelectItem(objectList[list][item], sprite, cost)));
+            else
+                hex.AddManipulator(new Clickable(e => SelectHive(objectList[list][item], sprite, cost, hive)));
+
+            if (num == 0)
+            {
+                QueenBee queen = objectList[num][i].GetComponent<QueenBee>();
+                hex.RegisterCallback(queenMoveCallback, item);
+                hex.RegisterCallback(queenExitCallback);
+            }
             hex.Add(icon);
+            hex.Add(costLabel);
             itemsInRow++;
 
             //Start a new row when end of the row is reached.
@@ -340,7 +396,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void SpawnTopHex(int num)
+    private void SpawnTopHex(int num, bool fromHive)
     {
         CustomVisualElement starterHex = new CustomVisualElement();
         starterHex.styleSheets.Add(tabStyle);
@@ -357,11 +413,58 @@ public class PlayerController : MonoBehaviour
         VisualElement icon = new VisualElement();
         icon.styleSheets.Add(itemStyle);
         icon.style.backgroundImage = spriteList[num][0];
-        starterHex.AddManipulator(new Clickable(e => SelectItem(objectList[num][0], spriteList[num][0])));
+        Label costLabel = new Label();
+        costLabel.styleSheets.Add(costStyle);
+        int cost = objectList[num][0].GetComponent<Cost>().Price;
+        costLabel.text = "$" + cost;
+
+        if (!fromHive)
+            starterHex.AddManipulator(new Clickable(e => SelectItem(objectList[num][0], spriteList[num][0], cost)));
+        else
+            starterHex.AddManipulator(new Clickable(e => SelectHive(objectList[num][0], spriteList[num][0], cost, selectedHive)));
+        if (num == 0)
+        {
+            QueenBee queen = objectList[num][0].GetComponent<QueenBee>();
+            starterHex.RegisterCallback(queenMoveCallback, 0);
+            starterHex.RegisterCallback(queenExitCallback);
+        }
         starterHex.Add(icon);
+        starterHex.Add(costLabel);
     }
 
-    private void CloseTab()
+    private void RefreshMenuLists()
+    {
+        CloseTab();
+        tabItemCounts.Clear();
+        spriteList.Clear();
+        objectList.Clear();
+
+        tabItemCounts.Add(tab1ItemCount);
+        tabItemCounts.Add(tab2ItemCount);
+        tabItemCounts.Add(tab3ItemCount);
+        tabItemCounts.Add(tab4ItemCount);
+
+        spriteList.Add(beeSprites);
+        spriteList.Add(flowerSprites);
+        spriteList.Add(flowerSprites);
+        spriteList.Add(flowerSprites);
+
+        objectList.Add(beeObjectList);
+        objectList.Add(flowerObjectList);
+        objectList.Add(flowerObjectList);
+        objectList.Add(flowerObjectList);
+    }
+
+    private void EndQueenSelection(PointerUpEvent e)
+    {
+        foreach (CustomVisualElement tab in tabs)
+            tab.UnregisterCallback(endSelectionCallback);
+        selectedHive.queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = selectedHive.lightTint;
+        selectedHive.selectingQueen = false;
+        selectedHive.queenClick.AddManipulator(selectedHive.assignQueen);
+    }
+
+    public void CloseTab()
     {
         if (activeTab == null)
             return;
@@ -388,25 +491,112 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void SelectItem(GameObject item, Texture2D sprite)
+    private void SelectItem(GameObject item, Texture2D sprite, int cost)
     {
+        if (money < cost)
+            return;
+
         SelectedItem = item;
         selectedItemSprite = sprite;
+    }
+
+    private void SelectHive(GameObject item, Texture2D sprite, int cost, Hive hive)
+    {
+        if (money < cost)
+            return;
+
+        Money -= cost;
+        hive.Populate(item.GetComponent<QueenBee>(), sprite);
+        if (hoverTemplate != null)
+        {
+            ui.rootVisualElement.Q("Base").Remove(hoverTemplate);
+            hoverTemplate = null;
+        }
+        CloseTab();
+    }
+
+    private void OnQueenMove(PointerMoveEvent e, int num)
+    {
+        QueenBee queen = objectList[0][num].GetComponent<QueenBee>();
+        Texture2D sprite = spriteList[0][num];
+
+        CustomVisualElement target = e.currentTarget as CustomVisualElement;
+        if (target.ContainsPoint(e.localPosition))
+        {
+            if (hoverTemplate == null)
+            {
+                hoverTemplate = queenUI.Instantiate();
+                ui.rootVisualElement.Q("Base").Add(hoverTemplate);
+                VisualElement popup = hoverTemplate.Q<VisualElement>("Popup");
+
+                //Resolved style is NaN until updated
+                popup.RegisterCallback((GeometryChangedEvent evt) => {
+                    hoverTemplate.style.position = Position.Absolute;
+                    hoverTemplate.style.left = e.position.x;
+                    hoverTemplate.style.top = e.position.y - popup.resolvedStyle.height / 2f;
+                    //Make sure the popup isn't off-screen
+                    if (e.position.y - popup.resolvedStyle.height / 2f < 0)
+                    {
+                        hoverTemplate.style.top = 0;
+                    }
+                    else if (e.position.y + popup.resolvedStyle.height - popup.resolvedStyle.height / 2f > Screen.height)
+                    {
+                        hoverTemplate.style.bottom = Screen.height;
+                        hoverTemplate.style.top = Screen.height - popup.resolvedStyle.height;
+                    }
+                });
+
+                popup.Q<VisualElement>("Icon").style.backgroundImage = sprite;
+                popup.Q<Label>("Species").text = "Species: " + queen.species;
+                popup.Q<Label>("Age").text = "Age: " + queen.age.ToString() + " Months";
+                popup.Q<Label>("Grade").text = "Grade: " + queen.grade.ToString() + "/10";
+                VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");
+                foreach (string s in queen.quirks)
+                {
+                    Label quirk = new Label();
+                    quirk.text = s;
+                    quirk.AddToClassList("Quirk");
+                    quirkContainer.Add(quirk);
+                }
+            }
+        }
+        else
+        {
+            if (hoverTemplate != null)
+            {
+                ui.rootVisualElement.Q("Base").Remove(hoverTemplate);
+                hoverTemplate = null;
+            }
+        }
+    }
+
+    private void OnQueenExit(PointerLeaveEvent e)
+    {
+        if (hoverTemplate != null)
+        {
+            ui.rootVisualElement.Q("Base").Remove(hoverTemplate);
+            hoverTemplate = null;
+        }
     }
     #endregion
 
     public void OpenHiveUI(TemplateContainer template, VisualTreeAsset hiveUI, Hive hive)
     {
+        if (selectedItem != null)
+            return;
+
         //Check to see if the same hive is being clicked to close the hiveUI
         bool reclicked = false;
         if (activeUI == template && activeUI != null)
             reclicked = true;
 
         if (activeUI != null)
-            CloseHiveUI();
+            CloseHiveUI(hive);
 
         if (reclicked)
             return;
+
+        hive.isOpen = true;
 
         if (template == null)
         {
@@ -414,6 +604,7 @@ public class PlayerController : MonoBehaviour
             template.style.top = 0f;
             template.style.left = 0f;
             template.style.scale = new StyleScale(new Scale(new Vector3(0.8f, 0.8f, 1)));
+            template.style.position = Position.Absolute;
         }
 
         ui.rootVisualElement.Q("Right").Add(template);
@@ -422,22 +613,28 @@ public class PlayerController : MonoBehaviour
         activeUI = template;
     }
 
-    public void CloseHiveUI()
+    public void CloseHiveUI(Hive hive)
     {
+        if (activeUI == null)
+            return;
+
         ui.rootVisualElement.Q("Right").Remove(activeUI);
         activeUI = null;
+        hive.isOpen = false;
     }
 
-    private void AddQueen()
+    //Coroutine, otherwise price label is $0 when added to the hex item list
+    private IEnumerator AddQueen()
     {
-        beeObjectList.Add(testQueen);
+        beeObjectList.Add(Instantiate(testQueen, new Vector3(-100, -100, -100), Quaternion.identity));
         beeSprites.Add(testQueenSprite);
+        yield return new WaitUntil(() => beeObjectList[beeObjectList.Count - 1].GetComponent<Cost>().Price != 0);
         tab1ItemCount++;
         tabItemCounts[0] = tab1ItemCount;
         if (activeTab == tab1)
         {
-            CloseTab();
-            OpenTab(0, open1);
+            RefreshMenuLists();
+            OpenTab(0, open1, false);
         }
     }
 

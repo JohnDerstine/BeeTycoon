@@ -120,6 +120,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hiveUI: {fileID: 9197481963319205126, guid: fc2d44516520a4e47ac454e4bfa3e3cb, type: 3}
+  queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
   empty: 1
   x: 0
   y: 0
@@ -135,9 +136,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d68c34758b5837f4092b6f602e9c645b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  nullQueen: 0
+  nullQueen: 1
   productionMult: 0
   constructionMult: 0
   collectionMult: 0
   resilienceMult: 0
   aggressivnessMult: 0
+  species: 
+  age: 0
+  grade: 0
+  quirks: []

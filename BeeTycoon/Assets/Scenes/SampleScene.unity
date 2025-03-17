@@ -560,6 +560,50 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1005663707
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1005663709}
+  - component: {fileID: 1005663708}
+  m_Layer: 0
+  m_Name: UnlockTracker
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1005663708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1005663707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec5580a6a7b695f4a83614e42f9208f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1005663709
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1005663707}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 26.34833, y: -9.245755, z: 34.316708}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1465352562
 GameObject:
   m_ObjectHideFlags: 0
@@ -676,9 +720,11 @@ MonoBehaviour:
   honey: {fileID: 21300000, guid: 878be5b2dbe6ff241a20eab578abc40d, type: 3}
   testQueen: {fileID: 6447290488066576997, guid: e59ceae1d5e160344a08b67d62f9d88e, type: 3}
   testQueenSprite: {fileID: 2800000, guid: 95d9997ccce6aa046898a9e8bd880124, type: 3}
+  queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
   hex: {fileID: 2800000, guid: 38522a5f81ab10a4392ffed8ef29445d, type: 3}
   tabStyle: {fileID: 7433441132597879392, guid: db82af968aa77354d90ac85bca8ba754, type: 3}
   itemStyle: {fileID: 7433441132597879392, guid: bdf693ba0f0048f4583b9bb0b085768b, type: 3}
+  costStyle: {fileID: 7433441132597879392, guid: 24b5367f1a29d884cbfe6b7a485461d5, type: 3}
 --- !u!4 &1759206123
 Transform:
   m_ObjectHideFlags: 0
@@ -751,3 +797,4 @@ SceneRoots:
   - {fileID: 235671687}
   - {fileID: 1465352565}
   - {fileID: 2020842570}
+  - {fileID: 1005663709}
