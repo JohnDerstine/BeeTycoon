@@ -26,8 +26,8 @@ public class GameController : MonoBehaviour
         {
             if (value == GameStates.Start)
             {
-                List<int> choiceList = new List<int>() { 3, 2, 2, 2 };
-                //StartCoroutine(choices.GiveChoice(choiceList, true));
+                List<int> choiceList = new List<int>() { 3 };
+                StartCoroutine(choices.GiveChoice(choiceList, true));
             }
         }
     }

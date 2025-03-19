@@ -12,6 +12,7 @@ public class UnlockTracker : MonoBehaviour
         {"Carniolan", false}
     };
 
+    //Add negative quirks that are opposite of 5 base
     public Dictionary<string, bool> quirks = new Dictionary<string, bool>()
     {
         {"Industrious", true},
@@ -19,5 +20,14 @@ public class UnlockTracker : MonoBehaviour
         {"Territorial", true},
         {"Rugged", true},
         {"Agile", true}
+    };
+
+    public Dictionary<string, string> quirkDescriptions = new Dictionary<string, string>()
+    {
+        {"Industrious", "This coloney is 50% more efficient at building comb"},
+        {"Greedy", "This coloney is 50% more efficient at producing honey"},
+        {"Territorial", "This coloney is 50% better at fighting pests and invaders"},
+        {"Rugged", "This coloney is 50% more resistant disease"},
+        {"Agile", "This coloney is 50% more efficient at collecting nectar"}
     };
 }

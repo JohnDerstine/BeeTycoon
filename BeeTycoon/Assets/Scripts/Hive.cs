@@ -470,7 +470,7 @@ public class Hive : MonoBehaviour
                 {
                     Label quirk = new Label();
                     quirk.text = s;
-                    quirk.AddToClassList("Quirk");
+                    quirk.AddToClassList("Quirk2");
                     quirkContainer.Add(quirk);
                 }
             }
