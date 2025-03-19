@@ -238,12 +238,14 @@ public class PlayerController : MonoBehaviour
         PanCamera();
     }
 
+    //Check for user clicks on various GameObjects or when an object from the hex menu is selected
     private void checkForClick()
     {
         if (Input.GetMouseButtonDown(0))
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
+            //If a tile is clicked while holding a placeable object, place the object
             if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
             {
                 if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
@@ -265,6 +267,7 @@ public class PlayerController : MonoBehaviour
             }
             if (Physics.Raycast(ray, out var hiveHit, 1000, LayerMask.GetMask("Hive")))
             {
+                //If a hive is clicked with an item, apply the item's effect
                 if (hiveHit.collider.gameObject.TryGetComponent<Hive>(out Hive h))
                 {
                     if (hoverObject.tag != "Placeable")
@@ -396,8 +399,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    //Spawn the top hex of the Hex tab menu
+    //This is different from all the other hexes because each hex bases their position
+    //off the previous hex. This isn't possible for the first hex
     private void SpawnTopHex(int num, bool fromHive)
     {
+        //styling
         CustomVisualElement starterHex = new CustomVisualElement();
         starterHex.styleSheets.Add(tabStyle);
         float itemTop = tab1.resolvedStyle.top;
@@ -418,6 +425,7 @@ public class PlayerController : MonoBehaviour
         int cost = objectList[num][0].GetComponent<Cost>().Price;
         costLabel.text = "$" + cost;
 
+        //Add manipulators and callbacks
         if (!fromHive)
             starterHex.AddManipulator(new Clickable(e => SelectItem(objectList[num][0], spriteList[num][0], cost)));
         else
@@ -432,6 +440,7 @@ public class PlayerController : MonoBehaviour
         starterHex.Add(costLabel);
     }
 
+    //This shouldn't be needed, but I've used it in case this is ever a problem. (Testing purposes)
     private void RefreshMenuLists()
     {
         CloseTab();
@@ -455,15 +464,7 @@ public class PlayerController : MonoBehaviour
         objectList.Add(flowerObjectList);
     }
 
-    private void EndQueenSelection(PointerUpEvent e)
-    {
-        foreach (CustomVisualElement tab in tabs)
-            tab.UnregisterCallback(endSelectionCallback);
-        selectedHive.queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = selectedHive.lightTint;
-        selectedHive.selectingQueen = false;
-        selectedHive.queenClick.AddManipulator(selectedHive.assignQueen);
-    }
-
+    //Close Tabs
     public void CloseTab()
     {
         if (activeTab == null)
@@ -477,6 +478,7 @@ public class PlayerController : MonoBehaviour
 
             activeTab.RemoveManipulator(close);
 
+            //Must check each case because the corresponding manipulator to open the tab must be readded
             if (activeTab == tab1)
                 activeTab.AddManipulator(open1);
             else if (activeTab == tab2)
@@ -491,6 +493,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    //Check to see if a queen was selected from the shop normally
     private void SelectItem(GameObject item, Texture2D sprite, int cost)
     {
         if (money < cost)
@@ -500,6 +503,7 @@ public class PlayerController : MonoBehaviour
         selectedItemSprite = sprite;
     }
 
+    //Check to see if a Queen was selected from the shop, after clicking on the HiveUI queen button
     private void SelectHive(GameObject item, Texture2D sprite, int cost, Hive hive)
     {
         if (money < cost)
@@ -515,6 +519,17 @@ public class PlayerController : MonoBehaviour
         CloseTab();
     }
 
+    //Cancel queen selection from HiveUI queen button
+    private void EndQueenSelection(PointerUpEvent e)
+    {
+        foreach (CustomVisualElement tab in tabs)
+            tab.UnregisterCallback(endSelectionCallback);
+        selectedHive.queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = selectedHive.lightTint;
+        selectedHive.selectingQueen = false;
+        selectedHive.queenClick.AddManipulator(selectedHive.assignQueen);
+    }
+
+    //Add hover template
     private void OnQueenMove(PointerMoveEvent e, int num)
     {
         QueenBee queen = objectList[0][num].GetComponent<QueenBee>();
@@ -546,6 +561,7 @@ public class PlayerController : MonoBehaviour
                     }
                 });
 
+                //Update tooltip text to reflect queen stats
                 popup.Q<VisualElement>("Icon").style.backgroundImage = sprite;
                 popup.Q<Label>("Species").text = "Species: " + queen.species;
                 popup.Q<Label>("Age").text = "Age: " + queen.age.ToString() + " Months";
@@ -570,6 +586,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    //Remove hover tooltip
     private void OnQueenExit(PointerLeaveEvent e)
     {
         if (hoverTemplate != null)
@@ -590,6 +607,7 @@ public class PlayerController : MonoBehaviour
         if (activeUI == template && activeUI != null)
             reclicked = true;
 
+        //Close any other open hive UI
         if (activeUI != null)
             CloseHiveUI(hive);
 
@@ -598,6 +616,7 @@ public class PlayerController : MonoBehaviour
 
         hive.isOpen = true;
 
+        //Setup template
         if (template == null)
         {
             template = hiveUI.Instantiate();
@@ -607,6 +626,7 @@ public class PlayerController : MonoBehaviour
             template.style.position = Position.Absolute;
         }
 
+        //Add template to the UI document and save the template through the hive
         ui.rootVisualElement.Q("Right").Add(template);
 
         hive.template = template;
@@ -631,7 +651,7 @@ public class PlayerController : MonoBehaviour
         else
             beeObjectList.Add(q.gameObject);
         beeSprites.Add(testQueenSprite);
-        yield return new WaitUntil(() => beeObjectList[beeObjectList.Count - 1].GetComponent<Cost>().Price != -1);
+        yield return new WaitForFixedUpdate(); //Wait for QueenBee fields to be filled
         tab1ItemCount++;
         tabItemCounts[0] = tab1ItemCount;
         if (activeTab == tab1)
