@@ -5,5 +5,5 @@ using UnityEngine;
 public class Cost : MonoBehaviour
 {
     [SerializeField]
-    public int Price;
+    public int Price = -1;
 }

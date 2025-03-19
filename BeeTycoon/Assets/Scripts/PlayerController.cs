@@ -624,11 +624,14 @@ public class PlayerController : MonoBehaviour
     }
 
     //Coroutine, otherwise price label is $0 when added to the hex item list
-    private IEnumerator AddQueen()
+    public IEnumerator AddQueen(QueenBee q = null)
     {
-        beeObjectList.Add(Instantiate(testQueen, new Vector3(-100, -100, -100), Quaternion.identity));
+        if (q == null)
+            beeObjectList.Add(Instantiate(testQueen, new Vector3(-100, -100, -100), Quaternion.identity));
+        else
+            beeObjectList.Add(q.gameObject);
         beeSprites.Add(testQueenSprite);
-        yield return new WaitUntil(() => beeObjectList[beeObjectList.Count - 1].GetComponent<Cost>().Price != 0);
+        yield return new WaitUntil(() => beeObjectList[beeObjectList.Count - 1].GetComponent<Cost>().Price != -1);
         tab1ItemCount++;
         tabItemCounts[0] = tab1ItemCount;
         if (activeTab == tab1)

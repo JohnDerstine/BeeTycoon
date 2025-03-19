@@ -18,6 +18,9 @@ public class QueenChooser : MonoBehaviour
     [SerializeField]
     private UIDocument document;
 
+    [SerializeField] 
+    private PlayerController player;
+
     [SerializeField]
     private GameObject queenPrefab;
 
@@ -45,6 +48,8 @@ public class QueenChooser : MonoBehaviour
     Color darkTint = new Color(0.8f, 0.8f, 0.8f, 1f);
     Color lightTint = Color.white;
 
+    private List<QueenBee> queenOptions = new List<QueenBee>();
+
     void Start()
     {
         root = document.rootVisualElement;
@@ -65,7 +70,8 @@ public class QueenChooser : MonoBehaviour
         for (int i = 0; i < choices.Count; i++)
         {
             StartCoroutine(SpawnChoices(choices[i], starter));
-            yield return new WaitUntil(() => !selectionActive);
+            yield return new WaitForFixedUpdate(); //Wait for selectionActive to be updated
+            yield return new WaitUntil(() => !selectionActive); //Wait for selectionActive to be false until spawning more choices
         }
 
         isChoosing = false;
@@ -73,12 +79,10 @@ public class QueenChooser : MonoBehaviour
 
     private IEnumerator SpawnChoices(int numChoices, bool starter)
     {
-        List<QueenBee> queens = new List<QueenBee>();
-
         for (int i = 0; i < numChoices; i++)
         {
             GameObject temp = Instantiate(queenPrefab, new Vector3(-100, -100, -100), Quaternion.identity);
-            queens.Add(temp.GetComponent<QueenBee>());
+            queenOptions.Add(temp.GetComponent<QueenBee>());
         }
         yield return new WaitForFixedUpdate();
 
@@ -87,6 +91,10 @@ public class QueenChooser : MonoBehaviour
         template.style.position = Position.Absolute;
         template.style.flexDirection = FlexDirection.Row;
         template.style.justifyContent = Justify.FlexStart;
+        container.style.justifyContent = Justify.SpaceAround;
+        template.Q<Label>("ChooseLabel").text = "Choose 1 of " + numChoices;
+        if (starter && numChoices == 2)
+            template.Q<Label>("Description").text = "This will be added to your shop";
 
         List<string> possibilites = new List<string>();
         foreach (KeyValuePair<string, bool> kvp in tracker.species)
@@ -100,19 +108,23 @@ public class QueenChooser : MonoBehaviour
             if (starter)
             {
                 int rand = Random.Range(0, possibilites.Count);
-                queens[i].species = possibilites[rand];
+                queenOptions[i].species = possibilites[rand];
                 possibilites.RemoveAt(rand);
+                if (numChoices == 3)
+                    queenOptions[i].GetComponent<Cost>().Price = 0;
             }
 
             TemplateContainer temp = queenUI.Instantiate();
             VisualElement popup = temp.Q<VisualElement>("Popup");
             popup.RegisterCallback(queenMoveCallback);
             popup.RegisterCallback(queenExitCallback);
+            int savedI = i;
+            popup.AddManipulator(new Clickable(e => SelectQueen(savedI)));
             temp.Q<VisualElement>("Icon").style.backgroundImage = queenSprite;
-            temp.Q<Label>("Species").text = "Species: " + queens[i].species;
-            temp.Q<Label>("Age").text = "Age: " + queens[i].age.ToString() + " Months";
-            temp.Q<Label>("Grade").text = "Grade: " + queens[i].grade.ToString() + "/10";
-            foreach (string s in queens[i].quirks)
+            temp.Q<Label>("Species").text = "Species: " + queenOptions[i].species;
+            temp.Q<Label>("Age").text = "Age: " + queenOptions[i].age.ToString() + " Months";
+            temp.Q<Label>("Grade").text = "Grade: " + queenOptions[i].grade.ToString() + "/10";
+            foreach (string s in queenOptions[i].quirks)
             {
                 Label quirk = new Label();
                 quirk.text = s;
@@ -125,6 +137,21 @@ public class QueenChooser : MonoBehaviour
         }
         document.rootVisualElement.Q<VisualElement>("Base").Add(template);
         selectionActive = true;
+    }
+
+    private void SelectQueen(int num)
+    {
+        selectionActive = false;
+        for (int i = 0; i < queenOptions.Count; i++)
+        {
+            if (i != num)
+                Destroy(queenOptions[i].gameObject);
+            else
+                StartCoroutine(player.AddQueen(queenOptions[i]));
+        }
+        queenOptions.Clear();
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
+        template = null;
     }
 
     private void OnQueenMove(PointerMoveEvent e)
