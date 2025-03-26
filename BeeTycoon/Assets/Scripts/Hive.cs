@@ -28,7 +28,7 @@ public class Hive : MonoBehaviour
     public TemplateContainer template;
     private TemplateContainer hoverTemplate;
     public bool empty = true;
-    public bool placed;
+    private bool placed;
 
     public int x;
     public int y;
@@ -98,6 +98,17 @@ public class Hive : MonoBehaviour
             size += value;
             popCap = popSizeCap * size;
             combCap = combSizeCap * size;
+        }
+    }
+
+    public bool Placed
+    {
+        get { return placed; }
+        set
+        {
+            placed = value;
+            if (value)
+                player.OpenHiveUI(template, hiveUI, this);
         }
     }
 
@@ -322,7 +333,11 @@ public class Hive : MonoBehaviour
             return;
 
         player.OpenHiveUI(template, hiveUI, this);
+        SetUpTemplate();
+    }
 
+    public void SetUpTemplate()
+    {
         if (harvestDict.Keys.Count == 0)
         {
             noHarvest = template.Q<Toggle>();

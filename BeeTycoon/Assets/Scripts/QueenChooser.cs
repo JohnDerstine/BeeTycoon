@@ -39,11 +39,14 @@ public class QueenChooser : MonoBehaviour
 
     private bool selectionActive;
 
+    private Label activeLabel;
+
     private VisualElement root;
+    private VisualElement container;
     EventCallback<PointerMoveEvent> queenMoveCallback;
     EventCallback<PointerLeaveEvent> queenExitCallback;
 
-    EventCallback<PointerEnterEvent> quirkEnterCallback;
+    EventCallback<PointerEnterEvent, string> quirkEnterCallback;
     EventCallback<PointerLeaveEvent> quirkExitCallback;
     Color darkTint = new Color(0.8f, 0.8f, 0.8f, 1f);
     Color lightTint = Color.white;
@@ -56,7 +59,7 @@ public class QueenChooser : MonoBehaviour
         queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
         queenMoveCallback = new EventCallback<PointerMoveEvent>(OnQueenMove);
         quirkExitCallback = new EventCallback<PointerLeaveEvent>(OnQuirkExit);
-        quirkEnterCallback = new EventCallback<PointerEnterEvent>(OnQuirkEnter);
+        quirkEnterCallback = new EventCallback<PointerEnterEvent, string>(OnQuirkEnter);
     }
 
     public IEnumerator GiveChoice(int choice, bool starter = false)
@@ -67,6 +70,13 @@ public class QueenChooser : MonoBehaviour
     public IEnumerator GiveChoice(List<int> choices, bool starter = true)
     {
         isChoosing = true;
+        template = choicesContainer.Instantiate();
+        container = template.Q<VisualElement>("Container");
+        template.style.position = Position.Absolute;
+        template.style.flexDirection = FlexDirection.Row;
+        template.style.justifyContent = Justify.FlexStart;
+        container.style.justifyContent = Justify.SpaceAround;
+        document.rootVisualElement.Q<VisualElement>("Base").Add(template);
         for (int i = 0; i < choices.Count; i++)
         {
             StartCoroutine(SpawnChoices(choices[i], starter));
@@ -74,6 +84,9 @@ public class QueenChooser : MonoBehaviour
             yield return new WaitUntil(() => !selectionActive); //Wait for selectionActive to be false until spawning more choices
         }
 
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
+        template = null;
+        container = null;
         isChoosing = false;
     }
 
@@ -85,13 +98,6 @@ public class QueenChooser : MonoBehaviour
             queenOptions.Add(temp.GetComponent<QueenBee>());
         }
         yield return new WaitForFixedUpdate();
-
-        template = choicesContainer.Instantiate();
-        VisualElement container = template.Q<VisualElement>("Container");
-        template.style.position = Position.Absolute;
-        template.style.flexDirection = FlexDirection.Row;
-        template.style.justifyContent = Justify.FlexStart;
-        container.style.justifyContent = Justify.SpaceAround;
         template.Q<Label>("ChooseLabel").text = "Choose 1 of " + numChoices;
         if (starter && numChoices == 2)
             template.Q<Label>("Description").text = "This will be added to your shop";
@@ -130,12 +136,11 @@ public class QueenChooser : MonoBehaviour
                 quirk.text = s;
                 quirk.AddToClassList("Quirk");
                 temp.Q<VisualElement>("QuirkContainer").Add(quirk);
-                quirk.RegisterCallback(quirkEnterCallback);
+                quirk.RegisterCallback(quirkEnterCallback, quirk.text);
                 quirk.RegisterCallback(quirkExitCallback);
             }
             container.Add(temp);
         }
-        document.rootVisualElement.Q<VisualElement>("Base").Add(template);
         selectionActive = true;
     }
 
@@ -150,8 +155,7 @@ public class QueenChooser : MonoBehaviour
                 StartCoroutine(player.AddQueen(queenOptions[i]));
         }
         queenOptions.Clear();
-        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
-        template = null;
+        document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }
 
     private void OnQueenMove(PointerMoveEvent e)
@@ -169,13 +173,26 @@ public class QueenChooser : MonoBehaviour
         target.style.unityBackgroundImageTintColor = darkTint;
     }
 
-    private void OnQuirkEnter(PointerEnterEvent e)
+    private void OnQuirkEnter(PointerEnterEvent e, string quirk)
     {
-        Debug.Log("Entered");
+        if (activeLabel != null)
+        {
+            document.rootVisualElement.Remove(activeLabel);
+            activeLabel = null;
+        }
+
+        activeLabel = new Label();
+        activeLabel.styleSheets.Add(descriptionStyle);
+        activeLabel.text = tracker.quirkDescriptions[quirk];
+        document.rootVisualElement.Add(activeLabel);
+        activeLabel.style.left = e.position.x;
+        activeLabel.style.top = e.position.y;
+        activeLabel.pickingMode = PickingMode.Ignore;
     }
 
     private void OnQuirkExit(PointerLeaveEvent e)
     {
-        Debug.Log("Exited");
+        document.rootVisualElement.Remove(activeLabel);
+        activeLabel = null;
     }
 }

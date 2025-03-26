@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Placeable
   - Bee
+  - Tool
   layers:
   - Default
   - TransparentFX

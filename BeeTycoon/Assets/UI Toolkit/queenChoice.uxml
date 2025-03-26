@@ -6,6 +6,6 @@
         <ui:Label tabindex="-1" text="Age:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Age" class="Statistic" />
         <ui:Label tabindex="-1" text="Grade:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Grade" class="Statistic" />
         <ui:Label tabindex="-1" text="Quirks:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Quirks" class="Statistic" />
-        <ui:VisualElement name="QuirkContainer" style="flex-grow: 0; flex-direction: row; top: 110px; flex-wrap: wrap; align-items: center; justify-content: center; padding-left: 50px; padding-right: 50px;" />
+        <ui:VisualElement name="QuirkContainer" style="flex-grow: 0; flex-direction: row; top: 110px; flex-wrap: wrap; align-items: center; justify-content: center; padding-left: 55px; padding-right: 55px;" />
     </CustomVisualElement>
 </ui:UXML>

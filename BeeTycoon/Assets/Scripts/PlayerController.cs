@@ -26,6 +26,18 @@ public class PlayerController : MonoBehaviour
     List<GameObject> beeObjectList = new List<GameObject>();
 
     [SerializeField]
+    List<Texture2D> toolSprites = new List<Texture2D>();
+
+    [SerializeField]
+    List<GameObject> toolObjectList = new List<GameObject>();
+
+    [SerializeField]
+    List<Texture2D> hiveSprites = new List<Texture2D>();
+
+    [SerializeField]
+    List<GameObject> hiveObjectList = new List<GameObject>();
+
+    [SerializeField]
     MapLoader map;
 
     [SerializeField]
@@ -63,8 +75,8 @@ public class PlayerController : MonoBehaviour
     private CustomVisualElement tab4;
 
     private int tab1ItemCount = 0;
-    private int tab2ItemCount = 4;
-    private int tab3ItemCount = 4;
+    private int tab2ItemCount = 6;
+    private int tab3ItemCount = 8;
     private int tab4ItemCount = 4;
 
     [SerializeField]
@@ -112,14 +124,14 @@ public class PlayerController : MonoBehaviour
         set
         {
             selectedItem = value;
-            if (value == null)
+            if (value == null && selectedItem != null)
             {
                 hovering = false;
                 if (hoverObject.tag != "Placeable")
                     Destroy(hoverObject);
                 hoverObject = null;
             }
-            else
+            else if (value != null)
             {
                 if (selectedItem.tag == "Placeable")
                     hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
@@ -181,12 +193,6 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            foreach (Hive h in hives)
-                h.UpdateHive();
-            honeyMarket.UpdateMarket();
-        }
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             map.GenerateFlowers();
@@ -258,7 +264,9 @@ public class PlayerController : MonoBehaviour
                             hives.Add(h);
                             h.x = (int)t.transform.position.x;
                             h.y = (int)t.transform.position.z;
-                            h.placed = true;
+                            SelectedItem = null;
+                            h.Placed = true;
+                            h.SetUpTemplate();
                         }
                         SelectedItem = null;
                         return;
@@ -289,6 +297,13 @@ public class PlayerController : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void OnTurnIncrement()
+    {
+        foreach (Hive h in hives)
+            h.UpdateHive();
+        honeyMarket.UpdateMarket();
     }
 
     #region Hex Tab Menus
@@ -362,30 +377,17 @@ public class PlayerController : MonoBehaviour
             left.Add(hex);
             tabHexes.Add(hex);
 
-            //Add Icon to each hex item
+            //Add Icon and Cost Label to each hex item
             VisualElement icon = new VisualElement();
-            icon.styleSheets.Add(itemStyle);
-            icon.style.backgroundImage = spriteList[num][i];
-            //Add Cost label to each hex item
             Label costLabel = new Label();
-            costLabel.styleSheets.Add(costStyle);
-            int cost = objectList[num][i].GetComponent<Cost>().Price;
-            costLabel.text = "$" + cost;
 
             int list = num; //For some reason, when the clickable event is triggered, it goes back to find
             int item = i; //what num and i are equal to retroactivly. This causes index out of bounds. Store values as ints to avoid.
+            int cost = SetHexImageObject(icon, costLabel, num, item);
             Texture2D sprite = spriteList[num][i];
-            if (!fromHive)
-                hex.AddManipulator(new Clickable(e => SelectItem(objectList[list][item], sprite, cost)));
-            else
-                hex.AddManipulator(new Clickable(e => SelectHive(objectList[list][item], sprite, cost, hive)));
 
-            if (num == 0)
-            {
-                QueenBee queen = objectList[num][i].GetComponent<QueenBee>();
-                hex.RegisterCallback(queenMoveCallback, item);
-                hex.RegisterCallback(queenExitCallback);
-            }
+            AddHexManipulators(hex, fromHive, list, item, cost);
+
             hex.Add(icon);
             hex.Add(costLabel);
             itemsInRow++;
@@ -418,26 +420,45 @@ public class PlayerController : MonoBehaviour
         tabHexes.Add(starterHex);
 
         VisualElement icon = new VisualElement();
-        icon.styleSheets.Add(itemStyle);
-        icon.style.backgroundImage = spriteList[num][0];
         Label costLabel = new Label();
-        costLabel.styleSheets.Add(costStyle);
-        int cost = objectList[num][0].GetComponent<Cost>().Price;
-        costLabel.text = "$" + cost;
+        int cost = SetHexImageObject(icon, costLabel, num, 0);
 
         //Add manipulators and callbacks
-        if (!fromHive)
-            starterHex.AddManipulator(new Clickable(e => SelectItem(objectList[num][0], spriteList[num][0], cost)));
-        else
-            starterHex.AddManipulator(new Clickable(e => SelectHive(objectList[num][0], spriteList[num][0], cost, selectedHive)));
-        if (num == 0)
-        {
-            QueenBee queen = objectList[num][0].GetComponent<QueenBee>();
-            starterHex.RegisterCallback(queenMoveCallback, 0);
-            starterHex.RegisterCallback(queenExitCallback);
-        }
+        AddHexManipulators(starterHex, fromHive, num, 0, cost);
+
         starterHex.Add(icon);
         starterHex.Add(costLabel);
+    }
+
+    private int SetHexImageObject(VisualElement icon, Label costLabel, int num, int index)
+    {
+        Debug.Log(objectList[num][index].GetComponent<Cost>().Purchased);
+        icon.styleSheets.Add(itemStyle);
+        icon.style.backgroundImage = spriteList[num][index];
+        costLabel.styleSheets.Add(costStyle);
+        int cost = objectList[num][index].GetComponent<Cost>().Price;
+        if (num == 2 && objectList[num][index].GetComponent<Cost>().Purchased)
+        {
+            costLabel.text = "Purchased";
+            return 0;
+        }
+        costLabel.text = "$" + cost;
+        return cost;
+    }
+
+    private void AddHexManipulators(CustomVisualElement hex, bool fromHive, int num, int index, int cost)
+    {
+        if (!fromHive)
+            hex.AddManipulator(new Clickable(e => SelectItem(objectList[num][index], spriteList[num][index], cost)));
+        else
+            hex.AddManipulator(new Clickable(e => SelectHive(objectList[num][index], spriteList[num][index], cost, selectedHive)));
+
+        if (num == 0)
+        {
+            QueenBee queen = objectList[num][index].GetComponent<QueenBee>();
+            hex.RegisterCallback(queenMoveCallback, 0);
+            hex.RegisterCallback(queenExitCallback);
+        }
     }
 
     //This shouldn't be needed, but I've used it in case this is ever a problem. (Testing purposes)
@@ -454,13 +475,13 @@ public class PlayerController : MonoBehaviour
         tabItemCounts.Add(tab4ItemCount);
 
         spriteList.Add(beeSprites);
-        spriteList.Add(flowerSprites);
-        spriteList.Add(flowerSprites);
+        spriteList.Add(toolSprites);
+        spriteList.Add(hiveSprites);
         spriteList.Add(flowerSprites);
 
         objectList.Add(beeObjectList);
-        objectList.Add(flowerObjectList);
-        objectList.Add(flowerObjectList);
+        objectList.Add(toolObjectList);
+        objectList.Add(hiveObjectList);
         objectList.Add(flowerObjectList);
     }
 
@@ -498,9 +519,17 @@ public class PlayerController : MonoBehaviour
     {
         if (money < cost)
             return;
-
-        SelectedItem = item;
-        selectedItemSprite = sprite;
+        if (item.tag != "Tool")
+        {
+            SelectedItem = item;
+            selectedItemSprite = sprite;
+        }
+        else
+        {
+            item.GetComponent<Cost>().Purchased = true;
+            RefreshMenuLists();
+            OpenTab(2, open3, false);
+        }
     }
 
     //Check to see if a Queen was selected from the shop, after clicking on the HiveUI queen button
@@ -571,7 +600,7 @@ public class PlayerController : MonoBehaviour
                 {
                     Label quirk = new Label();
                     quirk.text = s;
-                    quirk.AddToClassList("Quirk");
+                    quirk.AddToClassList("Quirk2");
                     quirkContainer.Add(quirk);
                 }
             }

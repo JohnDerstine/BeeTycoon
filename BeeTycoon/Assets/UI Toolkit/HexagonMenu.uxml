@@ -18,7 +18,11 @@
             <ui:VisualElement name="MoneyContainer" style="flex-grow: 1; flex-basis: 10%; flex-direction: row-reverse;">
                 <ui:Label tabindex="-1" text="$" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Money" style="flex-direction: column; color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 32px; margin-right: 50px; margin-top: 10px;" />
             </ui:VisualElement>
-            <ui:VisualElement style="flex-grow: 1; flex-basis: 90%;" />
+            <ui:VisualElement picking-mode="Ignore" style="flex-grow: 1; flex-basis: 90%; justify-content: flex-end; align-self: auto;">
+                <CustomVisualElement name="TurnButton" style="align-self: flex-end; left: 180px; top: 200px; width: 600px; height: 400px; background-image: url(&quot;project://database/Assets/Sprites/90DegreeSVG.png?fileID=2800000&amp;guid=fe48eee471c66a144bf8d344cf385c84&amp;type=3#90DegreeSVG&quot;); justify-content: flex-start; align-items: center;">
+                    <ui:Label tabindex="-1" text="Next&#10;Turn" parse-escape-sequences="true" display-tooltip-when-elided="true" picking-mode="Ignore" style="color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 48px; -unity-text-align: middle-center; top: 60px; left: -20px;" />
+                </CustomVisualElement>
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

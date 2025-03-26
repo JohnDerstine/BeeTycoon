@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 851952654681010231}
   - component: {fileID: 2622136574119187639}
   - component: {fileID: -2763537602791666697}
+  - component: {fileID: -6374463908099276077}
   m_Layer: 7
   m_Name: Hive
   m_TagString: Placeable
@@ -124,6 +125,8 @@ MonoBehaviour:
   empty: 1
   x: 0
   y: 0
+  selectingQueen: 0
+  isOpen: 0
 --- !u!114 &-2763537602791666697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137,6 +140,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   nullQueen: 1
+  finishedGenerating: 0
   productionMult: 0
   constructionMult: 0
   collectionMult: 0
@@ -146,3 +150,16 @@ MonoBehaviour:
   age: 0
   grade: 0
   quirks: []
+--- !u!114 &-6374463908099276077
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8631668248818954614}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b79fae608ad4e7743bd3693731eaa849, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Price: 10
