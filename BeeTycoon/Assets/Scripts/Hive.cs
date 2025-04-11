@@ -18,6 +18,7 @@ public class Hive : MonoBehaviour
     private UIDocument document;
     private MapLoader map;
     private PlayerController player;
+    private GameController game;
 
     [SerializeField]
     private VisualTreeAsset hiveUI;
@@ -38,8 +39,8 @@ public class Hive : MonoBehaviour
     private float popCap = 20000; //what population the hive can currently house
     private float popSizeCap = 20000; //how much each level of size changes the popCap
     private float comb = 0;
-    private float combCap = 8; //how much honey the hive can currently store
-    private float combSizeCap = 8; //how much each level of size changes the honeyCap
+    private int combCap = 8; //how much honey the hive can currently store
+    private int combSizeCap = 8; //how much each level of size changes the honeyCap
     private float nectar;
     private float honey;
 
@@ -89,6 +90,11 @@ public class Hive : MonoBehaviour
     public Clickable assignQueen;
     public bool selectingQueen;
     public bool isOpen;
+    public bool hasSugar;
+    public bool hasReducer;
+    public bool hasRepellant;
+    public bool hasInsulation;
+    private string condition = "Healthy";
 
     public int Size
     {
@@ -98,6 +104,17 @@ public class Hive : MonoBehaviour
             size += value;
             popCap = popSizeCap * size;
             combCap = combSizeCap * size;
+            UpdateMeters();
+        }
+    }
+
+    public int Frames
+    {
+        get { return combSizeCap; }
+        set
+        {
+            combSizeCap++;
+            combCap += size;
         }
     }
 
@@ -109,6 +126,25 @@ public class Hive : MonoBehaviour
             placed = value;
             if (value)
                 player.OpenHiveUI(template, hiveUI, this);
+        }
+    }
+
+    public string Condition
+    {
+        get { return condition; }
+        set
+        {
+            condition = value;
+
+            switch (value)
+            {
+                case "Mites":
+                    hiveEfficency /= 2;
+                    break;
+                case "Mice":
+                    construction /= 2;
+                    break;
+            }
         }
     }
 
@@ -142,6 +178,7 @@ public class Hive : MonoBehaviour
     {
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+        game = GameObject.Find("GameController").GetComponent<GameController>();
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         queen = GetComponent<QueenBee>();
 
@@ -229,6 +266,8 @@ public class Hive : MonoBehaviour
         CalcHoneyStats();
         if (template != null)
             UpdateMeters();
+
+        TryAddCondition();
     }
 
     private void GetFlowerRatios()
@@ -303,13 +342,13 @@ public class Hive : MonoBehaviour
             nectarHover.Q<Label>("Percent").text = (Mathf.Round(collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100 * 10) / 10.0f).ToString() + "%";
         else
             nectarHover.Q<Label>("Percent").text = "0%";
-        nectarHover.Q<Label>("Flat").text = (collection * queen.collectionMult * hiveEfficency).ToString();
+        nectarHover.Q<Label>("Flat").text = (Mathf.Round(collection * queen.collectionMult * hiveEfficency * 10) / 10.0f).ToString();
 
         honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (combCap * storagePerComb) * 100 * 10) / 10.0f).ToString() + "%";
-        honeyHover.Q<Label>("Flat").text = (production * queen.productionMult * hiveEfficency).ToString();
+        honeyHover.Q<Label>("Flat").text = (Mathf.Round(production * queen.productionMult * hiveEfficency * 10) / 10.0f).ToString();
 
-        combHover.Q<Label>("Percent").text = (Mathf.Round(comb / combCap) * 100 * 10 / 10.0f).ToString() + "%";
-        combHover.Q<Label>("Flat").text = (construction * queen.constructionMult * hiveEfficency).ToString();
+        combHover.Q<Label>("Percent").text = (Mathf.Round(comb / combCap * 100) * 10 / 10.0f).ToString() + "%";
+        combHover.Q<Label>("Flat").text = (Mathf.Round(construction * queen.constructionMult * hiveEfficency * 10) / 10.0f).ToString();
     }
 
     public void Populate(QueenBee q, Texture2D sprite = null)
@@ -325,6 +364,57 @@ public class Hive : MonoBehaviour
             queenHex.style.backgroundImage = sprite;
     }
 
+    private void TryAddCondition()
+    {
+        if (Condition == "Healthy")
+        {
+            int rand = Random.Range(0, 20);
+            if (!hasRepellant)
+            {
+                if (rand <= 4)
+                    Condition = "Mites";
+            }
+            else if (!hasReducer)
+            {
+                if (rand <= 2)
+                    Condition = "Mice";
+            }
+            else if (game.Season == "Winter" && honey <= population / 16)
+            {
+                Condition = "Starving";
+            }
+            else if (game.Season == "Winter" && !hasInsulation && population <= popCap / (Size * 2))
+            {
+                Condition = "Freezing";
+            }
+            else
+            {
+                Condition = "Healthy";
+            }
+        }
+    }
+
+    public void CureCondition()
+    {
+        switch (Condition)
+        {
+            case "Mites":
+                hiveEfficency *= 2;
+                break;
+            case "Mice":
+                construction *= 2;
+                break;
+        }
+
+        Condition = "Healthy";
+    }
+
+    public void AddSugarWater()
+    {
+        collection *= 1.5f;
+        hasSugar = true;
+    }
+
     #region UI
 
     void OnMouseDown()
@@ -332,6 +422,12 @@ public class Hive : MonoBehaviour
         if (!placed)
             return;
 
+        player.OpenHiveUI(template, hiveUI, this);
+        SetUpTemplate();
+    }
+
+    public void childOnMouseDown()
+    {
         player.OpenHiveUI(template, hiveUI, this);
         SetUpTemplate();
     }

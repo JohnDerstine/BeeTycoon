@@ -29,6 +29,12 @@ public class GameController : MonoBehaviour
     private int turn = 0;
     private VisualElement root;
     private CustomVisualElement turnButton;
+    private string season = "spring";
+
+    public string Season
+    {
+        get { return season; }
+    }
 
     public GameStates CurrentState
     {

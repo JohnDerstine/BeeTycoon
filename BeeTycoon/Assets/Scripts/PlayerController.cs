@@ -133,7 +133,7 @@ public class PlayerController : MonoBehaviour
             }
             else if (value != null)
             {
-                if (selectedItem.tag == "Placeable")
+                if (selectedItem.tag == "Placeable" || selectedItem.tag == "Super")
                     hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
                 else
                 {
@@ -286,13 +286,70 @@ public class PlayerController : MonoBehaviour
                             Money -= hoverObject.GetComponent<Cost>().Price;
                             beeObjectList.Remove(SelectedItem);
                             beeSprites.Remove(selectedItemSprite);
+                            tab1ItemCount--;
+                            RefreshMenuLists();
+                            OpenTab(0, open1, false);
                         }
+                        else if (hoverObject.tag == "Super")
+                        {
+                            if (h.Size < 5)
+                            {
+                                Money -= hoverObject.GetComponent<Cost>().Price;
+                                h.Size = 1;
+                                GameObject newLevel = Instantiate(hoverObject, h.gameObject.transform);
+                                newLevel.transform.localPosition = new Vector3(0, h.Size - 1, 0);
+                            }
+                        }
+                        else if (hoverObject.tag == "Frame")
+                        {
+                            if (h.Frames < 10)
+                            {
+                                Money -= hoverObject.GetComponent<Cost>().Price;
+                                h.Frames++;
+                            }
+                        }
+                        else if (hoverObject.tag == "Sugar")
+                        {
+                            if (!h.hasSugar)
+                            {
+                                Money -= hoverObject.GetComponent<Cost>().Price;
+                                h.AddSugarWater();
+                            }
+                        }
+                        else if (hoverObject.tag == "Reducer")
+                        {
+                            if (!h.hasReducer)
+                            {
+                                Debug.Log("TODO");
+                            }
+                        }
+                        else if (hoverObject.tag == "Stand")
+                        {
+                            if (!h.hasReducer)
+                            {
+                                Debug.Log("TODO");
+                            }
+                        }
+                        else if (hoverObject.tag == "Repellant")
+                        {
+                            if (!h.hasRepellant)
+                            {
+                                h.hasRepellant = true;
+                                if (h.Condition == "Mites")
+                                    h.CureCondition();
+                            }
+                        }
+                        else if (hoverObject.tag == "Insulation")
+                        {
+                            if (!h.hasReducer)
+                            {
+                                Debug.Log("TODO");
+                            }
+                        }
+
                         Destroy(hoverObject);
                         SelectedItem = null;
                         selectedItemSprite = null;
-                        tab1ItemCount--;
-                        RefreshMenuLists();
-                        OpenTab(0, open1, false);
                     }
                 }
             }
@@ -384,7 +441,6 @@ public class PlayerController : MonoBehaviour
             int list = num; //For some reason, when the clickable event is triggered, it goes back to find
             int item = i; //what num and i are equal to retroactivly. This causes index out of bounds. Store values as ints to avoid.
             int cost = SetHexImageObject(icon, costLabel, num, item);
-            Texture2D sprite = spriteList[num][i];
 
             AddHexManipulators(hex, fromHive, list, item, cost);
 
@@ -432,7 +488,6 @@ public class PlayerController : MonoBehaviour
 
     private int SetHexImageObject(VisualElement icon, Label costLabel, int num, int index)
     {
-        Debug.Log(objectList[num][index].GetComponent<Cost>().Purchased);
         icon.styleSheets.Add(itemStyle);
         icon.style.backgroundImage = spriteList[num][index];
         costLabel.styleSheets.Add(costStyle);
@@ -456,7 +511,7 @@ public class PlayerController : MonoBehaviour
         if (num == 0)
         {
             QueenBee queen = objectList[num][index].GetComponent<QueenBee>();
-            hex.RegisterCallback(queenMoveCallback, 0);
+            hex.RegisterCallback(queenMoveCallback, index);
             hex.RegisterCallback(queenExitCallback);
         }
     }
