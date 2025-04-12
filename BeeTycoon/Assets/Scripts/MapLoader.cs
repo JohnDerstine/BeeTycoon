@@ -25,15 +25,24 @@ public class MapLoader : MonoBehaviour
     [SerializeField]
     private GameObject mushroom;
 
+    public Dictionary<FlowerType, float> nectarGains = new Dictionary<FlowerType, float>();
+
     void Start()
     {
         tiles = new Tile[mapWidth, mapHeight];
         GeneratePlot();
+
+        var values = System.Enum.GetValues(typeof(FlowerType));
+        foreach (var v in values)
+        {
+            FlowerType fType = (FlowerType)v;
+            nectarGains.Add(fType, 0);
+        }
     }
 
     void Update()
     {
-        
+
     }
 
     private void GeneratePlot()
@@ -45,9 +54,9 @@ public class MapLoader : MonoBehaviour
                 //if (i >= mapWidth / 4f && i < 3 * (mapWidth / 4f)
                 //    && j >= mapHeight / 4f && j < 3 * (mapHeight / 4f))
                 //{
-                    GameObject temp = Instantiate(grassTile, new Vector3(i * 2, 0, j * 2), Quaternion.identity);
-                    tiles[i, j] = temp.GetComponent<Tile>();
-                    tiles[i, j].Flower = (FlowerType)0;
+                GameObject temp = Instantiate(grassTile, new Vector3(i * 2, 0, j * 2), Quaternion.identity);
+                tiles[i, j] = temp.GetComponent<Tile>();
+                tiles[i, j].Flower = (FlowerType)0;
                 //}
                 //else
                 //{
@@ -122,10 +131,201 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                int rand = Random.Range(1, 5);
-                tiles[i, j].Flower = (FlowerType)rand;
-                Instantiate(flowerList[rand], tiles[i, j].transform.position, Quaternion.identity);
+                if (Random.Range(0, 1) == 0) //0
+                {
+                    int rand = Random.Range(1, 2); //5
+                    tiles[i, j].Flower = (FlowerType)rand;
+                    Instantiate(flowerList[rand], tiles[i, j].transform.position, Quaternion.identity);
+                }
             }
         }
+    }
+
+    public int GetFlowerCount()
+    {
+        int count = 0;
+        for (int i = 0; i < mapWidth; i++)
+            for (int j = 0; j < mapHeight; j++)
+                if (tiles[i, j].Flower != FlowerType.Empty)
+                    count++;
+        return count;
+    }
+
+    public void GetNectarGains()
+    {
+        //Reset all values to 0
+        ResetNectarGains();
+
+        GetCloverValue(); //Make these methois coroutines
+        GetAlfalfaValue();
+        GetBuckwheatValue();
+        GetFireweedValue();
+        GetGoldenrodValue();
+    }
+
+    private void ResetNectarGains()
+    {
+        var values = System.Enum.GetValues(typeof(FlowerType));
+        foreach (var v in values)
+        {
+            FlowerType fType = (FlowerType)v;
+            nectarGains[fType] = 0;
+        }
+    }
+
+    private void GetCloverValue()
+    {
+        int count = 0;
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                if (tiles[i, j].Flower == FlowerType.Clover)
+                {
+                    count += GetAdjacentFlowers(FlowerType.Clover, i, j);
+                    count += GetDiagonalFlowers(FlowerType.Clover, i, j);
+                }
+                //Print tempCount to the screen above tile.
+                //Animate flower
+            }
+        }
+        nectarGains[FlowerType.Clover] = count * 2;
+    }
+
+    private void GetAlfalfaValue()
+    {
+        int count = 0;
+        for (int i = 0; i < mapWidth; i++)
+            for (int j = 0; j < mapHeight; j++)
+                if (tiles[i, j].Flower == FlowerType.Alfalfa)
+                    count += GetAdjacentFlowers(FlowerType.Alfalfa, i, j);
+        nectarGains[FlowerType.Alfalfa] = count * 5;
+    }
+
+    private void GetBuckwheatValue()
+    {
+        int count = 0;
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                if (tiles[i, j].Flower == FlowerType.Buckwheat)
+                {
+                    count += 10;
+                    ConvertAdjacentFlowers(FlowerType.Buckwheat, i, j, 2);
+                }
+            }
+        }
+        nectarGains[FlowerType.Buckwheat] = count;
+    }
+
+    private void GetFireweedValue()
+    {
+        int count = 0;
+        for (int i = 0; i < mapWidth; i++)
+            for (int j = 0; j < mapHeight; j++)
+                if (tiles[i, j].Flower == FlowerType.Fireweed)
+                    count += 5;
+        nectarGains[FlowerType.Fireweed] = count;
+    }
+
+    private void GetGoldenrodValue()
+    {
+        int count = 0;
+        for (int i = 0; i < mapWidth; i++)
+            for (int j = 0; j < mapHeight; j++)
+                if (tiles[i, j].Flower == FlowerType.Goldenrod)
+                    count += 20;
+        nectarGains[FlowerType.Goldenrod] = count;
+    }
+
+    private void ConvertAdjacentFlowers(FlowerType fType, int i, int j, int chance)
+    {
+        if (i + 1 < mapWidth && tiles[i + 1, j].Flower != FlowerType.Empty)
+            if (Random.Range(0, chance) == 0)
+                tiles[i + 1, j].Flower = fType;
+        if (i - 1 >= 0 && tiles[i - 1, j].Flower != FlowerType.Empty)
+            if (Random.Range(0, chance) == 0)
+                tiles[i + 1, j].Flower = fType;
+        if (j + 1 < mapHeight && tiles[i, j + 1].Flower != FlowerType.Empty)
+            if (Random.Range(0, chance) == 0)
+                tiles[i + 1, j].Flower = fType;
+        if (j - 1 >= 0 && tiles[i, j - 1].Flower != FlowerType.Empty)
+            if (Random.Range(0, chance) == 0)
+                tiles[i + 1, j].Flower = fType;
+    }
+
+    private void SpreadToAdjacentTiles(FlowerType fType, int i, int j, int chance)
+    {
+        if (i + 1 < mapWidth && tiles[i + 1, j].Flower == FlowerType.Empty)
+            if (Random.Range(0, chance) == 0)
+                tiles[i + 1, j].Flower = fType;
+        if (i - 1 >= 0 && tiles[i - 1, j].Flower == FlowerType.Empty)
+            if (Random.Range(0, chance) == 0)
+                tiles[i + 1, j].Flower = fType;
+        if (j + 1 < mapHeight && tiles[i, j + 1].Flower == FlowerType.Empty)
+            if (Random.Range(0, chance) == 0)
+                tiles[i + 1, j].Flower = fType;
+        if (j - 1 >= 0 && tiles[i, j - 1].Flower == FlowerType.Empty)
+            if (Random.Range(0, chance) == 0)
+                tiles[i + 1, j].Flower = fType;
+    }
+
+    private int GetAdjacentFlowers(FlowerType fType, int i, int j)
+    {
+        int count = 0;
+        if (i + 1 < mapWidth && tiles[i + 1, j].Flower == fType)
+            count++;
+        if (i - 1 >= 0 && tiles[i - 1, j].Flower == fType)
+            count++;
+        if (j + 1 < mapHeight && tiles[i, j + 1].Flower == fType)
+            count++;
+        if (j - 1 >= 0 && tiles[i, j - 1].Flower == fType)
+            count++;
+        return count;
+    }
+
+    private int GetDiagonalFlowers(FlowerType fType, int i, int j)
+    {
+        int count = 0;
+        if (i + 1 < mapWidth && j + 1 < mapHeight && tiles[i + 1, j + 1].Flower == fType)
+            count++;
+        if (i + 1 < mapWidth && j - 1 >= 0 && tiles[i + 1, j - 1].Flower == fType)
+            count++;
+        if (i - 1 >= 0 && j + 1 < mapHeight && tiles[i - 1, j + 1].Flower == fType)
+            count++;
+        if (i - 1 >= 0 && j - 1 >= 0 && tiles[i - 1, j - 1].Flower == fType)
+            count++;
+        return count;
+    }
+
+    public void AdvanceFlowerStates()
+    {
+        AdvanceFireweed();
+        AdvanceBuckwheat();
+    }
+
+    private void AdvanceFireweed()
+    {
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                if (tiles[i, j].Flower == FlowerType.Fireweed)
+                {
+                    SpreadToAdjacentTiles(FlowerType.Fireweed, i, j, 1);
+                    if (GetAdjacentFlowers(FlowerType.Empty, i, j) >= 3)
+                        tiles[i, j].Flower = FlowerType.Empty;
+                }
+            }
+        }
+    }
+
+    private void AdvanceBuckwheat()
+    {
+        for (int i = 0; i < mapWidth; i++)
+            for (int j = 0; j < mapHeight; j++)
+                if (tiles[i, j].Flower == FlowerType.Fireweed)
+                    ConvertAdjacentFlowers(FlowerType.Buckwheat, i, j, 2);
     }
 }

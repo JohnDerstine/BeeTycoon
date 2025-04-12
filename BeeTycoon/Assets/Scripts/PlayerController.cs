@@ -9,6 +9,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     GameObject hivePrefab;
 
+    [SerializeField]
+    GameController game;
+
     List<List<Texture2D>> spriteList = new List<List<Texture2D>>();
 
     List<List<GameObject>> objectList = new List<List<GameObject>>();

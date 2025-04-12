@@ -742,6 +742,7 @@ MonoBehaviour:
   choices: {fileID: 1725566955}
   document: {fileID: 963779133}
   player: {fileID: 1759206122}
+  map: {fileID: 483168842}
 --- !u!1 &1759206121
 GameObject:
   m_ObjectHideFlags: 0
@@ -772,6 +773,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hivePrefab: {fileID: 8631668248818954614, guid: 6be2c764dfd44a34a86830c656730b1a, type: 3}
+  game: {fileID: 0}
   flowerSprites:
   - {fileID: 2800000, guid: 76429e278b12a0f46a56fba1d235c8e1, type: 3}
   - {fileID: 2800000, guid: 76429e278b12a0f46a56fba1d235c8e1, type: 3}

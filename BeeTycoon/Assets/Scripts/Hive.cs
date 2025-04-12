@@ -10,7 +10,9 @@ public enum FlowerType
     Clover = 1,
     Alfalfa = 2,
     Blossom = 3,
-    Buckwheat = 4
+    Buckwheat = 4,
+    Fireweed = 5,
+    Goldenrod = 6
 }
 
 public class Hive : MonoBehaviour
@@ -52,9 +54,9 @@ public class Hive : MonoBehaviour
     private float hiveEfficency; //Efficiency is a multiplier to all the hive's actions and is calculated by the population / total population * size of the hive
 
     //stats 0-1f
-    private float production = 400;
-    private float construction = 0.5f;
-    private float collection = 400;
+    private float production = 1600; // was 400
+    private float construction = 1f; //was 0.5f
+    private float collection = 800; //was 400
     private float resilience = 1;
     private float aggressivness = 1;
 
@@ -236,7 +238,9 @@ public class Hive : MonoBehaviour
         honey += possibleHoney;
         nectar -= possibleHoney;
 
-        float possibleNectar = collection * queen.collectionMult * hiveEfficency;
+        float nectarGain = map.nectarGains.Values.Sum();
+        //Debug.Log(queen.collectionMult);
+        float possibleNectar = nectarGain * queen.collectionMult * hiveEfficency; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
         if (possibleNectar + nectar + honey > storage)
             possibleNectar = storage - (nectar + honey);
         nectar += possibleNectar;
@@ -252,10 +256,10 @@ public class Hive : MonoBehaviour
         hiveEfficency = (population / popCap) * size;
 
         //Debug.Log("Population: " + population);
-        Debug.Log("Comb: " + comb);
-        Debug.Log("Nectar: " + nectar);
-        Debug.Log("Honey: " + honey);
-        Debug.Log("Storage: " + storage);
+        //Debug.Log("Comb: " + comb);
+        //Debug.Log("Nectar: " + nectar);
+        //Debug.Log("Honey: " + honey);
+        //Debug.Log("Storage: " + storage);
         //Debug.Log("Efficiency: " + hiveEfficency);
 
         //reset flowerValues
@@ -328,8 +332,9 @@ public class Hive : MonoBehaviour
     private void UpdateMeters()
     {
         combMeter.value = (comb / combCap * 100) + 8;
+        float nectarGain = map.nectarGains.Values.Sum();
         if (production * queen.productionMult * hiveEfficency != 0)
-            nectarMeter.value = (collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100) + 8;
+            nectarMeter.value = (nectarGain * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100) + 8;// * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f) 
         else
             nectarMeter.value = 8;
         honeyMeter.value = (honey / (combCap * storagePerComb) * 100) + 8;
@@ -338,11 +343,12 @@ public class Hive : MonoBehaviour
 
     private void UpdateMeterLabels()
     {
+        float nectarGain = map.nectarGains.Values.Sum();
         if (production * queen.productionMult * hiveEfficency != 0)
-            nectarHover.Q<Label>("Percent").text = (Mathf.Round(collection * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100 * 10) / 10.0f).ToString() + "%";
+            nectarHover.Q<Label>("Percent").text = (Mathf.Round(nectarGain * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100 * 10) / 10.0f).ToString() + "%"; //* Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f
         else
             nectarHover.Q<Label>("Percent").text = "0%";
-        nectarHover.Q<Label>("Flat").text = (Mathf.Round(collection * queen.collectionMult * hiveEfficency * 10) / 10.0f).ToString();
+        nectarHover.Q<Label>("Flat").text = (Mathf.Round(nectarGain * queen.collectionMult * hiveEfficency  * 10) / 10.0f).ToString(); //*Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
 
         honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (combCap * storagePerComb) * 100 * 10) / 10.0f).ToString() + "%";
         honeyHover.Q<Label>("Flat").text = (Mathf.Round(production * queen.productionMult * hiveEfficency * 10) / 10.0f).ToString();

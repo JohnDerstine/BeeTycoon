@@ -12,6 +12,9 @@ public class Tile : MonoBehaviour
         set
         {
             flower = value;
+            Debug.Log("Todo"); //Destroy flower gameobject
+            if (value != FlowerType.Empty)
+                Debug.Log("Todo"); //Instatiate flower above tile
         }
     }
 }

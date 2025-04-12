@@ -50,7 +50,18 @@ public class QueenBee : MonoBehaviour
         age = Random.Range(0, 37);
         grade = Mathf.Round((productionMult + constructionMult + collectionMult + resilienceMult + aggressivnessMult) * 10) / 10.0f;
 
-        int quirkNum = Random.Range(0, 4);
+        int quirkNum;
+        int quirkRand = Random.Range(0, 10);
+        Debug.Log(quirkRand);
+        if (quirkRand <= 2)
+            quirkNum = 0;
+        else if (quirkRand > 2 && quirkRand <= 6)
+            quirkNum = 1;
+        else if (quirkRand > 6 && quirkRand <= 8)
+            quirkNum = 2;
+        else
+            quirkNum = 3;
+            
         possibilites.Clear();
         foreach (KeyValuePair<string, bool> kvp in unlocks.quirks)
         {
