@@ -72,7 +72,7 @@ public class GameController : MonoBehaviour
         CurrentState = GameStates.Start;
         root = document.rootVisualElement;
         turnButton = root.Q<CustomVisualElement>("TurnButton");
-        turnButton.AddManipulator(new Clickable(e => NextTurn()));
+        turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
     }
 
     void Update()
@@ -82,8 +82,9 @@ public class GameController : MonoBehaviour
 
     private IEnumerator NextTurn()
     {
+        Debug.Log("next turn");
         turn++;
-        map.GetNectarGains();
+        StartCoroutine(map.GetNectarGains());
 
         yield return new WaitWhile(() => !nectarCollectingFinished);
         nectarCollectingFinished = false;

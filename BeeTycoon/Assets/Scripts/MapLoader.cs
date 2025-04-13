@@ -5,7 +5,10 @@ using UnityEngine;
 public class MapLoader : MonoBehaviour
 {
     [SerializeField]
-    private List<GameObject> flowerList;
+    public List<GameObject> flowerList;
+
+    [SerializeField]
+    public GameController game;
 
     public int mapWidth = 10;
     public int mapHeight = 10;
@@ -26,6 +29,8 @@ public class MapLoader : MonoBehaviour
     private GameObject mushroom;
 
     public Dictionary<FlowerType, float> nectarGains = new Dictionary<FlowerType, float>();
+
+    private bool cloverCalced;
 
     void Start()
     {
@@ -56,6 +61,7 @@ public class MapLoader : MonoBehaviour
                 //{
                 GameObject temp = Instantiate(grassTile, new Vector3(i * 2, 0, j * 2), Quaternion.identity);
                 tiles[i, j] = temp.GetComponent<Tile>();
+                tiles[i, j].map = this;
                 tiles[i, j].Flower = (FlowerType)0;
                 //}
                 //else
@@ -131,11 +137,10 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                if (Random.Range(0, 1) == 0) //0
+                if (Random.Range(0, 3) == 0)
                 {
                     int rand = Random.Range(1, 2); //5
                     tiles[i, j].Flower = (FlowerType)rand;
-                    Instantiate(flowerList[rand], tiles[i, j].transform.position, Quaternion.identity);
                 }
             }
         }
@@ -151,16 +156,22 @@ public class MapLoader : MonoBehaviour
         return count;
     }
 
-    public void GetNectarGains()
+    public IEnumerator GetNectarGains()
     {
         //Reset all values to 0
         ResetNectarGains();
 
-        GetCloverValue(); //Make these methois coroutines
+        StartCoroutine(GetCloverValue());
+        yield return new WaitWhile(() => !cloverCalced);
+        cloverCalced = false;
+        Debug.Log(cloverCalced);
+
         GetAlfalfaValue();
         GetBuckwheatValue();
         GetFireweedValue();
         GetGoldenrodValue();
+
+        game.nectarCollectingFinished = true;
     }
 
     private void ResetNectarGains()
@@ -173,23 +184,52 @@ public class MapLoader : MonoBehaviour
         }
     }
 
-    private void GetCloverValue()
+    private IEnumerator GetCloverValue()
     {
         int count = 0;
+        int animsPlayed = 0;
+        float duration = 0.05f;
         for (int i = 0; i < mapWidth; i++)
         {
             for (int j = 0; j < mapHeight; j++)
             {
+
                 if (tiles[i, j].Flower == FlowerType.Clover)
                 {
-                    count += GetAdjacentFlowers(FlowerType.Clover, i, j);
-                    count += GetDiagonalFlowers(FlowerType.Clover, i, j);
+                    List<Tile> adjTiles = GetAdjacentFlowers(FlowerType.Clover, i, j);
+                    List<Tile> diagTiles = GetDiagonalFlowers(FlowerType.Clover, i, j);
+
+                    count += adjTiles.Count;
+                    count += diagTiles.Count;
+                    //Print tempCount to the screen above tile.
+                    //Animate flower
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Clover, 1, duration));
+
+                    //Animate related flowers
+                    foreach (Tile t in adjTiles)
+                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration));
+                    foreach (Tile t in diagTiles)
+                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration));
+
+                    yield return new WaitWhile(() => !tiles[i, j].completed);
+                    tiles[i, j].completed = false;
+                    foreach (Tile t in adjTiles)
+                        t.completed = false;
+                    foreach (Tile t in diagTiles)
+                        t.completed = false;
+                    animsPlayed++;
                 }
-                //Print tempCount to the screen above tile.
-                //Animate flower
+                if (animsPlayed > 3)
+                {
+                    if (duration >= 0.01f)
+                        duration = duration * Mathf.Pow(1 - 0.05f, 1.1f);
+                    else
+                        duration = 0.01f;
+                }
             }
         }
         nectarGains[FlowerType.Clover] = count * 2;
+        cloverCalced = true;
     }
 
     private void GetAlfalfaValue()
@@ -198,7 +238,7 @@ public class MapLoader : MonoBehaviour
         for (int i = 0; i < mapWidth; i++)
             for (int j = 0; j < mapHeight; j++)
                 if (tiles[i, j].Flower == FlowerType.Alfalfa)
-                    count += GetAdjacentFlowers(FlowerType.Alfalfa, i, j);
+                    count += GetAdjacentFlowers(FlowerType.Alfalfa, i, j).Count;
         nectarGains[FlowerType.Alfalfa] = count * 5;
     }
 
@@ -271,38 +311,40 @@ public class MapLoader : MonoBehaviour
                 tiles[i + 1, j].Flower = fType;
     }
 
-    private int GetAdjacentFlowers(FlowerType fType, int i, int j)
+    private List<Tile> GetAdjacentFlowers(FlowerType fType, int i, int j)
     {
-        int count = 0;
+        List<Tile> adjTiles = new List<Tile>();
         if (i + 1 < mapWidth && tiles[i + 1, j].Flower == fType)
-            count++;
+            adjTiles.Add(tiles[i + 1, j]);
         if (i - 1 >= 0 && tiles[i - 1, j].Flower == fType)
-            count++;
+            adjTiles.Add(tiles[i - 1, j]);
         if (j + 1 < mapHeight && tiles[i, j + 1].Flower == fType)
-            count++;
+            adjTiles.Add(tiles[i, j + 1]);
         if (j - 1 >= 0 && tiles[i, j - 1].Flower == fType)
-            count++;
-        return count;
+            adjTiles.Add(tiles[i, j - 1]);
+        return adjTiles;
     }
 
-    private int GetDiagonalFlowers(FlowerType fType, int i, int j)
+    private List<Tile> GetDiagonalFlowers(FlowerType fType, int i, int j)
     {
-        int count = 0;
+        List<Tile> diagTiles = new List<Tile>();
         if (i + 1 < mapWidth && j + 1 < mapHeight && tiles[i + 1, j + 1].Flower == fType)
-            count++;
+            diagTiles.Add(tiles[i + 1, j + 1]);
         if (i + 1 < mapWidth && j - 1 >= 0 && tiles[i + 1, j - 1].Flower == fType)
-            count++;
+            diagTiles.Add(tiles[i + 1, j - 1]);
         if (i - 1 >= 0 && j + 1 < mapHeight && tiles[i - 1, j + 1].Flower == fType)
-            count++;
+            diagTiles.Add(tiles[i - 1, j + 1]);
         if (i - 1 >= 0 && j - 1 >= 0 && tiles[i - 1, j - 1].Flower == fType)
-            count++;
-        return count;
+            diagTiles.Add(tiles[i - 1, j - 1]);
+        return diagTiles;
     }
 
     public void AdvanceFlowerStates()
     {
         AdvanceFireweed();
         AdvanceBuckwheat();
+
+        game.flowerAdvanceFinished = true;
     }
 
     private void AdvanceFireweed()
@@ -314,7 +356,7 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Fireweed)
                 {
                     SpreadToAdjacentTiles(FlowerType.Fireweed, i, j, 1);
-                    if (GetAdjacentFlowers(FlowerType.Empty, i, j) >= 3)
+                    if (GetAdjacentFlowers(FlowerType.Empty, i, j).Count >= 3)
                         tiles[i, j].Flower = FlowerType.Empty;
                 }
             }
