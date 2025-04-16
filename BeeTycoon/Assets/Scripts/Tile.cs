@@ -22,6 +22,11 @@ public class Tile : MonoBehaviour
         }
     }
 
+    public GameObject FlowerObject
+    {
+        get { return flowerObject; }
+    }
+
     public IEnumerator Animate(FlowerType fType, float strength, float duration)
     {
         if (flower != fType)

@@ -10,6 +10,9 @@ public class MapLoader : MonoBehaviour
     [SerializeField]
     public GameController game;
 
+    [SerializeField]
+    private ResourcePopup popUp;
+
     public int mapWidth = 10;
     public int mapHeight = 10;
     private int foliageDensityMin = 5;
@@ -31,6 +34,7 @@ public class MapLoader : MonoBehaviour
     public Dictionary<FlowerType, float> nectarGains = new Dictionary<FlowerType, float>();
 
     private bool cloverCalced;
+    private bool alfalfaCalced;
 
     void Start()
     {
@@ -137,9 +141,9 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                if (Random.Range(0, 3) == 0)
+                if (Random.Range(0, 3) == 0) //3
                 {
-                    int rand = Random.Range(1, 2); //5
+                    int rand = Random.Range(2, 3); //2 - 7
                     tiles[i, j].Flower = (FlowerType)rand;
                 }
             }
@@ -164,9 +168,13 @@ public class MapLoader : MonoBehaviour
         StartCoroutine(GetCloverValue());
         yield return new WaitWhile(() => !cloverCalced);
         cloverCalced = false;
-        Debug.Log(cloverCalced);
 
-        GetAlfalfaValue();
+        StartCoroutine(GetAlfalfaValue());
+        yield return new WaitWhile(() => !alfalfaCalced);
+        alfalfaCalced = false;
+
+        Debug.Log("Alfalfa calced");
+
         GetBuckwheatValue();
         GetFireweedValue();
         GetGoldenrodValue();
@@ -204,6 +212,7 @@ public class MapLoader : MonoBehaviour
                     //Print tempCount to the screen above tile.
                     //Animate flower
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Clover, 1, duration));
+                    popUp.DisplayPopup(tiles[i,j].transform.position, (adjTiles.Count + diagTiles.Count) * 2, duration);
 
                     //Animate related flowers
                     foreach (Tile t in adjTiles)
@@ -219,32 +228,52 @@ public class MapLoader : MonoBehaviour
                         t.completed = false;
                     animsPlayed++;
                 }
-                if (animsPlayed > 3)
-                {
-                    if (duration >= 0.01f)
-                        duration = duration * Mathf.Pow(1 - 0.05f, 1.1f);
-                    else
-                        duration = 0.01f;
-                }
+                duration = DurationCalc(duration, animsPlayed);
             }
         }
         nectarGains[FlowerType.Clover] = count * 2;
         cloverCalced = true;
     }
 
-    private void GetAlfalfaValue()
+    private IEnumerator GetAlfalfaValue()
     {
         int count = 0;
+        int animsPlayed = 0;
+        float duration = 0.05f;
         for (int i = 0; i < mapWidth; i++)
+        {
             for (int j = 0; j < mapHeight; j++)
+            {
                 if (tiles[i, j].Flower == FlowerType.Alfalfa)
-                    count += GetAdjacentFlowers(FlowerType.Alfalfa, i, j).Count;
-        nectarGains[FlowerType.Alfalfa] = count * 5;
+                {
+                    List<Tile> diagTiles = GetDiagonalFlowers(FlowerType.Alfalfa, i, j);
+                    count += diagTiles.Count;
+
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Alfalfa, 1, duration));
+                    popUp.DisplayPopup(tiles[i, j].transform.position, diagTiles.Count * 7, duration);
+
+                    //Animate related flowers
+                    foreach (Tile t in diagTiles)
+                        StartCoroutine(t.Animate(FlowerType.Alfalfa, 0.3f, duration));
+
+                    yield return new WaitWhile(() => !tiles[i, j].completed);
+                    tiles[i, j].completed = false;
+                    foreach (Tile t in diagTiles)
+                        t.completed = false;
+                    animsPlayed++;
+                }
+                duration = DurationCalc(duration, animsPlayed);
+            }
+        }
+        nectarGains[FlowerType.Alfalfa] = count * 7;
+        alfalfaCalced = true;
     }
 
-    private void GetBuckwheatValue()
+    private IEnumerator GetBuckwheatValue()
     {
         int count = 0;
+        int animsPlayed = 0;
+        float duration = 0.05f;
         for (int i = 0; i < mapWidth; i++)
         {
             for (int j = 0; j < mapHeight; j++)
@@ -252,8 +281,14 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Buckwheat)
                 {
                     count += 10;
-                    ConvertAdjacentFlowers(FlowerType.Buckwheat, i, j, 2);
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Buckwheat, 1, duration));
+                    popUp.DisplayPopup(tiles[i, j].transform.position, 10, duration);
+
+                    yield return new WaitWhile(() => !tiles[i, j].completed);
+                    tiles[i, j].completed = false;
+                    animsPlayed++;
                 }
+                duration = DurationCalc(duration, animsPlayed);
             }
         }
         nectarGains[FlowerType.Buckwheat] = count;
@@ -337,6 +372,20 @@ public class MapLoader : MonoBehaviour
         if (i - 1 >= 0 && j - 1 >= 0 && tiles[i - 1, j - 1].Flower == fType)
             diagTiles.Add(tiles[i - 1, j - 1]);
         return diagTiles;
+    }
+
+    private float DurationCalc(float duration, int animsPlayed)
+    {
+        float newDuration = duration;
+        if (animsPlayed > 3)
+        {
+            if (duration >= 0.01f)
+                newDuration = duration * Mathf.Pow(1 - 0.05f, 1.1f);
+            else
+                newDuration = 0.01f;
+        }
+
+        return newDuration;
     }
 
     public void AdvanceFlowerStates()

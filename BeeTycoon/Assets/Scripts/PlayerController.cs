@@ -120,6 +120,7 @@ public class PlayerController : MonoBehaviour
     EventCallback<PointerLeaveEvent> queenExitCallback;
 
     private int money = 50;
+    public Dictionary<FlowerType, float> inventory = new Dictionary<FlowerType, float>();
 
     public GameObject SelectedItem
     {
@@ -191,6 +192,13 @@ public class PlayerController : MonoBehaviour
 
         queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
         queenMoveCallback = new EventCallback<PointerMoveEvent, int>(OnQueenMove);
+
+        var values = System.Enum.GetValues(typeof(FlowerType));
+        foreach (var v in values)
+        {
+            FlowerType fType = (FlowerType)v;
+            inventory.Add(fType, 0);
+        }
     }
 
     // Update is called once per frame
@@ -211,7 +219,11 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (SelectedItem != null)
+            if (honeyMarket.marketOpen)
+            {
+                honeyMarket.CloseMarket();
+            }
+            else if (SelectedItem != null)
             {
                 Destroy(hoverObject);
                 SelectedItem = null;
@@ -361,6 +373,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnTurnIncrement()
     {
+        Debug.Log("turn++");
         foreach (Hive h in hives)
             h.UpdateHive();
         honeyMarket.UpdateMarket();

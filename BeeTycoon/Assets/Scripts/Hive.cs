@@ -7,12 +7,13 @@ using UnityEngine.UIElements;
 public enum FlowerType
 {
     Empty = 0,
-    Clover = 1,
-    Alfalfa = 2,
-    Blossom = 3,
-    Buckwheat = 4,
-    Fireweed = 5,
-    Goldenrod = 6
+    Wildflower = 1,
+    Clover = 2,
+    Alfalfa = 3,
+    Goldenrod = 4,
+    Buckwheat = 5,
+    Fireweed = 6,
+    Blossom = 7
 }
 
 public class Hive : MonoBehaviour

@@ -1,0 +1,80 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/marketItem.uss?fileID=7433441132597879392&amp;guid=8d314e77deb5ecb43909adf9c24dd5e0&amp;type=3#marketItem" />
+    <ui:VisualElement name="Backdrop" style="flex-grow: 1; align-self: center; justify-content: center; width: 1920px; height: 1080px; background-color: rgba(0, 0, 0, 0.6);">
+        <ui:VisualElement name="Base" style="flex-grow: 0; background-color: rgb(116, 81, 45); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 10px; border-right-width: 10px; border-bottom-width: 10px; border-left-width: 10px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; width: 1000px; align-self: center; height: 1000px;">
+            <ui:VisualElement name="Title" style="flex-grow: 1; flex-basis: 15%; background-color: rgb(168, 110, 29); border-bottom-width: 8px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 0; border-bottom-left-radius: 0; justify-content: center;">
+                <ui:Label tabindex="-1" text="Honey Market" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 120px; -unity-font-style: bold; -unity-text-align: middle-center; -unity-text-outline-width: 4px; -unity-text-outline-color: rgb(0, 0, 0); color: rgb(226, 226, 226); padding-bottom: 10px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Market" style="flex-grow: 1; flex-basis: 55%; flex-direction: column; flex-wrap: nowrap; justify-content: space-around; align-self: auto; align-items: stretch; border-top-width: 6px; border-left-color: rgba(0, 0, 0, 0.58); border-right-color: rgba(0, 0, 0, 0.58); border-top-color: rgba(0, 0, 0, 0.58); border-bottom-color: rgba(0, 0, 0, 0.58); border-right-width: 6px; border-left-width: 6px;">
+                <ui:VisualElement name="Row1" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap; justify-content: center; margin-top: 50px;">
+                    <ui:VisualElement name="Wildflower" class="Item" style="flex-grow: 0; justify-content: space-around;">
+                        <ui:Label tabindex="-1" text="Wildflower" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" class="HoneyName" style="height: 20px;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Cost" class="Price" />
+                        <ui:VisualElement name="Icon" class="Icon" style="flex-grow: 0;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Change" class="Price" style="color: rgb(39, 132, 16);" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Clover" class="Item" style="flex-grow: 0; justify-content: space-around;">
+                        <ui:Label tabindex="-1" text="Clover" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" class="HoneyName" style="height: 20px;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Cost" class="Price" />
+                        <ui:VisualElement name="Icon" class="Icon" style="flex-grow: 0;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Change" class="Price" style="color: rgb(39, 132, 16);" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Alfalfa" class="Item" style="flex-grow: 0; justify-content: space-around;">
+                        <ui:Label tabindex="-1" text="Alfalfa" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" class="HoneyName" style="height: 20px;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Cost" class="Price" />
+                        <ui:VisualElement name="Icon" class="Icon" style="flex-grow: 0;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Change" class="Price" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Buckwheat" class="Item" style="flex-grow: 0; justify-content: space-around;">
+                        <ui:Label tabindex="-1" text="Buckwheat" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" class="HoneyName" style="height: 20px;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Cost" class="Price" />
+                        <ui:VisualElement name="Icon" class="Icon" style="flex-grow: 0;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Change" class="Price" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Fireweed" class="Item" style="flex-grow: 0; justify-content: space-around;">
+                        <ui:Label tabindex="-1" text="Fireweed" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" class="HoneyName" style="height: 20px;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Cost" class="Price" />
+                        <ui:VisualElement name="Icon" class="Icon" style="flex-grow: 0;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Change" class="Price" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+                <ui:VisualElement name="Row2" style="flex-grow: 1; flex-direction: row; flex-wrap: wrap; justify-content: center; margin-top: 40px;">
+                    <ui:VisualElement name="Goldenrod" class="Item" style="flex-grow: 0; justify-content: space-around;">
+                        <ui:Label tabindex="-1" text="Goldenrod" parse-escape-sequences="true" display-tooltip-when-elided="true" class="HoneyName" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Cost" class="Price" />
+                        <ui:VisualElement name="Icon" class="Icon" style="flex-grow: 0;" />
+                        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Change" class="Price" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Item" class="Item" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="?" parse-escape-sequences="true" display-tooltip-when-elided="true" class="HoneyName" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Item" class="Item" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="?" parse-escape-sequences="true" display-tooltip-when-elided="true" class="HoneyName" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Item" class="Item" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="?" parse-escape-sequences="true" display-tooltip-when-elided="true" class="HoneyName" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Item" class="Item" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="?" parse-escape-sequences="true" display-tooltip-when-elided="true" class="HoneyName" />
+                    </ui:VisualElement>
+                </ui:VisualElement>
+            </ui:VisualElement>
+            <ui:VisualElement name="Buttons" style="flex-grow: 1; flex-basis: 5%; flex-direction: row; justify-content: center; align-items: center; padding-top: 20px; border-right-width: 6px; border-left-width: 6px; border-left-color: rgba(0, 0, 0, 0.58); border-right-color: rgba(0, 0, 0, 0.58); border-top-color: rgba(0, 0, 0, 0.58); border-bottom-color: rgba(0, 0, 0, 0.58);">
+                <ui:Button text="Sell&#10;1 lb." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Sell1" class="Button" />
+                <ui:Button text="Sell&#10;10 lbs." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Sell10" class="Button" />
+                <ui:Button text="Sell&#10;50 lbs." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Sell50" class="Button" />
+                <ui:Label tabindex="-1" text="---" parse-escape-sequences="true" display-tooltip-when-elided="true" name="AmountLabel" style="width: 200px; height: 100px; background-color: rgb(140, 140, 140); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 4px; border-right-width: 4px; border-bottom-width: 4px; border-left-width: 4px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; -unity-text-align: middle-center; -unity-font-style: bold; font-size: 24px; color: rgb(255, 255, 255);" />
+                <ui:Button text="Buy&#10;1 lb." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Buy1" class="Button" />
+                <ui:Button text="Buy&#10;10 lbs." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Buy10" class="Button" />
+                <ui:Button text="Buy&#10;50 lbs." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Buy50" class="Button" />
+            </ui:VisualElement>
+            <ui:VisualElement name="Ratios" style="flex-grow: 1; flex-basis: 5%; flex-direction: row; padding-left: 0; padding-right: 0; align-self: center; align-items: center; width: 100%; justify-content: center; padding-bottom: 0; margin-bottom: 0; margin-top: 0; border-right-width: 6px; border-left-width: 6px; border-bottom-width: 6px; border-left-color: rgba(0, 0, 0, 0.58); border-right-color: rgba(0, 0, 0, 0.58); border-top-color: rgba(0, 0, 0, 0.58); border-bottom-color: rgba(0, 0, 0, 0.58); border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;">
+                <ui:VisualElement style="flex-grow: 0; flex-direction: row; width: 900px; align-self: center; align-items: center; justify-content: center;">
+                    <ui:VisualElement name="Low" style="flex-grow: 1; background-color: rgb(232, 108, 108); border-top-left-radius: 30px; border-bottom-left-radius: 30px; height: 30px; border-left-color: rgb(55, 55, 55); border-right-color: rgb(55, 55, 55); border-top-color: rgb(55, 55, 55); border-bottom-color: rgb(55, 55, 55); border-top-width: 4px; border-right-width: 4px; border-bottom-width: 4px; border-left-width: 4px;" />
+                    <ui:VisualElement name="Medium" style="flex-grow: 1; background-color: rgb(233, 246, 113); height: 30px; border-left-color: rgb(55, 55, 55); border-right-color: rgb(55, 55, 55); border-top-color: rgb(55, 55, 55); border-bottom-color: rgb(55, 55, 55); border-top-width: 4px; border-right-width: 0; border-bottom-width: 4px; border-left-width: 0;" />
+                    <ui:VisualElement name="High" style="flex-grow: 1; background-color: rgb(100, 195, 82); height: 30px; border-top-right-radius: 30px; border-bottom-right-radius: 30px; border-left-color: rgb(55, 55, 55); border-right-color: rgb(55, 55, 55); border-top-color: rgb(55, 55, 55); border-bottom-color: rgb(55, 55, 55); border-top-width: 4px; border-right-width: 4px; border-bottom-width: 4px; border-left-width: 4px;" />
+                </ui:VisualElement>
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
