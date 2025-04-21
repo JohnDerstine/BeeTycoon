@@ -45,6 +45,28 @@ public class HoneyMarket : MonoBehaviour
 
     Label amountLabel;
 
+    private const int totalBarWidth = 900;
+    private VisualElement lowBar;
+    private VisualElement mediumBar;
+    private VisualElement highBar;
+    private float lowWidth;
+    private float mediumWidth;
+    private float highWidth;
+    private bool lowSelected;
+    private bool mediumSelected;
+    private bool highSelected;
+
+
+    private VisualElement bar;
+    private EventCallback<PointerDownEvent> dragBracketCallback;
+    private bool draggingStart;
+    private bool draggingeEnd;
+
+    private VisualElement startBracket;
+    private VisualElement endBracket;
+    private float startBracketPos = -385;
+    private float endBracketPos = 385;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -68,6 +90,122 @@ public class HoneyMarket : MonoBehaviour
 
         ResetToBaseValue();
         UpdateMarket();
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonUp(0))
+        {
+            draggingeEnd = false;
+            draggingStart = false;
+
+            Debug.Log("Low: " + lowSelected);
+            Debug.Log("Medium: " + mediumSelected);
+            Debug.Log("High: " + highSelected);
+        }
+
+        if (draggingStart)
+        {
+            Vector2 pos = bar.WorldToLocal(Input.mousePosition);
+            if (pos.x <= lowBar.resolvedStyle.width / 2)
+                startBracketPos = (lowBar.resolvedStyle.left - totalBarWidth / 2) + 40;
+            else if (pos.x > lowBar.resolvedStyle.width / 2 && pos.x <= mediumBar.resolvedStyle.left + mediumBar.resolvedStyle.width / 2)
+                startBracketPos = lowBar.resolvedStyle.left + lowBar.resolvedStyle.width - totalBarWidth / 2;
+            else if (pos.x > mediumBar.resolvedStyle.left + mediumBar.resolvedStyle.width / 2 && pos.x <= highBar.resolvedStyle.left)
+                startBracketPos = highBar.resolvedStyle.left - totalBarWidth / 2;
+
+            if (endBracketPos > startBracketPos)
+            {
+                startBracket.style.left = startBracketPos + startBracket.resolvedStyle.width / 2;
+                SelectPurities();
+            }
+        }
+        else if (draggingeEnd)
+        {
+            Vector2 pos = bar.WorldToLocal(Input.mousePosition);
+            if (pos.x >= highBar.resolvedStyle.left + highBar.resolvedStyle.width / 2)
+                endBracketPos = totalBarWidth / 2 - 40;
+            else if (pos.x >= mediumBar.resolvedStyle.left + mediumBar.resolvedStyle.width / 2 && pos.x < highBar.resolvedStyle.left + highBar.resolvedStyle.width / 2)
+                endBracketPos = highBar.resolvedStyle.left - totalBarWidth / 2;
+            else if (pos.x >= lowBar.resolvedStyle.width / 2 && pos.x < mediumBar.resolvedStyle.left + mediumBar.resolvedStyle.width / 2)
+                endBracketPos = lowBar.resolvedStyle.left + lowBar.resolvedStyle.width - totalBarWidth / 2;
+
+            if (startBracketPos < endBracketPos)
+            {
+                endBracket.style.left = endBracketPos - endBracket.resolvedStyle.width / 2;
+                SelectPurities();
+            }
+        }
+    }
+
+    private IEnumerator AdjustBrackets()
+    {
+        yield return new WaitForFixedUpdate();
+        if (!lowSelected || !highSelected)
+        {
+            if (!lowSelected && !highSelected)
+            {
+                startBracketPos = lowBar.resolvedStyle.width - (totalBarWidth / 2);
+                endBracketPos = lowBar.resolvedStyle.width + mediumBar.resolvedStyle.width - (totalBarWidth / 2);
+                startBracket.style.left = startBracketPos + (startBracket.resolvedStyle.width / 2);
+                endBracket.style.left = endBracketPos - (endBracket.resolvedStyle.width / 2);
+            }
+            else if (!lowSelected)
+            {
+                startBracketPos = lowBar.resolvedStyle.width - (totalBarWidth / 2);
+                startBracket.style.left = startBracketPos + (startBracket.resolvedStyle.width / 2);
+            }
+            else if (!highSelected)
+            {
+                endBracketPos = lowBar.resolvedStyle.width + mediumBar.resolvedStyle.width - (totalBarWidth / 2);
+                endBracket.style.left = endBracketPos - (endBracket.resolvedStyle.width / 2);
+            }
+        }
+    }
+
+    private void SelectPurities()
+    {
+        if (startBracketPos < lowWidth - (totalBarWidth / 2) - startBracket.resolvedStyle.width / 2)
+        {
+            lowSelected = true;
+
+            if (endBracketPos > lowWidth + mediumWidth + highWidth - (totalBarWidth / 2) - endBracket.resolvedStyle.width - 16) //16 is for buffer zone
+            {
+                mediumSelected = true;
+                highSelected = true;
+            }
+            else if (endBracketPos > lowWidth + mediumWidth - (totalBarWidth / 2) - endBracket.resolvedStyle.width)
+            {
+                mediumSelected = true;
+                highSelected = false;
+            }
+            else
+            {
+                mediumSelected = false;
+                highSelected = false;
+            }
+        }
+        else if (startBracketPos >= lowWidth - (totalBarWidth / 2) && startBracketPos <= lowWidth + mediumWidth - (totalBarWidth / 2) - startBracket.resolvedStyle.width / 2)
+        {
+            lowSelected = false;
+
+            if (endBracketPos > lowWidth + mediumWidth + highWidth - (totalBarWidth / 2) - endBracket.resolvedStyle.width - 16)
+            {
+                mediumSelected = true;
+                highSelected = true;
+            }
+            else
+            {
+                mediumSelected = true;
+                highSelected = false;
+            }
+        }
+        else if (startBracketPos > lowWidth + mediumWidth - (totalBarWidth / 2) - startBracket.resolvedStyle.width / 2)
+        {
+            highSelected = true;
+            mediumSelected = false;
+            lowSelected = false;
+        }
     }
 
     private void OpenMarket()
@@ -101,16 +239,31 @@ public class HoneyMarket : MonoBehaviour
 
         amountLabel = marketTemplate.Q<Label>("AmountLabel");
 
+        lowBar = marketTemplate.Q<VisualElement>("Low");
+        mediumBar = marketTemplate.Q<VisualElement>("Medium");
+        highBar = marketTemplate.Q<VisualElement>("High");
+
+        startBracket = marketTemplate.Q<VisualElement>("StartBracket");
+        endBracket = marketTemplate.Q<VisualElement>("EndBracket");
+        bar = marketTemplate.Q<VisualElement>("Bar");
+        startBracket.style.left = -385;
+        endBracket.style.left = 385;
+        startBracket.RegisterCallback<PointerDownEvent>(DragBracket);
+        endBracket.RegisterCallback<PointerDownEvent>(DragBracket);
+
+
         //Set cost and change labels
         SetAllLabels();
+        UpdateBarRatio();
 
-        Wildflower.RegisterCallback<PointerDownEvent, FlowerType>(SelectHoney, FlowerType.Wildflower);
-        Clover.RegisterCallback<PointerDownEvent, FlowerType>(SelectHoney, FlowerType.Clover);
-        Alfalfa.RegisterCallback<PointerDownEvent, FlowerType>(SelectHoney, FlowerType.Alfalfa);
-        Buckwheat.RegisterCallback<PointerDownEvent, FlowerType>(SelectHoney, FlowerType.Buckwheat);
-        Fireweed.RegisterCallback<PointerDownEvent, FlowerType>(SelectHoney, FlowerType.Fireweed);
-        Goldenrod.RegisterCallback<PointerDownEvent, FlowerType>(SelectHoney, FlowerType.Goldenrod);
+        Wildflower.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Wildflower);
+        Clover.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Clover);
+        Alfalfa.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Alfalfa);
+        Buckwheat.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Buckwheat);
+        Fireweed.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Fireweed);
+        Goldenrod.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Goldenrod);
 
+        SelectHoney(Wildflower, FlowerType.Wildflower);
 
         //Assign button callbacks
         sell1.clickable = new Clickable( e => Sell(1));
@@ -119,6 +272,8 @@ public class HoneyMarket : MonoBehaviour
         buy1.clickable = new Clickable(e => Buy(1));
         buy10.clickable = new Clickable(e => Buy(10));
         buy50.clickable = new Clickable(e => Buy(50));
+
+        SelectPurities();
     }
 
     private void SetAllLabels()
@@ -129,20 +284,70 @@ public class HoneyMarket : MonoBehaviour
         SetLabel(Buckwheat, FlowerType.Buckwheat);
         SetLabel(Fireweed, FlowerType.Fireweed);
         SetLabel(Goldenrod, FlowerType.Goldenrod);
+        SetAmountLabel();
     }
 
     private void SetLabel(VisualElement element, FlowerType fType)
     {
-        string symbol = "";
         element.Q<Label>("Cost").text = "$" + marketValues[fType][0];
-        symbol = (marketValues[fType][1] < 0) ? "-" : "+";
-        element.Q<Label>("Change").text = symbol + "$" + Mathf.Abs(marketValues[fType][1]);
-        element.Q<Label>("Change").style.color = (symbol == "+") ? Color.green : Color.red;
+        element.Q<Label>("Change").text = player.inventory[fType].ToString() + " lbs.";
+
+        if (marketValues[fType][1] < 0)
+            element.style.unityBackgroundImageTintColor = new Color(.86f, .47f, .47f, 1);
+        else if (marketValues[fType][1] > 0)
+            element.style.unityBackgroundImageTintColor = new Color(.47f, .86f, .47f, 1);
+        else
+            element.style.unityBackgroundImageTintColor = Color.white;
     }
 
-    private void SelectHoney(PointerDownEvent e, FlowerType fType)
+    private void SetAmountLabel()
     {
-        VisualElement item = e.currentTarget as VisualElement;
+        if (selectedElement != null)
+        {
+            amountLabel.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
+            amountLabel.text = "You have \n" + player.inventory[selectedType] + " lbs.";
+        }
+    }
+
+    private void UpdateBarRatio()
+    {
+        float total = player.lowHoney + player.mediumHoney + player.highHoney;
+        float lowRatio = player.lowHoney / total;
+        float mediumRatio = player.mediumHoney / total;
+        float highRatio = player.highHoney / total;
+        if (total == 0)
+        {
+            lowWidth = 300;
+            mediumWidth = 300;
+            highWidth = 300;
+            lowBar.style.width = totalBarWidth / 3;
+            mediumBar.style.width = totalBarWidth / 3;
+            highBar.style.width = totalBarWidth / 3;
+            return;
+        }
+        lowWidth = Mathf.Clamp(lowRatio * totalBarWidth, 40, 820);
+        mediumWidth = Mathf.Clamp(mediumRatio * totalBarWidth, 40, 820);
+        highWidth = Mathf.Clamp(highRatio * totalBarWidth, 40, 820);
+        lowBar.style.width = lowWidth;
+        mediumBar.style.width = mediumWidth;
+        highBar.style.width = highWidth;
+    }
+
+    private void DragBracket(PointerDownEvent e)
+    {
+        if (e.currentTarget as VisualElement == startBracket)
+            draggingStart = true;
+        else
+            draggingeEnd = true;
+    }
+
+    private void Select(PointerDownEvent e, FlowerType fType)
+    {
+        SelectHoney(e.currentTarget as VisualElement, fType);
+    }
+
+    private void SelectHoney(VisualElement item, FlowerType fType)
+    {
         DeselectHoney();
 
         selectedElement = item;
@@ -153,23 +358,9 @@ public class HoneyMarket : MonoBehaviour
         item.style.borderRightWidth = 4;
         item.style.borderLeftWidth = 4;
 
-        sell1.style.backgroundColor = new Color(0.26f , 0.26f, 0.26f);
-        sell10.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
-        sell50.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
-        buy1.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
-        buy10.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
-        buy50.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
+        SetAmountLabel();
 
-        amountLabel.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
-        amountLabel.text = "You have \n" + player.inventory[fType] + " lbs.";
-
-        item.UnregisterCallback<PointerDownEvent, FlowerType>(SelectHoney);
-        item.RegisterCallback<PointerDownEvent>(DeselectEvent);
-    }
-
-    private void DeselectEvent(PointerDownEvent e)
-    {
-        DeselectHoney();
+        item.UnregisterCallback<PointerDownEvent, FlowerType>(Select);
     }
 
     private void DeselectHoney()
@@ -182,32 +373,78 @@ public class HoneyMarket : MonoBehaviour
         selectedElement.style.borderRightWidth = 0;
         selectedElement.style.borderLeftWidth = 0;
 
-        sell1.style.backgroundColor = new Color(0.55f, 0.55f, 0.55f);
-        sell10.style.backgroundColor = new Color(0.55f, 0.55f, 0.55f);
-        sell50.style.backgroundColor = new Color(0.55f, 0.55f, 0.55f);
-        buy1.style.backgroundColor = new Color(0.55f, 0.55f, 0.55f);
-        buy10.style.backgroundColor = new Color(0.55f, 0.55f, 0.55f);
-        buy50.style.backgroundColor = new Color(0.55f, 0.55f, 0.55f);
-
-        amountLabel.style.backgroundColor = new Color(0.55f, 0.55f, 0.55f);
-        amountLabel.text = "---";
-
-        selectedElement.UnregisterCallback<PointerDownEvent>(DeselectEvent);
-        selectedElement.RegisterCallback<PointerDownEvent, FlowerType>(SelectHoney, selectedType);
+        selectedElement.RegisterCallback<PointerDownEvent, FlowerType>(Select, selectedType);
 
         selectedType = FlowerType.Empty;
         price = 0;
         selectedElement = null;
+        SetAmountLabel();
     }
 
     private void Sell(float amount)
     {
         if (selectedElement == null)
             return;
+
+
         if (player.inventory[selectedType] < amount)
             amount = player.inventory[selectedType];
-        player.Money += Mathf.RoundToInt(amount * price);
-        player.inventory[selectedType] -= amount;
+        //player.Money += Mathf.RoundToInt(amount * price);
+        float toBePaid = amount;
+
+        if (lowSelected)
+            toBePaid = SellLow(toBePaid);
+        if (mediumSelected && toBePaid > 0)
+            toBePaid = SellMedium(toBePaid);
+        if (highSelected && toBePaid > 0)
+            toBePaid = SellHigh(toBePaid);
+
+        player.inventory[selectedType] -= amount - toBePaid;
+
+
+        //implement bar ratio calculation for player honey purities
+
+        SetAllLabels();
+        UpdateBarRatio();
+        StartCoroutine(AdjustBrackets());
+    }
+
+    private float SellLow(float amount)
+    {
+        if (player.lowHoney < amount)
+        {
+            amount -= player.lowHoney;
+            player.lowHoney = 0;
+        }
+        else
+            player.lowHoney -= amount;
+
+        return amount;
+    }
+    private float SellMedium(float amount)
+    {
+        if (player.mediumHoney < amount)
+        {
+            amount -= player.mediumHoney;
+            player.mediumHoney = 0;
+        }
+        else
+            player.mediumHoney -= amount;
+
+        return amount;
+    }
+
+    private float SellHigh(float amount)
+    {
+        if (player.highHoney < amount)
+        {
+            amount -= player.highHoney;
+            player.highHoney = 0;
+        }
+        else
+            player.highHoney -= amount;
+
+        return amount;
     }
 
     private void Buy(float amount)
@@ -218,6 +455,10 @@ public class HoneyMarket : MonoBehaviour
             amount = Mathf.RoundToInt(player.Money / price);
         player.Money -= Mathf.RoundToInt(amount * price);
         player.inventory[selectedType] += amount;
+        player.mediumHoney += amount;
+        SetAllLabels();
+        UpdateBarRatio();
+        StartCoroutine(AdjustBrackets());
     }
 
     public void CloseMarket()

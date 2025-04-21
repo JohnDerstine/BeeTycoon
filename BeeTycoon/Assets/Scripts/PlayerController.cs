@@ -121,6 +121,9 @@ public class PlayerController : MonoBehaviour
 
     private int money = 50;
     public Dictionary<FlowerType, float> inventory = new Dictionary<FlowerType, float>();
+    public float lowHoney = 0;
+    public float mediumHoney = 0;
+    public float highHoney = 0;
 
     public GameObject SelectedItem
     {

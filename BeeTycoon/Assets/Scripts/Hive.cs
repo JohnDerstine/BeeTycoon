@@ -78,6 +78,7 @@ public class Hive : MonoBehaviour
     private ProgressBar honeyMeter;
     private Dictionary<VisualElement, bool> harvestDict = new Dictionary<VisualElement, bool>();
     private Toggle noHarvest;
+    private float harvestPercentage;
     private CustomVisualElement nectarHover;
     private CustomVisualElement honeyHover;
     private CustomVisualElement combHover;
@@ -269,10 +270,47 @@ public class Hive : MonoBehaviour
         totalFlowerWeight = 0f;
 
         CalcHoneyStats();
+        Harvest();
         if (template != null)
             UpdateMeters();
 
         TryAddCondition();
+    }
+
+    private void Harvest()
+    {
+        if (noHarvest.value)
+            return;
+
+        if (harvestDict[smallHarvest])
+            harvestPercentage = 0.33f;
+        else if (harvestDict[mediumHarvest])
+            harvestPercentage = 0.66f;
+        else if (harvestDict[largeHarvest])
+            harvestPercentage = 1;
+
+        if (honeyType != FlowerType.Wildflower)
+        {
+            float amount = harvestPercentage * (honey * .006f); //.006 = 1000 per comb. comb holds 6 pounds
+            player.inventory[honeyType] += amount;
+            honey -= harvestPercentage * honey;
+
+            if (honeyPurity >= .9f)
+                player.highHoney += amount;
+            else if (honeyPurity > .7f)
+                player.mediumHoney += amount;
+            else
+                player.lowHoney += amount;
+        }
+        else
+        {
+            float amount = harvestPercentage * (honey * .006f);
+            player.inventory[honeyType] += amount;
+            honey -= harvestPercentage * honey;
+            player.mediumHoney += amount;
+        }
+
+
     }
 
     private void GetFlowerRatios()

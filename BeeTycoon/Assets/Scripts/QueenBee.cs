@@ -52,7 +52,6 @@ public class QueenBee : MonoBehaviour
 
         int quirkNum;
         int quirkRand = Random.Range(0, 10);
-        Debug.Log(quirkRand);
         if (quirkRand <= 2)
             quirkNum = 0;
         else if (quirkRand > 2 && quirkRand <= 6)

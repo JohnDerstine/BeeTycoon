@@ -141,7 +141,7 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                if (Random.Range(0, 3) == 0) //3
+                if (Random.Range(0, 2) == 0) //3
                 {
                     int rand = Random.Range(2, 3); //2 - 7
                     tiles[i, j].Flower = (FlowerType)rand;
