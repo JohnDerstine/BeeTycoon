@@ -31,7 +31,7 @@ public class ResourcePopup : MonoBehaviour
         //plus.style.fontSize = amount * 1.8f;
         //amountLabel.style.fontSize = amount * 1.8f;
 
-        if (amount >= 10 && amount < 20)
+        if (amount < 10)
         {
             icon.style.width = 36;
             icon.style.height = 36;
@@ -39,7 +39,7 @@ public class ResourcePopup : MonoBehaviour
             plus.style.fontSize = 24;
             amountLabel.style.fontSize = 24;
         }
-        else if (amount >= 20 && amount < 30)
+        else if (amount >= 10 && amount < 20)
         {
             icon.style.width = 48;
             icon.style.height = 48;
@@ -47,13 +47,21 @@ public class ResourcePopup : MonoBehaviour
             plus.style.fontSize = 32;
             amountLabel.style.fontSize = 32;
         }
-        else if (amount >= 30)
+        else if (amount >= 20 && amount < 30)
         {
             icon.style.width = 64;
             icon.style.height = 64;
             icon.style.marginRight = -12;
             plus.style.fontSize = 36;
             amountLabel.style.fontSize = 36;
+        }
+        else if (amount >= 30)
+        {
+            icon.style.width = 80;
+            icon.style.height = 80;
+            icon.style.marginRight = -14;
+            plus.style.fontSize = 40;
+            amountLabel.style.fontSize = 40;
         }
         activePopup.style.position = Position.Absolute;
         

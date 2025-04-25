@@ -48,16 +48,16 @@ public class Hive : MonoBehaviour
     private float honey;
 
     private float storage = 0; //how much storage the hive has
-    private float storagePerComb = 1000; //how much each level of size changes the storage
+    private float storagePerComb = 6; //how much each level of size changes the storage - lbs.
 
     private float birthRate = 2500;
 
     private float hiveEfficency; //Efficiency is a multiplier to all the hive's actions and is calculated by the population / total population * size of the hive
 
     //stats 0-1f
-    private float production = 1600; // was 400
+    private float production = 9.6f; // was 400
     private float construction = 1f; //was 0.5f
-    private float collection = 800; //was 400
+    private float collection = 4.8f; //was 400
     private float resilience = 1;
     private float aggressivness = 1;
 
@@ -92,6 +92,7 @@ public class Hive : MonoBehaviour
     private VisualElement queenHex;
     public CustomVisualElement queenClick;
     public Clickable assignQueen;
+    private VisualElement exit;
     public bool selectingQueen;
     public bool isOpen;
     public bool hasSugar;
@@ -211,13 +212,21 @@ public class Hive : MonoBehaviour
         {
             if (selectingQueen)
             {
-                selectingQueen = false;
-                queenClick.AddManipulator(assignQueen);
-                queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
-                player.CloseTab();
+                CloseQueenSelection();
             }
             else if (isOpen && player.SelectedItem == null)
                 player.CloseHiveUI(this);
+        }
+    }
+
+    public void CloseQueenSelection()
+    {
+        if (selectingQueen)
+        {
+            selectingQueen = false;
+            queenClick.AddManipulator(assignQueen);
+            queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
+            player.CloseTab();
         }
     }
 
@@ -240,7 +249,7 @@ public class Hive : MonoBehaviour
         honey += possibleHoney;
         nectar -= possibleHoney;
 
-        float nectarGain = map.nectarGains.Values.Sum();
+        float nectarGain = map.nectarGains.Values.Sum() *.006f; //scale it down to lbs
         //Debug.Log(queen.collectionMult);
         float possibleNectar = nectarGain * queen.collectionMult * hiveEfficency; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
         if (possibleNectar + nectar + honey > storage)
@@ -291,23 +300,23 @@ public class Hive : MonoBehaviour
 
         if (honeyType != FlowerType.Wildflower)
         {
-            float amount = harvestPercentage * (honey * .006f); //.006 = 1000 per comb. comb holds 6 pounds
-            player.inventory[honeyType] += amount;
-            honey -= harvestPercentage * honey;
+            float amount = harvestPercentage * honey;
+            player.inventory[honeyType][0] += amount;
+            honey -= amount;
 
             if (honeyPurity >= .9f)
-                player.highHoney += amount;
+                player.inventory[honeyType][3] += amount;
             else if (honeyPurity > .7f)
-                player.mediumHoney += amount;
+                player.inventory[honeyType][2] += amount;
             else
-                player.lowHoney += amount;
+                player.inventory[honeyType][1] += amount;
         }
         else
         {
-            float amount = harvestPercentage * (honey * .006f);
-            player.inventory[honeyType] += amount;
-            honey -= harvestPercentage * honey;
-            player.mediumHoney += amount;
+            float amount = harvestPercentage * honey;
+            player.inventory[honeyType][0] += amount;
+            honey -= amount;
+            player.inventory[honeyType][2] += amount;
         }
 
 
@@ -371,7 +380,7 @@ public class Hive : MonoBehaviour
     private void UpdateMeters()
     {
         combMeter.value = (comb / combCap * 100) + 8;
-        float nectarGain = map.nectarGains.Values.Sum();
+        float nectarGain = map.nectarGains.Values.Sum() * .006f; //scale it down to lbs.
         if (production * queen.productionMult * hiveEfficency != 0)
             nectarMeter.value = (nectarGain * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100) + 8;// * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f) 
         else
@@ -382,18 +391,18 @@ public class Hive : MonoBehaviour
 
     private void UpdateMeterLabels()
     {
-        float nectarGain = map.nectarGains.Values.Sum();
+        float nectarGain = map.nectarGains.Values.Sum() * .006f;
         if (production * queen.productionMult * hiveEfficency != 0)
             nectarHover.Q<Label>("Percent").text = (Mathf.Round(nectarGain * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100 * 10) / 10.0f).ToString() + "%"; //* Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f
         else
             nectarHover.Q<Label>("Percent").text = "0%";
-        nectarHover.Q<Label>("Flat").text = (Mathf.Round(nectarGain * queen.collectionMult * hiveEfficency  * 10) / 10.0f).ToString(); //*Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
+        nectarHover.Q<Label>("Flat").text = (Mathf.Round(nectarGain * queen.collectionMult * hiveEfficency  * 10) / 10.0f) + " lbs."; //*Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
 
         honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (combCap * storagePerComb) * 100 * 10) / 10.0f).ToString() + "%";
-        honeyHover.Q<Label>("Flat").text = (Mathf.Round(production * queen.productionMult * hiveEfficency * 10) / 10.0f).ToString();
+        honeyHover.Q<Label>("Flat").text = (Mathf.Round(production * queen.productionMult * hiveEfficency * 10) / 10.0f) + " lbs.";
 
         combHover.Q<Label>("Percent").text = (Mathf.Round(comb / combCap * 100) * 10 / 10.0f).ToString() + "%";
-        combHover.Q<Label>("Flat").text = (Mathf.Round(construction * queen.constructionMult * hiveEfficency * 10) / 10.0f).ToString();
+        combHover.Q<Label>("Flat").text = (Mathf.Round(construction * queen.constructionMult * hiveEfficency * 10) / 10.0f) + " lbs.";
     }
 
     public void Populate(QueenBee q, Texture2D sprite = null)
@@ -522,6 +531,9 @@ public class Hive : MonoBehaviour
             combHover = template.Q<CustomVisualElement>("CombHover");
             combHover.RegisterCallback(moveCallback);
             combHover.RegisterCallback(exitCallback);
+
+            exit = template.Q<VisualElement>("Close");
+            exit.AddManipulator(new Clickable(() => player.CloseHiveUI(this)));
 
             UpdateMeterLabels();
         }

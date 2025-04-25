@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class MapLoader : MonoBehaviour
 {
@@ -12,6 +13,13 @@ public class MapLoader : MonoBehaviour
 
     [SerializeField]
     private ResourcePopup popUp;
+
+    [SerializeField]
+    UIDocument document;
+
+    private Label nectarLabel;
+    private Label nectarPlus;
+    private VisualElement nectarIcon;
 
     public int mapWidth = 10;
     public int mapHeight = 10;
@@ -33,11 +41,17 @@ public class MapLoader : MonoBehaviour
 
     public Dictionary<FlowerType, float> nectarGains = new Dictionary<FlowerType, float>();
 
+    private int totalAmountGained;
     private bool cloverCalced;
     private bool alfalfaCalced;
 
     void Start()
     {
+        nectarLabel = document.rootVisualElement.Q<Label>("NectarLabel");
+        nectarPlus = document.rootVisualElement.Q<Label>("NectarPlus");
+        nectarIcon = document.rootVisualElement.Q<VisualElement>("NectarIcon");
+        SetNectarVisibility(false);
+
         tiles = new Tile[mapWidth, mapHeight];
         GeneratePlot();
 
@@ -160,10 +174,19 @@ public class MapLoader : MonoBehaviour
         return count;
     }
 
+    private void SetNectarVisibility(bool visible)
+    {
+        nectarIcon.visible = visible;
+        nectarLabel.visible = visible;
+        nectarPlus.visible = visible;
+    }
+
     public IEnumerator GetNectarGains()
     {
         //Reset all values to 0
         ResetNectarGains();
+
+        SetNectarVisibility(true);
 
         StartCoroutine(GetCloverValue());
         yield return new WaitWhile(() => !cloverCalced);
@@ -180,10 +203,12 @@ public class MapLoader : MonoBehaviour
         GetGoldenrodValue();
 
         game.nectarCollectingFinished = true;
+        SetNectarVisibility(false);
     }
 
     private void ResetNectarGains()
     {
+        totalAmountGained = 0;
         var values = System.Enum.GetValues(typeof(FlowerType));
         foreach (var v in values)
         {
@@ -212,7 +237,10 @@ public class MapLoader : MonoBehaviour
                     //Print tempCount to the screen above tile.
                     //Animate flower
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Clover, 1, duration));
-                    popUp.DisplayPopup(tiles[i,j].transform.position, (adjTiles.Count + diagTiles.Count) * 2, duration);
+                    int gain = (adjTiles.Count + diagTiles.Count) * 5;
+                    popUp.DisplayPopup(tiles[i,j].transform.position, gain, duration);
+                    totalAmountGained += gain;
+                    nectarLabel.text = totalAmountGained.ToString();
 
                     //Animate related flowers
                     foreach (Tile t in adjTiles)
@@ -231,7 +259,7 @@ public class MapLoader : MonoBehaviour
                 duration = DurationCalc(duration, animsPlayed);
             }
         }
-        nectarGains[FlowerType.Clover] = count * 2;
+        nectarGains[FlowerType.Clover] = count * 5;
         cloverCalced = true;
     }
 
@@ -250,7 +278,10 @@ public class MapLoader : MonoBehaviour
                     count += diagTiles.Count;
 
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Alfalfa, 1, duration));
-                    popUp.DisplayPopup(tiles[i, j].transform.position, diagTiles.Count * 7, duration);
+                    int gain = diagTiles.Count * 7;
+                    popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
+                    totalAmountGained += gain;
+                    nectarLabel.text = totalAmountGained.ToString();
 
                     //Animate related flowers
                     foreach (Tile t in diagTiles)
@@ -282,7 +313,10 @@ public class MapLoader : MonoBehaviour
                 {
                     count += 10;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Buckwheat, 1, duration));
-                    popUp.DisplayPopup(tiles[i, j].transform.position, 10, duration);
+                    int gain = 10;
+                    popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
+                    totalAmountGained += gain;
+                    nectarLabel.text = totalAmountGained.ToString();
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;

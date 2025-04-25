@@ -15,7 +15,7 @@ public class HoneyMarket : MonoBehaviour
     PlayerController player;
 
     private CustomVisualElement marketButton;
-    private TemplateContainer marketTemplate;
+    public TemplateContainer marketTemplate;
 
     Dictionary<FlowerType, List<float>> marketValues = new Dictionary<FlowerType, List<float>>();
     Dictionary<FlowerType, float> amountSold = new Dictionary<FlowerType, float>();
@@ -25,7 +25,7 @@ public class HoneyMarket : MonoBehaviour
     public bool marketOpen;
 
     private VisualElement selectedElement;
-    private FlowerType selectedType;
+    private FlowerType selectedType = FlowerType.Empty;
     private float inventory; //Get from player
     private float price;
 
@@ -98,10 +98,6 @@ public class HoneyMarket : MonoBehaviour
         {
             draggingeEnd = false;
             draggingStart = false;
-
-            Debug.Log("Low: " + lowSelected);
-            Debug.Log("Medium: " + mediumSelected);
-            Debug.Log("High: " + highSelected);
         }
 
         if (draggingStart)
@@ -216,6 +212,8 @@ public class HoneyMarket : MonoBehaviour
 
         SetUpMarket();
 
+        document.rootVisualElement.Q<Label>("Money").visible = false;
+
         marketOpen = true;
     }
 
@@ -274,6 +272,8 @@ public class HoneyMarket : MonoBehaviour
         buy50.clickable = new Clickable(e => Buy(50));
 
         SelectPurities();
+
+        marketTemplate.Q<Label>("MoneyLabel").text = "$" + player.Money;
     }
 
     private void SetAllLabels()
@@ -290,7 +290,12 @@ public class HoneyMarket : MonoBehaviour
     private void SetLabel(VisualElement element, FlowerType fType)
     {
         element.Q<Label>("Cost").text = "$" + marketValues[fType][0];
-        element.Q<Label>("Change").text = player.inventory[fType].ToString() + " lbs.";
+        string amount = player.inventory[fType][0].ToString();
+        //Debug.Log(amount[amount.IndexOf('.') + 3]);
+        if (amount.IndexOf('.') + 3 < amount.Length)
+            element.Q<Label>("Change").text = amount.Substring(0, amount.IndexOf('.') + 3) + " lbs.";
+        else
+            element.Q<Label>("Change").text = amount + " lbs.";
 
         if (marketValues[fType][1] < 0)
             element.style.unityBackgroundImageTintColor = new Color(.86f, .47f, .47f, 1);
@@ -305,16 +310,36 @@ public class HoneyMarket : MonoBehaviour
         if (selectedElement != null)
         {
             amountLabel.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
-            amountLabel.text = "You have \n" + player.inventory[selectedType] + " lbs.";
+            float amount = 0;
+            if (lowSelected)
+                amount += player.inventory[selectedType][1];
+            if (mediumSelected)
+                amount += player.inventory[selectedType][2];
+            if (highSelected)
+                amount += player.inventory[selectedType][3];
+            string amountString = amount.ToString();
+            if (amountString.IndexOf('.') + 3 < amountString.Length)
+                amountLabel.text = "You have \n" + amountString.Substring(0, amountString.IndexOf('.') + 3) + " lbs. selected";
+            else
+                amountLabel.text = "You have \n" + amountString + " lbs. selected";
         }
     }
 
     private void UpdateBarRatio()
     {
-        float total = player.lowHoney + player.mediumHoney + player.highHoney;
-        float lowRatio = player.lowHoney / total;
-        float mediumRatio = player.mediumHoney / total;
-        float highRatio = player.highHoney / total;
+        float total = 0;
+        float lowRatio = 0;
+        float mediumRatio = 0;
+        float highRatio = 0;
+
+        if (selectedType != FlowerType.Empty)
+        {
+            total = player.inventory[selectedType][1] + player.inventory[selectedType][2] + player.inventory[selectedType][3];
+            lowRatio = player.inventory[selectedType][1] / total;
+            mediumRatio = player.inventory[selectedType][2] / total;
+            highRatio = player.inventory[selectedType][3] / total;
+        }
+
         if (total == 0)
         {
             lowWidth = 300;
@@ -331,6 +356,8 @@ public class HoneyMarket : MonoBehaviour
         lowBar.style.width = lowWidth;
         mediumBar.style.width = mediumWidth;
         highBar.style.width = highWidth;
+
+        SetAmountLabel();
     }
 
     private void DragBracket(PointerDownEvent e)
@@ -359,6 +386,7 @@ public class HoneyMarket : MonoBehaviour
         item.style.borderLeftWidth = 4;
 
         SetAmountLabel();
+        UpdateBarRatio();
 
         item.UnregisterCallback<PointerDownEvent, FlowerType>(Select);
     }
@@ -387,8 +415,8 @@ public class HoneyMarket : MonoBehaviour
             return;
 
 
-        if (player.inventory[selectedType] < amount)
-            amount = player.inventory[selectedType];
+        if (player.inventory[selectedType][0] < amount)
+            amount = player.inventory[selectedType][0];
         //player.Money += Mathf.RoundToInt(amount * price);
         float toBePaid = amount;
 
@@ -399,7 +427,7 @@ public class HoneyMarket : MonoBehaviour
         if (highSelected && toBePaid > 0)
             toBePaid = SellHigh(toBePaid);
 
-        player.inventory[selectedType] -= amount - toBePaid;
+        player.inventory[selectedType][0] -= amount - toBePaid;
 
 
         //implement bar ratio calculation for player honey purities
@@ -411,38 +439,38 @@ public class HoneyMarket : MonoBehaviour
 
     private float SellLow(float amount)
     {
-        if (player.lowHoney < amount)
+        if (player.inventory[selectedType][1] < amount)
         {
-            amount -= player.lowHoney;
-            player.lowHoney = 0;
+            amount -= player.inventory[selectedType][1];
+            player.inventory[selectedType][1] = 0;
         }
         else
-            player.lowHoney -= amount;
+            player.inventory[selectedType][1] -= amount;
 
         return amount;
     }
     private float SellMedium(float amount)
     {
-        if (player.mediumHoney < amount)
+        if (player.inventory[selectedType][2] < amount)
         {
-            amount -= player.mediumHoney;
-            player.mediumHoney = 0;
+            amount -= player.inventory[selectedType][2];
+            player.inventory[selectedType][2] = 0;
         }
         else
-            player.mediumHoney -= amount;
+            player.inventory[selectedType][2] -= amount;
 
         return amount;
     }
 
     private float SellHigh(float amount)
     {
-        if (player.highHoney < amount)
+        if (player.inventory[selectedType][3] < amount)
         {
-            amount -= player.highHoney;
-            player.highHoney = 0;
+            amount -= player.inventory[selectedType][3];
+            player.inventory[selectedType][3] = 0;
         }
         else
-            player.highHoney -= amount;
+            player.inventory[selectedType][3] -= amount;
 
         return amount;
     }
@@ -454,8 +482,8 @@ public class HoneyMarket : MonoBehaviour
         if (player.Money < amount * price)
             amount = Mathf.RoundToInt(player.Money / price);
         player.Money -= Mathf.RoundToInt(amount * price);
-        player.inventory[selectedType] += amount;
-        player.mediumHoney += amount;
+        player.inventory[selectedType][0] += amount;
+        player.inventory[selectedType][2] += amount;
         SetAllLabels();
         UpdateBarRatio();
         StartCoroutine(AdjustBrackets());
@@ -466,6 +494,7 @@ public class HoneyMarket : MonoBehaviour
         document.rootVisualElement.Q<VisualElement>("Base").Remove(marketTemplate);
         marketTemplate = null;
         marketOpen = false;
+        document.rootVisualElement.Q<Label>("Money").visible = true;
     }
 
     public void UpdateMarket()

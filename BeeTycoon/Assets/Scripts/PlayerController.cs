@@ -120,10 +120,7 @@ public class PlayerController : MonoBehaviour
     EventCallback<PointerLeaveEvent> queenExitCallback;
 
     private int money = 50;
-    public Dictionary<FlowerType, float> inventory = new Dictionary<FlowerType, float>();
-    public float lowHoney = 0;
-    public float mediumHoney = 0;
-    public float highHoney = 0;
+    public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
 
     public GameObject SelectedItem
     {
@@ -160,6 +157,9 @@ public class PlayerController : MonoBehaviour
         {
             money = value;
             moneyLabel.text = "$" + money;
+
+            if (honeyMarket.marketOpen)
+                honeyMarket.marketTemplate.Q<Label>("MoneyLabel").text = "$" + money;
         }
     }
 
@@ -200,7 +200,7 @@ public class PlayerController : MonoBehaviour
         foreach (var v in values)
         {
             FlowerType fType = (FlowerType)v;
-            inventory.Add(fType, 0);
+            inventory.Add(fType, new List<float> {0, 0, 0, 0});
         }
     }
 
@@ -280,6 +280,7 @@ public class PlayerController : MonoBehaviour
                         if (hoverObject.TryGetComponent(out Hive h))
                         {
                             hives.Add(h);
+                            Money -= hoverObject.GetComponent<Cost>().Price;
                             h.x = (int)t.transform.position.x;
                             h.y = (int)t.transform.position.z;
                             SelectedItem = null;
@@ -614,12 +615,16 @@ public class PlayerController : MonoBehaviour
 
         Money -= cost;
         hive.Populate(item.GetComponent<QueenBee>(), sprite);
+        beeObjectList.Remove(item);
+        beeSprites.Remove(sprite);
+        tab1ItemCount--;
         if (hoverTemplate != null)
         {
             ui.rootVisualElement.Q("Base").Remove(hoverTemplate);
             hoverTemplate = null;
         }
-        CloseTab();
+        hive.CloseQueenSelection();
+        RefreshMenuLists();
     }
 
     //Cancel queen selection from HiveUI queen button
@@ -723,8 +728,8 @@ public class PlayerController : MonoBehaviour
         if (template == null)
         {
             template = hiveUI.Instantiate();
-            template.style.top = 0f;
-            template.style.left = 0f;
+            template.style.top = 50f;
+            template.style.left = -100f;
             template.style.scale = new StyleScale(new Scale(new Vector3(0.8f, 0.8f, 1)));
             template.style.position = Position.Absolute;
         }
