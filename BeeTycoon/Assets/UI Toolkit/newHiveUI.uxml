@@ -73,7 +73,7 @@
             </ui:VisualElement>
         </ui:VisualElement>
         <ui:VisualElement name="RightMargin" style="flex-grow: 1; flex-basis: 7.5%;">
-            <ui:VisualElement name="Close" style="flex-grow: 1; flex-basis: 5.55%; background-color: rgb(186, 16, 16);">
+            <ui:VisualElement name="Close" style="flex-grow: 1; flex-basis: 5.55%; background-color: rgb(186, 16, 16); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;">
                 <ui:Label tabindex="-1" text="x" parse-escape-sequences="true" display-tooltip-when-elided="true" picking-mode="Ignore" style="-unity-font-style: bold; font-size: 64px; -unity-text-align: middle-center; padding-bottom: 20px; padding-left: 6px;" />
             </ui:VisualElement>
             <ui:VisualElement style="flex-grow: 1; flex-basis: 96.3%;" />

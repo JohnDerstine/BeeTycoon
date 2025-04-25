@@ -29,6 +29,9 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private MapLoader map;
 
+    [SerializeField]
+    private HoneyMarket honeyMarket;
+
     private int turn = 0;
     private VisualElement root;
     private CustomVisualElement turnButton;
@@ -64,6 +67,7 @@ public class GameController : MonoBehaviour
                 List<int> choiceList = new List<int>() { 3, 2, 2, 2};
                 StartCoroutine(choices.GiveChoice(choiceList, true));
             }
+            currentState = value;
         }
     }
 
@@ -75,14 +79,19 @@ public class GameController : MonoBehaviour
         turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
     }
 
-    void Update()
-    {
-        
-    }
-
     private IEnumerator NextTurn()
     {
-        Debug.Log("next turn");
+        player.CloseHiveUI(player.currentHive);
+        player.CloseTab();
+        honeyMarket.CloseMarket();
+        
+        if (CurrentState == GameStates.TurnEnd || CurrentState == GameStates.Paused)
+        {
+            Debug.Log("Out");
+            yield break;
+        }
+
+        CurrentState = GameStates.TurnEnd;
         turn++;
         StartCoroutine(map.GetNectarGains());
 
@@ -117,7 +126,7 @@ public class GameController : MonoBehaviour
         map.AdvanceFlowerStates(); //This should be done after all the animations for GetNectarGains is done.
         yield return new WaitWhile(() => !flowerAdvanceFinished);
         flowerAdvanceFinished = false;
-        Debug.Log(season);
+        CurrentState = GameStates.Running;
     }
 
     public void EndGame()

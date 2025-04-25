@@ -67,6 +67,7 @@ public class PlayerController : MonoBehaviour
     //private VisualTreeAsset hiveUI;
 
     private TemplateContainer activeUI;
+    public Hive currentHive;
 
     private List<Hive> hives = new List<Hive>();
 
@@ -386,6 +387,9 @@ public class PlayerController : MonoBehaviour
     #region Hex Tab Menus
     public void OpenTab(int num, Manipulator open, bool fromHive, Hive hive = null)
     {
+        if (game.CurrentState == GameStates.TurnEnd || game.CurrentState == GameStates.Paused)
+            return;
+
         //Close any open tabs
         if (activeTab != null)
         {
@@ -707,7 +711,7 @@ public class PlayerController : MonoBehaviour
 
     public void OpenHiveUI(TemplateContainer template, VisualTreeAsset hiveUI, Hive hive)
     {
-        if (selectedItem != null)
+        if (selectedItem != null || game.CurrentState == GameStates.Paused || game.CurrentState == GameStates.TurnEnd)
             return;
 
         //Check to see if the same hive is being clicked to close the hiveUI
@@ -739,6 +743,7 @@ public class PlayerController : MonoBehaviour
 
         hive.template = template;
         activeUI = template;
+        currentHive = hive;
     }
 
     public void CloseHiveUI(Hive hive)
@@ -748,6 +753,7 @@ public class PlayerController : MonoBehaviour
 
         ui.rootVisualElement.Q("Right").Remove(activeUI);
         activeUI = null;
+        currentHive = null;
         hive.isOpen = false;
     }
 

@@ -14,6 +14,9 @@ public class HoneyMarket : MonoBehaviour
     [SerializeField]
     PlayerController player;
 
+    [SerializeField]
+    GameController controller;
+
     private CustomVisualElement marketButton;
     public TemplateContainer marketTemplate;
 
@@ -66,6 +69,8 @@ public class HoneyMarket : MonoBehaviour
     private VisualElement endBracket;
     private float startBracketPos = -385;
     private float endBracketPos = 385;
+
+    private VisualElement exit;
 
     // Start is called before the first frame update
     void Start()
@@ -206,6 +211,9 @@ public class HoneyMarket : MonoBehaviour
 
     private void OpenMarket()
     {
+        if (controller.CurrentState == GameStates.TurnEnd || controller.CurrentState == GameStates.Paused)
+            return;
+
         marketTemplate = marketAsset.Instantiate();
         marketTemplate.style.position = Position.Absolute;
         document.rootVisualElement.Q<VisualElement>("Base").Add(marketTemplate);
@@ -248,6 +256,9 @@ public class HoneyMarket : MonoBehaviour
         endBracket.style.left = 385;
         startBracket.RegisterCallback<PointerDownEvent>(DragBracket);
         endBracket.RegisterCallback<PointerDownEvent>(DragBracket);
+
+        exit = marketTemplate.Q<VisualElement>("Close");
+        exit.AddManipulator(new Clickable(() => CloseMarket()));
 
 
         //Set cost and change labels
@@ -491,6 +502,9 @@ public class HoneyMarket : MonoBehaviour
 
     public void CloseMarket()
     {
+        if (!marketOpen)
+            return;
+
         document.rootVisualElement.Q<VisualElement>("Base").Remove(marketTemplate);
         marketTemplate = null;
         marketOpen = false;
