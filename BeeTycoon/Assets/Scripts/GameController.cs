@@ -81,15 +81,13 @@ public class GameController : MonoBehaviour
 
     private IEnumerator NextTurn()
     {
+        //Don't let player go next turn if the last turn is still processing
+        if (CurrentState == GameStates.TurnEnd || CurrentState == GameStates.Paused)
+            yield break;
+
         player.CloseHiveUI(player.currentHive);
         player.CloseTab();
         honeyMarket.CloseMarket();
-        
-        if (CurrentState == GameStates.TurnEnd || CurrentState == GameStates.Paused)
-        {
-            Debug.Log("Out");
-            yield break;
-        }
 
         CurrentState = GameStates.TurnEnd;
         turn++;

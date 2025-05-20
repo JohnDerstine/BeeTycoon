@@ -44,6 +44,9 @@ public class MapLoader : MonoBehaviour
     private int totalAmountGained;
     private bool cloverCalced;
     private bool alfalfaCalced;
+    private bool buckwheatCalced;
+    private bool goldenrodCalced;
+    private bool fireweedCalced;
 
     void Start()
     {
@@ -81,6 +84,8 @@ public class MapLoader : MonoBehaviour
                 tiles[i, j] = temp.GetComponent<Tile>();
                 tiles[i, j].map = this;
                 tiles[i, j].Flower = (FlowerType)0;
+                tiles[i, j].x = i;
+                tiles[i, j].y = j;
                 //}
                 //else
                 //{
@@ -155,9 +160,9 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                if (Random.Range(0, 2) == 0) //3
+                if (Random.Range(0, 4) == 0) //3
                 {
-                    int rand = Random.Range(2, 3); //2 - 7
+                    int rand = Random.Range(2, 7); //2 - 7
                     tiles[i, j].Flower = (FlowerType)rand;
                 }
             }
@@ -196,11 +201,17 @@ public class MapLoader : MonoBehaviour
         yield return new WaitWhile(() => !alfalfaCalced);
         alfalfaCalced = false;
 
-        Debug.Log("Alfalfa calced");
+        StartCoroutine(GetBuckwheatValue());
+        yield return new WaitWhile(() => !buckwheatCalced);
+        buckwheatCalced = false;
 
-        GetBuckwheatValue();
-        GetFireweedValue();
-        GetGoldenrodValue();
+        StartCoroutine(GetFireweedValue());
+        yield return new WaitWhile(() => !fireweedCalced);
+        fireweedCalced = false;
+
+        StartCoroutine(GetGoldenrodValue());
+        yield return new WaitWhile(() => !goldenrodCalced);
+        goldenrodCalced = false;
 
         game.nectarCollectingFinished = true;
         SetNectarVisibility(false);
@@ -226,7 +237,7 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-
+                Debug.Log(tiles[i, j].Flower);
                 if (tiles[i, j].Flower == FlowerType.Clover)
                 {
                     List<Tile> adjTiles = GetAdjacentFlowers(FlowerType.Clover, i, j);
@@ -236,7 +247,7 @@ public class MapLoader : MonoBehaviour
                     count += diagTiles.Count;
                     //Print tempCount to the screen above tile.
                     //Animate flower
-                    StartCoroutine(tiles[i, j].Animate(FlowerType.Clover, 1, duration));
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Clover, 1, duration, true));
                     int gain = (adjTiles.Count + diagTiles.Count) * 5;
                     popUp.DisplayPopup(tiles[i,j].transform.position, gain, duration);
                     totalAmountGained += gain;
@@ -244,9 +255,9 @@ public class MapLoader : MonoBehaviour
 
                     //Animate related flowers
                     foreach (Tile t in adjTiles)
-                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration));
+                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration, false));
                     foreach (Tile t in diagTiles)
-                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration));
+                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration, false));
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
@@ -277,7 +288,7 @@ public class MapLoader : MonoBehaviour
                     List<Tile> diagTiles = GetDiagonalFlowers(FlowerType.Alfalfa, i, j);
                     count += diagTiles.Count;
 
-                    StartCoroutine(tiles[i, j].Animate(FlowerType.Alfalfa, 1, duration));
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Alfalfa, 1, duration, true));
                     int gain = diagTiles.Count * 7;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     totalAmountGained += gain;
@@ -285,7 +296,7 @@ public class MapLoader : MonoBehaviour
 
                     //Animate related flowers
                     foreach (Tile t in diagTiles)
-                        StartCoroutine(t.Animate(FlowerType.Alfalfa, 0.3f, duration));
+                        StartCoroutine(t.Animate(FlowerType.Alfalfa, 0.3f, duration, false));
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
@@ -312,7 +323,7 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Buckwheat)
                 {
                     count += 10;
-                    StartCoroutine(tiles[i, j].Animate(FlowerType.Buckwheat, 1, duration));
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Buckwheat, 1, duration, true));
                     int gain = 10;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     totalAmountGained += gain;
@@ -326,58 +337,103 @@ public class MapLoader : MonoBehaviour
             }
         }
         nectarGains[FlowerType.Buckwheat] = count;
+        buckwheatCalced = true;
     }
 
-    private void GetFireweedValue()
+    private IEnumerator GetFireweedValue()
     {
         int count = 0;
+        int animsPlayed = 0;
+        float duration = 0.05f;
         for (int i = 0; i < mapWidth; i++)
+        {
             for (int j = 0; j < mapHeight; j++)
+            {
                 if (tiles[i, j].Flower == FlowerType.Fireweed)
+                {
                     count += 5;
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Fireweed, 1, duration, true));
+                    int gain = 5;
+                    popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
+                    totalAmountGained += gain;
+                    nectarLabel.text = totalAmountGained.ToString();
+
+                    yield return new WaitWhile(() => !tiles[i, j].completed);
+                    tiles[i, j].completed = false;
+                    animsPlayed++;
+                }
+                duration = DurationCalc(duration, animsPlayed);
+            }
+        }
         nectarGains[FlowerType.Fireweed] = count;
+        fireweedCalced = true;
     }
 
-    private void GetGoldenrodValue()
+    private IEnumerator GetGoldenrodValue()
     {
         int count = 0;
+        int animsPlayed = 0;
+        float duration = 0.05f;
         for (int i = 0; i < mapWidth; i++)
+        {
             for (int j = 0; j < mapHeight; j++)
+            {
                 if (tiles[i, j].Flower == FlowerType.Goldenrod)
-                    count += 20;
+                {
+                    count += 100;
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Goldenrod, 1, duration, true));
+                    int gain = 100;
+                    popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
+                    totalAmountGained += gain;
+                    nectarLabel.text = totalAmountGained.ToString();
+
+                    yield return new WaitWhile(() => !tiles[i, j].completed);
+                    tiles[i, j].completed = false;
+                    animsPlayed++;
+                }
+                duration = DurationCalc(duration, animsPlayed);
+            }
+        }
         nectarGains[FlowerType.Goldenrod] = count;
+        goldenrodCalced = true;
     }
 
-    private void ConvertAdjacentFlowers(FlowerType fType, int i, int j, int chance)
+    private void ConvertAdjacentFlowers(List<Tile> validTiles, FlowerType fType, int chance)
     {
-        if (i + 1 < mapWidth && tiles[i + 1, j].Flower != FlowerType.Empty)
-            if (Random.Range(0, chance) == 0)
-                tiles[i + 1, j].Flower = fType;
-        if (i - 1 >= 0 && tiles[i - 1, j].Flower != FlowerType.Empty)
-            if (Random.Range(0, chance) == 0)
-                tiles[i + 1, j].Flower = fType;
-        if (j + 1 < mapHeight && tiles[i, j + 1].Flower != FlowerType.Empty)
-            if (Random.Range(0, chance) == 0)
-                tiles[i + 1, j].Flower = fType;
-        if (j - 1 >= 0 && tiles[i, j - 1].Flower != FlowerType.Empty)
-            if (Random.Range(0, chance) == 0)
-                tiles[i + 1, j].Flower = fType;
+        foreach (Tile t in validTiles)
+        {
+            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower != FlowerType.Empty)
+                if (Random.Range(0, chance) == 0)
+                    tiles[t.x + 1, t.y].Flower = fType;
+            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower != FlowerType.Empty)
+                if (Random.Range(0, chance) == 0)
+                    tiles[t.x - 1, t.y].Flower = fType;
+            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower != FlowerType.Empty)
+                if (Random.Range(0, chance) == 0)
+                    tiles[t.x, t.y + 1].Flower = fType;
+            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower != FlowerType.Empty)
+                if (Random.Range(0, chance) == 0)
+                    tiles[t.x, t.y - 1].Flower = fType;
+        }
     }
 
-    private void SpreadToAdjacentTiles(FlowerType fType, int i, int j, int chance)
+    private void SpreadToAdjacentTiles(List<Tile> validTiles, FlowerType fType, int chance)
     {
-        if (i + 1 < mapWidth && tiles[i + 1, j].Flower == FlowerType.Empty)
-            if (Random.Range(0, chance) == 0)
-                tiles[i + 1, j].Flower = fType;
-        if (i - 1 >= 0 && tiles[i - 1, j].Flower == FlowerType.Empty)
-            if (Random.Range(0, chance) == 0)
-                tiles[i + 1, j].Flower = fType;
-        if (j + 1 < mapHeight && tiles[i, j + 1].Flower == FlowerType.Empty)
-            if (Random.Range(0, chance) == 0)
-                tiles[i + 1, j].Flower = fType;
-        if (j - 1 >= 0 && tiles[i, j - 1].Flower == FlowerType.Empty)
-            if (Random.Range(0, chance) == 0)
-                tiles[i + 1, j].Flower = fType;
+        foreach (Tile t in validTiles)
+        {
+            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower == FlowerType.Empty)
+                if (Random.Range(0, chance) == 0)
+                    tiles[t.x + 1, t.y].Flower = fType;
+            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower == FlowerType.Empty)
+                if (Random.Range(0, chance) == 0)
+                    tiles[t.x - 1, t.y].Flower = fType;
+            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower == FlowerType.Empty)
+                if (Random.Range(0, chance) == 0)
+                    tiles[t.x, t.y + 1].Flower = fType;
+            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower == FlowerType.Empty)
+                if (Random.Range(0, chance) == 0)
+                    tiles[t.x, t.y - 1].Flower = fType;
+        }
     }
 
     private List<Tile> GetAdjacentFlowers(FlowerType fType, int i, int j)
@@ -432,25 +488,29 @@ public class MapLoader : MonoBehaviour
 
     private void AdvanceFireweed()
     {
+        List<Tile> validTiles = new List<Tile>();
         for (int i = 0; i < mapWidth; i++)
         {
             for (int j = 0; j < mapHeight; j++)
             {
                 if (tiles[i, j].Flower == FlowerType.Fireweed)
                 {
-                    SpreadToAdjacentTiles(FlowerType.Fireweed, i, j, 1);
+                    validTiles.Add(tiles[i, j]);
                     if (GetAdjacentFlowers(FlowerType.Empty, i, j).Count >= 3)
                         tiles[i, j].Flower = FlowerType.Empty;
                 }
             }
         }
+        ConvertAdjacentFlowers(validTiles, FlowerType.Fireweed, 1);
     }
 
     private void AdvanceBuckwheat()
     {
+        List<Tile> validTiles = new List<Tile>();
         for (int i = 0; i < mapWidth; i++)
             for (int j = 0; j < mapHeight; j++)
-                if (tiles[i, j].Flower == FlowerType.Fireweed)
-                    ConvertAdjacentFlowers(FlowerType.Buckwheat, i, j, 2);
+                if (tiles[i, j].Flower == FlowerType.Buckwheat)
+                    validTiles.Add(tiles[i, j]);
+        SpreadToAdjacentTiles(validTiles, FlowerType.Buckwheat, 2);
     }
 }

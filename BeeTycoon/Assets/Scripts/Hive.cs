@@ -10,10 +10,9 @@ public enum FlowerType
     Wildflower = 1,
     Clover = 2,
     Alfalfa = 3,
-    Goldenrod = 4,
-    Buckwheat = 5,
+    Buckwheat = 4,
+    Goldenrod = 5,
     Fireweed = 6,
-    Blossom = 7
 }
 
 public class Hive : MonoBehaviour
@@ -339,9 +338,9 @@ public class Hive : MonoBehaviour
                     case FlowerType.Alfalfa:
                         flowerValues[FlowerType.Alfalfa] += 1f / distance;
                         break;
-                    case FlowerType.Blossom:
-                        flowerValues[FlowerType.Blossom] += 1f / distance;
-                        break;
+                    //case FlowerType.Blossom:
+                    //    flowerValues[FlowerType.Blossom] += 1f / distance;
+                        //break;
                     case FlowerType.Buckwheat:
                         flowerValues[FlowerType.Buckwheat] += 1f / distance;
                         break;
@@ -416,6 +415,7 @@ public class Hive : MonoBehaviour
 
         if (sprite != null)
             queenHex.style.backgroundImage = sprite;
+        queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
     }
 
     private void TryAddCondition()

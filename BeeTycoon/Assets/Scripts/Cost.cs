@@ -9,6 +9,8 @@ public class Cost : MonoBehaviour
 
     private bool purchased;
 
+    public FlowerType ftype = FlowerType.Empty;
+
     public bool Purchased
     {
         get { return purchased; }

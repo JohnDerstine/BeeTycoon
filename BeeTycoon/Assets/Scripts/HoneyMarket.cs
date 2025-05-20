@@ -88,7 +88,7 @@ public class HoneyMarket : MonoBehaviour
         marketValues[FlowerType.Wildflower][2] = 5;
         marketValues[FlowerType.Clover][2] = 7;
         marketValues[FlowerType.Alfalfa][2] = 9;
-        marketValues[FlowerType.Blossom][2] = 15;
+        //marketValues[FlowerType.Blossom][2] = 15;
         marketValues[FlowerType.Buckwheat][2] = 12;
         marketValues[FlowerType.Fireweed][2] = 10;
         marketValues[FlowerType.Goldenrod][2] = 15;

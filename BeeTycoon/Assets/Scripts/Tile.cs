@@ -6,10 +6,23 @@ public class Tile : MonoBehaviour
 {
     public MapLoader map;
 
-    private FlowerType flower;
+    private FlowerType flower = FlowerType.Empty;
     private GameObject flowerObject;
     public bool completed;
 
+    [SerializeField]
+    private Material greenMat;
+    [SerializeField]
+    private Material yellowMat;
+    [SerializeField]
+    private Material blueMat;
+
+    MeshRenderer matRenderer;
+
+    public int x;
+    public int y;
+
+    
     public FlowerType Flower
     {
         get { return flower; }
@@ -27,23 +40,37 @@ public class Tile : MonoBehaviour
         get { return flowerObject; }
     }
 
-    public IEnumerator Animate(FlowerType fType, float strength, float duration)
+    void Start()
+    {
+        matRenderer = GetComponent<MeshRenderer>();
+    }
+
+    public IEnumerator Animate(FlowerType fType, float strength, float duration, bool primary)
     {
         if (flower != fType)
             yield return new WaitForEndOfFrame();
         else
         {
+            //change tile color
+            if (primary)
+                matRenderer.material = yellowMat;
+            else
+                matRenderer.material = blueMat;
+
             for (int i = 0; i < 5; i++)
             {
-                flowerObject.transform.localScale += new Vector3(0.25f * strength, 0.25f * strength, 0.25f * strength);
+                flowerObject.transform.localScale += new Vector3(0, 0.25f * strength, 0);
                 yield return new WaitForSeconds(duration);
             }
 
             for (int i = 0; i < 5; i++)
             {
-                flowerObject.transform.localScale -= new Vector3(0.25f * strength, 0.25f * strength, 0.25f * strength);
+                flowerObject.transform.localScale -= new Vector3(0, 0.25f * strength, 0);
                 yield return new WaitForSeconds(duration);
             }
+
+            //revert tile color
+            matRenderer.material = greenMat;
         }
 
         completed = true;

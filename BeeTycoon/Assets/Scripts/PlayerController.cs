@@ -81,7 +81,7 @@ public class PlayerController : MonoBehaviour
     private int tab1ItemCount = 0;
     private int tab2ItemCount = 6;
     private int tab3ItemCount = 8;
-    private int tab4ItemCount = 4;
+    private int tab4ItemCount = 5;
 
     [SerializeField]
     Texture2D hex;
@@ -129,7 +129,7 @@ public class PlayerController : MonoBehaviour
         set
         {
             selectedItem = value;
-            if (value == null && selectedItem != null)
+            if (value == null)// && selectedItem != null)
             {
                 hovering = false;
                 if (hoverObject.tag != "Placeable")
@@ -203,6 +203,10 @@ public class PlayerController : MonoBehaviour
             FlowerType fType = (FlowerType)v;
             inventory.Add(fType, new List<float> {0, 0, 0, 0});
         }
+
+        for (int i = 0; i < flowerObjectList.Count; i++)
+            flowerObjectList[i].GetComponent<Cost>().ftype = (FlowerType)(i + 2);
+
     }
 
     // Update is called once per frame
@@ -288,7 +292,15 @@ public class PlayerController : MonoBehaviour
                             h.Placed = true;
                             h.SetUpTemplate();
                         }
-                        SelectedItem = null;
+                        else if (hoverObject.TryGetComponent<Cost>(out Cost c))
+                        {
+                            Destroy(hoverObject);
+                            hoverObject = null;
+                            if (c.ftype != FlowerType.Empty)
+                                t.Flower = c.ftype;
+                            Money -= c.Price;
+                            SelectedItem = null;
+                        }
                         return;
                     }
                 }
@@ -417,7 +429,7 @@ public class PlayerController : MonoBehaviour
         foreach (CustomVisualElement t in tabs)
         {
             if (t != tab)
-                t.style.unityBackgroundImageTintColor = new Color(0.36f, 0.21f, 0.17f, 0.875f);
+                t.style.unityBackgroundImageTintColor = new Color(0.36f, 0.21f, 0.17f, 1);
             else
                 t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 0f, 1f);
         }

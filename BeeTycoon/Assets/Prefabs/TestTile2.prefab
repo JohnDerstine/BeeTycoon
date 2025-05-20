@@ -135,3 +135,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d428c0dc02c4a1540996949c6db282fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  map: {fileID: 0}
+  completed: 0
+  greenMat: {fileID: 2100000, guid: f5b1b0b3a546eb3488ed5f07aa8061a7, type: 2}
+  yellowMat: {fileID: 2100000, guid: 3cf75eae7deed5e498ac828155b8dead, type: 2}
+  blueMat: {fileID: 2100000, guid: b9e3256ec3bebe04dbe82d207e09337f, type: 2}

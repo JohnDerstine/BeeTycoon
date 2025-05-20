@@ -90,46 +90,58 @@ public class QueenChooser : MonoBehaviour
         isChoosing = false;
     }
 
+    //Creates Queen Bee choices for the user to select from
+    //Takes an input for the number of choices and whether or not this will be the player's starter Queen
     private IEnumerator SpawnChoices(int numChoices, bool starter)
     {
+        //Instatiate Queen Objects
         for (int i = 0; i < numChoices; i++)
         {
             GameObject temp = Instantiate(queenPrefab, new Vector3(-100, -100, -100), Quaternion.identity);
             queenOptions.Add(temp.GetComponent<QueenBee>());
         }
-        yield return new WaitForFixedUpdate();
-        template.Q<Label>("ChooseLabel").text = "Choose 1 of " + numChoices;
+        yield return new WaitForFixedUpdate(); //Wait a frame for the Queens to be instatiated
+
+        template.Q<Label>("ChooseLabel").text = "Choose 1 of " + numChoices; //Set up instruction text
         if (starter && numChoices == 2)
             template.Q<Label>("Description").text = "This will be added to your shop";
 
-        List<string> possibilites = new List<string>();
+        List<string> possibilites = new List<string>(); //Get a list of the species of bees the player has unlocked
         foreach (KeyValuePair<string, bool> kvp in tracker.species)
         {
             if (kvp.Value == true)
                 possibilites.Add(kvp.Key);
         }
 
+        //Set up each queen choice
         for (int i = 0; i < numChoices; i++)
         {
+            //Decide the queen's species
             if (starter)
             {
                 int rand = Random.Range(0, possibilites.Count);
                 queenOptions[i].species = possibilites[rand];
                 possibilites.RemoveAt(rand);
-                if (numChoices == 3)
+                if (numChoices == 3) //First queen of game is free.
                     queenOptions[i].GetComponent<Cost>().Price = 0;
             }
 
+            //Set up UI template for queen choice
             TemplateContainer temp = queenUI.Instantiate();
             VisualElement popup = temp.Q<VisualElement>("Popup");
-            popup.RegisterCallback(queenMoveCallback);
+            popup.RegisterCallback(queenMoveCallback); //register callbacks for hovering over the choices
             popup.RegisterCallback(queenExitCallback);
-            int savedI = i;
-            popup.AddManipulator(new Clickable(e => SelectQueen(savedI)));
+
+            int savedI = i; //I needs to be saved to a variable for callbacks to reference it correctly
+            popup.AddManipulator(new Clickable(e => SelectQueen(savedI))); //Add Click event
+
+            //Display Info about queen
             temp.Q<VisualElement>("Icon").style.backgroundImage = queenSprite;
             temp.Q<Label>("Species").text = "Species: " + queenOptions[i].species;
             temp.Q<Label>("Age").text = "Age: " + queenOptions[i].age.ToString() + " Months";
             temp.Q<Label>("Grade").text = "Grade: " + queenOptions[i].grade.ToString() + "/10";
+
+            //Add quirk labels to the queen
             foreach (string s in queenOptions[i].quirks)
             {
                 Label quirk = new Label();
@@ -139,6 +151,8 @@ public class QueenChooser : MonoBehaviour
                 quirk.RegisterCallback(quirkEnterCallback, quirk.text);
                 quirk.RegisterCallback(quirkExitCallback);
             }
+
+            //Add choice to the UI Document
             container.Add(temp);
         }
         selectionActive = true;
