@@ -61,6 +61,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset queenUI;
 
+    [SerializeField]
+    private GameObject standObject;
+
     private TemplateContainer hoverTemplate;
 
     //[SerializeField]
@@ -132,9 +135,8 @@ public class PlayerController : MonoBehaviour
             if (value == null)// && selectedItem != null)
             {
                 hovering = false;
-                if (hoverObject.tag != "Placeable")
-                    Destroy(hoverObject);
                 hoverObject = null;
+                UnityEngine.Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
             }
             else if (value != null)
             {
@@ -142,7 +144,7 @@ public class PlayerController : MonoBehaviour
                     hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
                 else
                 {
-                    hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.Euler(new Vector3(70, 0, 0)));
+                    //hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.Euler(new Vector3(70, 0, 0)));
                     if (selectedItem.tag == "Bee")
                         StartCoroutine(hoverObject.GetComponent<QueenBee>().TransferStats(selectedItem.GetComponent<QueenBee>()));
                 }
@@ -241,7 +243,7 @@ public class PlayerController : MonoBehaviour
         }
 
         //Checks to see if selected item is placed
-        if (SelectedItem != null && hoverObject != null)
+        if (SelectedItem != null)
             checkForClick();
 
         //Displays selected item under mouse
@@ -279,7 +281,7 @@ public class PlayerController : MonoBehaviour
             {
                 if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
                 {
-                    if (hoverObject.tag == "Placeable")
+                    if (hoverObject != null && hoverObject.tag == "Placeable")
                     {
                         hoverObject.transform.position = t.gameObject.transform.position;
                         if (hoverObject.TryGetComponent(out Hive h))
@@ -310,9 +312,11 @@ public class PlayerController : MonoBehaviour
                 //If a hive is clicked with an item, apply the item's effect
                 if (hiveHit.collider.gameObject.TryGetComponent<Hive>(out Hive h))
                 {
-                    if (hoverObject.tag != "Placeable")
+                    if (selectedItem.tag != "Placeable")
                     {
-                        if (hoverObject.TryGetComponent(out QueenBee queen))
+                        int cost = selectedItem.GetComponent<Cost>().Price;
+                        Money -= cost;
+                        if (selectedItem.TryGetComponent(out QueenBee queen))
                         {
                             h.Populate(queen, selectedItemSprite);
                             Money -= hoverObject.GetComponent<Cost>().Price;
@@ -322,47 +326,45 @@ public class PlayerController : MonoBehaviour
                             RefreshMenuLists();
                             OpenTab(0, open1, false);
                         }
-                        else if (hoverObject.tag == "Super")
+                        else if (selectedItem.tag == "Super")
                         {
                             if (h.Size < 5)
                             {
-                                Money -= hoverObject.GetComponent<Cost>().Price;
                                 h.Size = 1;
-                                GameObject newLevel = Instantiate(hoverObject, h.gameObject.transform);
+                                GameObject newLevel = Instantiate(selectedItem, h.gameObject.transform);
                                 newLevel.transform.localPosition = new Vector3(0, h.Size - 1, 0);
                             }
                         }
-                        else if (hoverObject.tag == "Frame")
+                        else if (selectedItem.tag == "Frame")
                         {
                             if (h.Frames < 10)
                             {
-                                Money -= hoverObject.GetComponent<Cost>().Price;
                                 h.Frames++;
                             }
                         }
-                        else if (hoverObject.tag == "Sugar")
+                        else if (selectedItem.tag == "Sugar")
                         {
                             if (!h.hasSugar)
                             {
-                                Money -= hoverObject.GetComponent<Cost>().Price;
                                 h.AddSugarWater();
                             }
                         }
-                        else if (hoverObject.tag == "Reducer")
+                        else if (selectedItem.tag == "Reducer")
                         {
                             if (!h.hasReducer)
                             {
                                 Debug.Log("TODO");
                             }
                         }
-                        else if (hoverObject.tag == "Stand")
+                        else if (selectedItem.tag == "Stand")
                         {
-                            if (!h.hasReducer)
+                            if (!h.hasStand)
                             {
-                                Debug.Log("TODO");
+                                Instantiate(standObject, h.transform.position, Quaternion.identity);
+                                h.transform.position += Vector3.up;
                             }
                         }
-                        else if (hoverObject.tag == "Repellant")
+                        else if (selectedItem.tag == "Repellant")
                         {
                             if (!h.hasRepellant)
                             {
@@ -371,12 +373,16 @@ public class PlayerController : MonoBehaviour
                                     h.CureCondition();
                             }
                         }
-                        else if (hoverObject.tag == "Insulation")
+                        else if (selectedItem.tag == "Insulation")
                         {
                             if (!h.hasReducer)
                             {
                                 Debug.Log("TODO");
                             }
+                        }
+                        else if (selectedItem.tag == "Shovel")
+                        {
+                            return;
                         }
 
                         Destroy(hoverObject);
@@ -533,14 +539,14 @@ public class PlayerController : MonoBehaviour
             costLabel.text = "Purchased";
             return 0;
         }
-        costLabel.text = "$" + cost;
+        costLabel.text = (cost == 0) ? "Purchased" : "$" + cost; 
         return cost;
     }
 
     private void AddHexManipulators(CustomVisualElement hex, bool fromHive, int num, int index, int cost)
     {
         if (!fromHive)
-            hex.AddManipulator(new Clickable(e => SelectItem(objectList[num][index], spriteList[num][index], cost)));
+            hex.AddManipulator(new Clickable(e => SelectItem(objectList[num][index], spriteList[num][index], cost, hex)));
         else
             hex.AddManipulator(new Clickable(e => SelectHive(objectList[num][index], spriteList[num][index], cost, selectedHive)));
 
@@ -606,20 +612,35 @@ public class PlayerController : MonoBehaviour
     }
 
     //Check to see if a queen was selected from the shop normally
-    private void SelectItem(GameObject item, Texture2D sprite, int cost)
+    private void SelectItem(GameObject item, Texture2D sprite, int cost, VisualElement hex)
     {
         if (money < cost)
             return;
-        if (item.tag != "Tool")
+
+        if (SelectedItem == item)
+        {
+            SelectedItem = null;
+            hex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
+            return;
+        }
+
+        hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 1f);
+
+        if (item.tag != "Placeable")
+        {
+            UnityEngine.Cursor.SetCursor(sprite, Vector2.zero, CursorMode.Auto);
+            SelectedItem = item;
+        }
+
+        if (item.tag == "Placeable")
         {
             SelectedItem = item;
             selectedItemSprite = sprite;
         }
-        else
+        else if (item.GetComponent<Cost>().OneTime)
         {
             item.GetComponent<Cost>().Purchased = true;
-            RefreshMenuLists();
-            OpenTab(2, open3, false);
+            Money -= cost;
         }
     }
 

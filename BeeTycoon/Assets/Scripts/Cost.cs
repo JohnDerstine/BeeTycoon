@@ -7,9 +7,11 @@ public class Cost : MonoBehaviour
     [SerializeField]
     public int Price = -1;
 
-    private bool purchased;
+    public bool purchased;
 
     public FlowerType ftype = FlowerType.Empty;
+
+    public bool OneTime;
 
     public bool Purchased
     {
@@ -17,6 +19,7 @@ public class Cost : MonoBehaviour
         set 
         {
             purchased = value;
+            Price = 0;
         }
     }
 }

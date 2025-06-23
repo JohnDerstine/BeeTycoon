@@ -106,7 +106,7 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
+  m_Size: {x: 1.8, y: 1, z: 1.8}
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &2622136574119187639
 MonoBehaviour:
@@ -127,6 +127,11 @@ MonoBehaviour:
   y: 0
   selectingQueen: 0
   isOpen: 0
+  hasSugar: 0
+  hasReducer: 0
+  hasStand: 0
+  hasRepellant: 0
+  hasInsulation: 0
 --- !u!114 &-2763537602791666697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -163,3 +168,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Price: 10
+  ftype: 0

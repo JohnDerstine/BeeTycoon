@@ -96,6 +96,7 @@ public class Hive : MonoBehaviour
     public bool isOpen;
     public bool hasSugar;
     public bool hasReducer;
+    public bool hasStand;
     public bool hasRepellant;
     public bool hasInsulation;
     private string condition = "Healthy";

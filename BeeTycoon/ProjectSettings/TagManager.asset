@@ -9,6 +9,8 @@ TagManager:
   - Tool
   - Super
   - Frame
+  - Stand
+  - Shovel
   layers:
   - Default
   - TransparentFX
