@@ -115,10 +115,16 @@ public class PlayerController : MonoBehaviour
 
     private Hive selectedHive;
 
+    private VisualElement selectedHex = null;
     private GameObject selectedItem = null;
     private Texture2D selectedItemSprite;
     private GameObject hoverObject = null;
     private bool hovering;
+
+    private GameObject objectToMove;
+    private Vector3 storedPos;
+    private bool pickedUpThisFrame = false;
+    private Tile storedTile;
 
     EventCallback<PointerMoveEvent, int> queenMoveCallback;
     EventCallback<PointerLeaveEvent> queenExitCallback;
@@ -137,6 +143,18 @@ public class PlayerController : MonoBehaviour
                 hovering = false;
                 hoverObject = null;
                 UnityEngine.Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+                
+                if (selectedHex != null)
+                    selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
+
+                if (objectToMove != null)
+                {
+                    if (objectToMove.TryGetComponent<Hive>(out Hive h))
+                        h.hiveTile.hasHive = true;
+
+                    objectToMove.transform.position = storedPos;
+                    objectToMove = null;
+                }
             }
             else if (value != null)
             {
@@ -242,9 +260,22 @@ public class PlayerController : MonoBehaviour
                 CloseTab();
         }
 
+        pickedUpThisFrame = false;
         //Checks to see if selected item is placed
         if (SelectedItem != null)
             checkForClick();
+
+        if (objectToMove != null && !pickedUpThisFrame)
+        {
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            //If a tile is clicked while holding a placeable object, place the object
+            if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
+                objectToMove.transform.position = tileHit.point;
+            CheckForPlacement();
+        }
+
+
 
         //Displays selected item under mouse
         if (hovering && hoverObject != null && selectedItem != null)
@@ -293,6 +324,8 @@ public class PlayerController : MonoBehaviour
                             SelectedItem = null;
                             h.Placed = true;
                             h.SetUpTemplate();
+                            t.hasHive = true;
+                            h.hiveTile = t;
                         }
                         else if (hoverObject.TryGetComponent<Cost>(out Cost c))
                         {
@@ -305,6 +338,14 @@ public class PlayerController : MonoBehaviour
                         }
                         return;
                     }
+                    else if (selectedItem.tag == "Shovel" && t.Flower != FlowerType.Empty)
+                    {
+                        objectToMove = t.FlowerObject;
+                        storedPos = t.FlowerObject.transform.position;
+                        storedTile = t;
+                        pickedUpThisFrame = true;
+                        Debug.Log("Picked up object");
+                    }
                 }
             }
             if (Physics.Raycast(ray, out var hiveHit, 1000, LayerMask.GetMask("Hive")))
@@ -312,7 +353,8 @@ public class PlayerController : MonoBehaviour
                 //If a hive is clicked with an item, apply the item's effect
                 if (hiveHit.collider.gameObject.TryGetComponent<Hive>(out Hive h))
                 {
-                    if (selectedItem.tag != "Placeable")
+
+                    if (selectedItem.tag != "Placeable" && selectedItem.tag != "Dolly" && selectedItem.tag != "Shovel")
                     {
                         int cost = selectedItem.GetComponent<Cost>().Price;
                         Money -= cost;
@@ -380,14 +422,52 @@ public class PlayerController : MonoBehaviour
                                 Debug.Log("TODO");
                             }
                         }
-                        else if (selectedItem.tag == "Shovel")
-                        {
-                            return;
-                        }
 
                         Destroy(hoverObject);
                         SelectedItem = null;
                         selectedItemSprite = null;
+                    }
+
+                    if (selectedItem.tag == "Dolly" && h.hiveTile.hasHive == true)
+                    {
+                        objectToMove = h.gameObject;
+                        storedPos = h.gameObject.transform.position;
+                        h.hiveTile.hasHive = false;
+                        pickedUpThisFrame = true;
+                        Debug.Log("Picked up object");
+                    }
+                }
+            }
+        }
+    }
+
+    private void CheckForPlacement()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            //If a tile is clicked while holding a placeable object, place the object
+            if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
+            {
+                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
+                {
+                    if (t.Flower == FlowerType.Empty && !t.hasHive)
+                    {
+                        if (objectToMove.TryGetComponent<Hive>(out Hive h))
+                        {
+                            h.hiveTile = t;
+                            t.hasHive = true;
+                            Debug.Log("Put down object");
+                        }
+                        else
+                        {
+                            t.Flower = objectToMove.GetComponent<Cost>().ftype;
+                            storedTile.Flower = FlowerType.Empty;
+                            Debug.Log("Put down object");
+                        }
+                        objectToMove.transform.position = t.transform.position;
+                        objectToMove = null;
                     }
                 }
             }
@@ -617,18 +697,22 @@ public class PlayerController : MonoBehaviour
         if (money < cost)
             return;
 
-        if (SelectedItem == item)
+        if (selectedHex != null)
         {
-            SelectedItem = null;
-            hex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
-            return;
+            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
+            selectedHex = null;
+
+            if (selectedItem == item)
+            {
+                SelectedItem = null;
+                return;
+            }
         }
 
-        hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 1f);
 
         if (item.tag != "Placeable")
         {
-            UnityEngine.Cursor.SetCursor(sprite, Vector2.zero, CursorMode.Auto);
+            UnityEngine.Cursor.SetCursor(sprite, new Vector2(sprite.width / 2, sprite.height / 2), CursorMode.Auto);
             SelectedItem = item;
         }
 
@@ -640,8 +724,13 @@ public class PlayerController : MonoBehaviour
         else if (item.GetComponent<Cost>().OneTime)
         {
             item.GetComponent<Cost>().Purchased = true;
+            Label costLabel = hex.Q<Label>();
+            costLabel.text = "Purchased";
             Money -= cost;
         }
+
+        hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 1f);
+        selectedHex = hex;
     }
 
     //Check to see if a Queen was selected from the shop, after clicking on the HiveUI queen button

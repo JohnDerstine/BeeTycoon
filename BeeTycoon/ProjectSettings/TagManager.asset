@@ -11,6 +11,7 @@ TagManager:
   - Frame
   - Stand
   - Shovel
+  - Dolly
   layers:
   - Default
   - TransparentFX

@@ -35,6 +35,7 @@ public class Hive : MonoBehaviour
 
     public int x;
     public int y;
+    public Tile hiveTile;
 
     private int size = 1;
     private float population = 5000;
