@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd">
+    <ui:VisualElement name="Background" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/AfflictionPopup.png?fileID=2800000&amp;guid=9d25442e41ff910429fa870fffbfb353&amp;type=3#AfflictionPopup&quot;); width: 128px; height: 128px; align-items: center; align-self: auto; justify-content: center;">
+        <ui:VisualElement name="Icon" style="flex-grow: 0; width: 56px; height: 56px; align-self: center; background-image: url(&quot;project://database/Assets/Sprites/Honey_Sprite.png?fileID=2800000&amp;guid=95d9997ccce6aa046898a9e8bd880124&amp;type=3#Honey_Sprite&quot;); top: -12px;" />
+    </ui:VisualElement>
+</ui:UXML>

@@ -17,7 +17,7 @@
                 </CustomVisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="Center" picking-mode="Ignore" style="flex-grow: 1; flex-basis: 50%; flex-direction: row; align-self: center; align-items: center;" />
+        <ui:VisualElement name="Center" picking-mode="Ignore" style="flex-grow: 1; flex-basis: 50%; flex-direction: column; align-self: center; align-items: center; height: 100%;" />
         <ui:VisualElement name="Right" focusable="true" style="flex-grow: 1; flex-basis: 35%; background-image: none; justify-content: center;">
             <ui:VisualElement name="MoneyContainer" style="flex-grow: 1; flex-basis: 12%; flex-direction: row-reverse; align-items: center;">
                 <CustomVisualElement name="MarketButton" style="background-image: url(&quot;project://database/Assets/Sprites/HoneyCombUIOpenRender.png?fileID=2800000&amp;guid=38522a5f81ab10a4392ffed8ef29445d&amp;type=3#HoneyCombUIOpenRender&quot;); width: 128px; height: 128px; align-self: auto; align-items: center; justify-content: center;">
@@ -26,15 +26,22 @@
                 <ui:Label tabindex="-1" text="$" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Money" style="flex-direction: column; color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 32px; margin-right: 50px; margin-top: 10px;" />
             </ui:VisualElement>
             <ui:VisualElement picking-mode="Ignore" style="flex-grow: 1; flex-basis: 88%; justify-content: flex-end; align-self: auto;">
+                <ui:Label tabindex="-1" text="Turn: 0" parse-escape-sequences="true" display-tooltip-when-elided="true" name="TurnCount" style="-unity-text-align: middle-center; align-self: flex-end; color: rgb(222, 222, 222); -unity-font-style: bold; font-size: 36px; height: auto; top: -475px; margin-right: 20px;" />
                 <CustomVisualElement name="TurnButton" style="align-self: flex-end; left: 180px; top: 200px; width: 600px; height: 400px; background-image: url(&quot;project://database/Assets/Sprites/90DegreeSVG.png?fileID=2800000&amp;guid=fe48eee471c66a144bf8d344cf385c84&amp;type=3#90DegreeSVG&quot;); justify-content: flex-start; align-items: center;">
                     <ui:Label tabindex="-1" text="Next&#10;Turn" parse-escape-sequences="true" display-tooltip-when-elided="true" picking-mode="Ignore" style="color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 48px; -unity-text-align: middle-center; top: 60px; left: -20px;" />
                 </CustomVisualElement>
             </ui:VisualElement>
         </ui:VisualElement>
-        <ui:VisualElement name="NectarCount" style="flex-grow: 1; position: absolute; left: 47%; flex-direction: row; align-items: center; justify-content: center; align-self: flex-start;">
-            <ui:Label tabindex="-1" text="+" parse-escape-sequences="true" display-tooltip-when-elided="true" name="NectarPlus" style="font-size: 64px; -unity-font-style: bold; color: rgb(255, 255, 255); margin-right: -10px;" />
-            <ui:VisualElement name="NectarIcon" tabindex="0" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Sprites/Honey_Sprite.png?fileID=2800000&amp;guid=95d9997ccce6aa046898a9e8bd880124&amp;type=3#Honey_Sprite&quot;); width: 64px; height: 64px;" />
-            <ui:Label tabindex="-1" text="0" parse-escape-sequences="true" display-tooltip-when-elided="true" name="NectarLabel" style="position: relative; left: auto; font-size: 64px; color: rgb(255, 255, 255); -unity-font-style: bold;" />
+        <ui:VisualElement name="Info" picking-mode="Ignore" style="flex-grow: 1; align-self: center; width: 100%; height: 100%; position: absolute; justify-content: flex-start; align-items: center;">
+            <ui:VisualElement name="Quota" style="flex-grow: 0; align-self: center; background-image: url(&quot;project://database/Assets/Sprites/90DegreeSVG.png?fileID=2800000&amp;guid=fe48eee471c66a144bf8d344cf385c84&amp;type=3#90DegreeSVG&quot;); height: 384px; width: 512px; top: -192px; justify-content: center; align-items: center;">
+                <ui:Label tabindex="-1" text="Quota: $50" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Quota" style="top: 56px; color: rgb(230, 230, 230); -unity-font-style: bold; font-size: 48px; -unity-text-align: middle-center;" />
+                <ui:Label tabindex="-1" text="due in 3 turns" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Turns" style="top: 56px; color: rgb(49, 49, 49); -unity-font-style: bold; font-size: 28px;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="NectarCount" style="flex-grow: 0; position: relative; left: auto; flex-direction: row; align-items: center; justify-content: center; align-self: center; top: -192px;">
+                <ui:Label tabindex="-1" text="+" parse-escape-sequences="true" display-tooltip-when-elided="true" name="NectarPlus" style="font-size: 64px; -unity-font-style: bold; color: rgb(255, 255, 255); margin-right: -10px;" />
+                <ui:VisualElement name="NectarIcon" tabindex="0" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Sprites/Honey_Sprite.png?fileID=2800000&amp;guid=95d9997ccce6aa046898a9e8bd880124&amp;type=3#Honey_Sprite&quot;); width: 64px; height: 64px;" />
+                <ui:Label tabindex="-1" text="0" parse-escape-sequences="true" display-tooltip-when-elided="true" name="NectarLabel" style="position: relative; left: auto; font-size: 64px; color: rgb(255, 255, 255); -unity-font-style: bold;" />
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

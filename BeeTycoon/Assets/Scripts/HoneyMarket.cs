@@ -55,9 +55,9 @@ public class HoneyMarket : MonoBehaviour
     private float lowWidth;
     private float mediumWidth;
     private float highWidth;
-    private bool lowSelected;
-    private bool mediumSelected;
-    private bool highSelected;
+    private bool lowSelected = true;
+    private bool mediumSelected = true;
+    private bool highSelected = true;
 
 
     private VisualElement bar;
@@ -289,6 +289,7 @@ public class HoneyMarket : MonoBehaviour
 
     private void SetAllLabels()
     {
+        Debug.Log("setting labels");
         SetLabel(Wildflower, FlowerType.Wildflower);
         SetLabel(Clover, FlowerType.Clover);
         SetLabel(Alfalfa, FlowerType.Alfalfa);
@@ -300,9 +301,15 @@ public class HoneyMarket : MonoBehaviour
 
     private void SetLabel(VisualElement element, FlowerType fType)
     {
-        element.Q<Label>("Cost").text = "$" + marketValues[fType][0];
+        string cost = marketValues[fType][0].ToString();
+        if (cost.IndexOf('.') + 3 < cost.Length)
+            element.Q<Label>("Cost").text = "$" + cost.Substring(0, cost.IndexOf('.') + 3);
+        else
+            element.Q<Label>("Cost").text = "$" + cost;
+
+        //element.Q<Label>("Cost").text = "$" + marketValues[fType][0];
         string amount = player.inventory[fType][0].ToString();
-        //Debug.Log(amount[amount.IndexOf('.') + 3]);
+        //Debug.Log(amount);
         if (amount.IndexOf('.') + 3 < amount.Length)
             element.Q<Label>("Change").text = amount.Substring(0, amount.IndexOf('.') + 3) + " lbs.";
         else
@@ -320,6 +327,7 @@ public class HoneyMarket : MonoBehaviour
     {
         if (selectedElement != null)
         {
+            Debug.Log("setting amount label");
             amountLabel.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
             float amount = 0;
             if (lowSelected)
@@ -333,6 +341,7 @@ public class HoneyMarket : MonoBehaviour
                 amountLabel.text = "You have \n" + amountString.Substring(0, amountString.IndexOf('.') + 3) + " lbs. selected";
             else
                 amountLabel.text = "You have \n" + amountString + " lbs. selected";
+            Debug.Log("Selected:" + amount);
         }
     }
 
@@ -425,10 +434,9 @@ public class HoneyMarket : MonoBehaviour
         if (selectedElement == null)
             return;
 
-
         if (player.inventory[selectedType][0] < amount)
             amount = player.inventory[selectedType][0];
-        //player.Money += Mathf.RoundToInt(amount * price);
+        player.Money += Mathf.RoundToInt(amount * price);
         float toBePaid = amount;
 
         if (lowSelected)
@@ -438,6 +446,8 @@ public class HoneyMarket : MonoBehaviour
         if (highSelected && toBePaid > 0)
             toBePaid = SellHigh(toBePaid);
 
+        Debug.Log("Amount: " + amount + " toBePaid: " + toBePaid);
+        Debug.Log("Subtracting " + (amount - toBePaid));
         player.inventory[selectedType][0] -= amount - toBePaid;
 
 
@@ -456,7 +466,10 @@ public class HoneyMarket : MonoBehaviour
             player.inventory[selectedType][1] = 0;
         }
         else
+        {
             player.inventory[selectedType][1] -= amount;
+            amount = 0;
+        }
 
         return amount;
     }
@@ -468,7 +481,10 @@ public class HoneyMarket : MonoBehaviour
             player.inventory[selectedType][2] = 0;
         }
         else
-            player.inventory[selectedType][2] -= amount;
+        {
+            player.inventory[selectedType][1] -= amount;
+            amount = 0;
+        }
 
         return amount;
     }
@@ -481,7 +497,10 @@ public class HoneyMarket : MonoBehaviour
             player.inventory[selectedType][3] = 0;
         }
         else
-            player.inventory[selectedType][3] -= amount;
+        {
+            player.inventory[selectedType][1] -= amount;
+            amount = 0;
+        }
 
         return amount;
     }

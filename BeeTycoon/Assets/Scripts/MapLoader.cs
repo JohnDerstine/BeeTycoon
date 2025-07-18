@@ -402,16 +402,16 @@ public class MapLoader : MonoBehaviour
     {
         foreach (Tile t in validTiles)
         {
-            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower != FlowerType.Empty)
+            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Fireweed) //Fired weed exception
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x + 1, t.y].Flower = fType;
-            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower != FlowerType.Empty)
+            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower != FlowerType.Empty && tiles[t.x - 1, t.y].Flower != FlowerType.Fireweed)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x - 1, t.y].Flower = fType;
-            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower != FlowerType.Empty)
+            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower != FlowerType.Empty && tiles[t.x, t.y + 1].Flower != FlowerType.Fireweed)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y + 1].Flower = fType;
-            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower != FlowerType.Empty)
+            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower != FlowerType.Empty && tiles[t.x, t.y - 1].Flower != FlowerType.Fireweed)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y - 1].Flower = fType;
         }
@@ -495,7 +495,8 @@ public class MapLoader : MonoBehaviour
             {
                 if (tiles[i, j].Flower == FlowerType.Fireweed)
                 {
-                    validTiles.Add(tiles[i, j]);
+                    if (!validTiles.Contains(tiles[i, j]))
+                        validTiles.Add(tiles[i, j]);
                     if (GetAdjacentFlowers(FlowerType.Empty, i, j).Count >= 3)
                         tiles[i, j].Flower = FlowerType.Empty;
                 }
@@ -510,7 +511,7 @@ public class MapLoader : MonoBehaviour
         for (int i = 0; i < mapWidth; i++)
             for (int j = 0; j < mapHeight; j++)
                 if (tiles[i, j].Flower == FlowerType.Buckwheat)
-                    validTiles.Add(tiles[i, j]);
+                        validTiles.Add(tiles[i, j]);
         SpreadToAdjacentTiles(validTiles, FlowerType.Buckwheat, 2);
     }
 }

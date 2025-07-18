@@ -12,6 +12,12 @@ TagManager:
   - Stand
   - Shovel
   - Dolly
+  - HiveTool
+  - Smoker
+  - Sugar
+  - Insulation
+  - Reducer
+  - Repellant
   layers:
   - Default
   - TransparentFX

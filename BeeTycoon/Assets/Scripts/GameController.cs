@@ -32,12 +32,12 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private HoneyMarket honeyMarket;
 
-    private int turn = 0;
+    private int turn = 1;
     private VisualElement root;
     private CustomVisualElement turnButton;
     private string season = "spring";
 
-    private int quota = 50;
+    private int quota = 0;
 
     public bool nectarCollectingFinished;
     public bool flowerAdvanceFinished;
@@ -53,7 +53,10 @@ public class GameController : MonoBehaviour
         set
         {
             quota = value;
+
             //update UI
+            root.Q<Label>("Quota").text = "Quota: $" + quota;
+            root.Q<Label>("Turns").text = "Due in " + (4 - ((turn - 1) % 4)) + " turns";
         }
     }
 
@@ -77,6 +80,7 @@ public class GameController : MonoBehaviour
         root = document.rootVisualElement;
         turnButton = root.Q<CustomVisualElement>("TurnButton");
         turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
+        Quota = 25;
     }
 
     private IEnumerator NextTurn()
@@ -91,6 +95,7 @@ public class GameController : MonoBehaviour
 
         CurrentState = GameStates.TurnEnd;
         turn++;
+        root.Q<Label>("TurnCount").text = "Turn: " + turn;
         StartCoroutine(map.GetNectarGains());
 
         yield return new WaitWhile(() => !nectarCollectingFinished);
@@ -98,7 +103,7 @@ public class GameController : MonoBehaviour
 
         player.OnTurnIncrement();
 
-        if (turn % 4 == 0)
+        if ((turn - 1) % 4 == 0)
         {
             switch (season)
             {
@@ -118,8 +123,11 @@ public class GameController : MonoBehaviour
             player.Money -= Quota;
             if (player.Money < 0)
                 EndGame();
+            Debug.Log("Updating quota");
             Quota = (int)(1.5f * Quota);
         }
+        else
+            Quota = quota;
 
         map.AdvanceFlowerStates(); //This should be done after all the animations for GetNectarGains is done.
         yield return new WaitWhile(() => !flowerAdvanceFinished);

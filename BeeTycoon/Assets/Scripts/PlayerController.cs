@@ -162,9 +162,12 @@ public class PlayerController : MonoBehaviour
                     hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
                 else
                 {
-                    //hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.Euler(new Vector3(70, 0, 0)));
+
                     if (selectedItem.tag == "Bee")
+                    {
+                        hoverObject = Instantiate(selectedItem);
                         StartCoroutine(hoverObject.GetComponent<QueenBee>().TransferStats(selectedItem.GetComponent<QueenBee>()));
+                    }
                 }
                 hovering = true;
             }
@@ -354,7 +357,7 @@ public class PlayerController : MonoBehaviour
                 if (hiveHit.collider.gameObject.TryGetComponent<Hive>(out Hive h))
                 {
 
-                    if (selectedItem.tag != "Placeable" && selectedItem.tag != "Dolly" && selectedItem.tag != "Shovel")
+                    if (selectedItem.tag != "Placeable" && selectedItem.tag != "Dolly" && selectedItem.tag != "Shovel" && selectedItem.tag != "HiveTool" && selectedItem.tag != "Smoker")
                     {
                         int cost = selectedItem.GetComponent<Cost>().Price;
                         Money -= cost;
@@ -395,7 +398,9 @@ public class PlayerController : MonoBehaviour
                         {
                             if (!h.hasReducer)
                             {
-                                Debug.Log("TODO");
+                                h.hasReducer = true;
+                                if (h.Condition == "Mice")
+                                    h.CureCondition();
                             }
                         }
                         else if (selectedItem.tag == "Stand")
@@ -419,7 +424,7 @@ public class PlayerController : MonoBehaviour
                         {
                             if (!h.hasReducer)
                             {
-                                Debug.Log("TODO");
+                                h.hasInsulation = true;
                             }
                         }
 
@@ -428,13 +433,21 @@ public class PlayerController : MonoBehaviour
                         selectedItemSprite = null;
                     }
 
-                    if (selectedItem.tag == "Dolly" && h.hiveTile.hasHive == true)
+                    if (SelectedItem != null && selectedItem.tag == "Dolly" && h.hiveTile.hasHive == true)
                     {
                         objectToMove = h.gameObject;
                         storedPos = h.gameObject.transform.position;
                         h.hiveTile.hasHive = false;
                         pickedUpThisFrame = true;
                         Debug.Log("Picked up object");
+                    }
+                    else if (SelectedItem != null && selectedItem.tag == "HiveTool" && h.Condition == "Glued")
+                    {
+                        h.CureCondition();
+                    }
+                    else if (SelectedItem != null && selectedItem.tag == "Smoker" && h.Condition == "Aggrevated")
+                    {
+                        h.CureCondition();
                     }
                 }
             }
@@ -714,6 +727,7 @@ public class PlayerController : MonoBehaviour
         {
             UnityEngine.Cursor.SetCursor(sprite, new Vector2(sprite.width / 2, sprite.height / 2), CursorMode.Auto);
             SelectedItem = item;
+            selectedItemSprite = sprite;
         }
 
         if (item.tag == "Placeable")
@@ -833,9 +847,11 @@ public class PlayerController : MonoBehaviour
 
     public void OpenHiveUI(TemplateContainer template, VisualTreeAsset hiveUI, Hive hive)
     {
-        if (selectedItem != null || game.CurrentState == GameStates.Paused || game.CurrentState == GameStates.TurnEnd)
+        Debug.Log(hive.canBeOpened + " " + game.CurrentState + " " + selectedItem);
+        if (selectedItem != null || game.CurrentState == GameStates.Paused || game.CurrentState == GameStates.TurnEnd || hive.canBeOpened == false)
             return;
 
+        Debug.Log("opening hive");
         //Check to see if the same hive is being clicked to close the hiveUI
         bool reclicked = false;
         if (activeUI == template && activeUI != null)
@@ -913,9 +929,9 @@ public class PlayerController : MonoBehaviour
     private void PanCamera()
     {
         Vector3 cameraPos = Camera.main.transform.position;
-        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S))
+        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
         {
-            float sens = Input.GetKey(KeyCode.S) ? -10f : 10f;
+            float sens = Input.GetKey(KeyCode.A) ? -10f : 10f;
             Vector3 panZ = new Vector3(0, 0, sens * Time.deltaTime);
             if (cameraPos.z + panZ.z > map.mapHeight * .75f * 2f)
                 Camera.main.transform.position = new Vector3(cameraPos.x, cameraPos.y, map.mapHeight * .75f * 2f);
@@ -926,9 +942,9 @@ public class PlayerController : MonoBehaviour
         }
 
         cameraPos = Camera.main.transform.position;
-        if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
+        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S))
         {
-            float sens = Input.GetKey(KeyCode.A) ? -10f : 10f;
+            float sens = Input.GetKey(KeyCode.W) ? -10f : 10f;
             Vector3 panX = new Vector3(sens * Time.deltaTime, 0, 0);
             if (cameraPos.x + panX.x > map.mapWidth * 2f)
                 Camera.main.transform.position = new Vector3(map.mapWidth * 2f, cameraPos.y, cameraPos.z);
