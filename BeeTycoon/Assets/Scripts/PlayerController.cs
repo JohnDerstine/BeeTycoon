@@ -1121,7 +1121,7 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < data.hiveCount + data.queenCount; i++)
         {
             Hive hive = null;
-            if (i < data.hiveCount - 1)
+            if (i < data.hiveCount)
             {
                 Vector3 pos = new Vector3(data.xs[i], 0, data.ys[i]);
                 GameObject hiveObject = Instantiate(hivePrefab, pos, Quaternion.identity);
