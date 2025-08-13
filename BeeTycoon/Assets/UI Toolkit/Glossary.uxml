@@ -1,71 +1,73 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <Style src="project://database/Assets/UI%20Toolkit/GlossaryTabStyle.uss?fileID=7433441132597879392&amp;guid=e0f9dffc3879fd348a4574f8939fa1e1&amp;type=3#GlossaryTabStyle" />
-    <ui:VisualElement name="Background" style="flex-grow: 1; border-left-color: rgb(45, 45, 45); border-right-color: rgb(45, 45, 45); border-top-color: rgb(45, 45, 45); border-bottom-color: rgb(45, 45, 45); border-top-width: 12px; border-right-width: 16px; border-bottom-width: 16px; border-left-width: 16px; border-top-left-radius: 36px; border-top-right-radius: 36px; border-bottom-right-radius: 36px; border-bottom-left-radius: 36px; color: rgb(255, 255, 255); background-color: rgb(118, 81, 25);">
-        <ui:VisualElement name="Title" style="flex-grow: 0; flex-basis: 15%; border-left-color: rgb(45, 45, 45); border-right-color: rgb(45, 45, 45); border-top-color: rgb(45, 45, 45); border-bottom-color: rgb(45, 45, 45); border-bottom-width: 8px; align-items: center; justify-content: center; background-color: rgb(118, 81, 25); border-top-left-radius: 24px; border-top-right-radius: 24px; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
-            <ui:Label tabindex="-1" text="Glossary" parse-escape-sequences="true" display-tooltip-when-elided="true" name="TitleLabel" style="font-size: 100px; -unity-font-style: bold; -unity-text-align: middle-center;" />
-        </ui:VisualElement>
-        <ui:VisualElement name="Content" style="flex-grow: 0; flex-basis: 85%; background-color: rgb(89, 60, 16); border-bottom-right-radius: 24px; border-bottom-left-radius: 24px; flex-direction: row;">
-            <ui:VisualElement name="SideBar" style="flex-grow: 1; flex-basis: 25%; background-color: rgb(89, 60, 16); border-left-color: rgb(45, 45, 45); border-right-color: rgb(45, 45, 45); border-top-color: rgb(45, 45, 45); border-bottom-color: rgb(45, 45, 45); border-right-width: 8px; border-bottom-left-radius: 22px; border-top-left-radius: 22px; border-top-right-radius: 0;">
-                <ui:VisualElement name="Afflictions" class="tab" style="flex-grow: 0; -unity-background-image-tint-color: rgb(255, 255, 255); background-color: rgba(0, 0, 0, 0.35);">
-                    <ui:Label tabindex="-1" text="Hive Afflictions" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                </ui:VisualElement>
-                <ui:VisualElement name="Species" class="tab" style="flex-grow: 0;">
-                    <ui:Label tabindex="-1" text="Bee Species" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                </ui:VisualElement>
-                <ui:VisualElement name="Flowers" class="tab" style="flex-grow: 0;">
-                    <ui:Label tabindex="-1" text="Flowers" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                </ui:VisualElement>
-                <ui:VisualElement name="Tools" class="tab" style="flex-grow: 0;">
-                    <ui:Label tabindex="-1" text="Tools" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                </ui:VisualElement>
-                <ui:VisualElement name="Hive" class="tab" style="flex-grow: 0;">
-                    <ui:Label tabindex="-1" text="Hive Information" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                </ui:VisualElement>
+    <ui:VisualElement style="flex-grow: 1; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.89); justify-content: center; align-items: center;">
+        <ui:VisualElement name="Background" style="flex-grow: 0; border-left-color: rgb(45, 45, 45); border-right-color: rgb(45, 45, 45); border-top-color: rgb(45, 45, 45); border-bottom-color: rgb(45, 45, 45); border-top-width: 12px; border-right-width: 16px; border-bottom-width: 16px; border-left-width: 16px; border-top-left-radius: 36px; border-top-right-radius: 36px; border-bottom-right-radius: 36px; border-bottom-left-radius: 36px; color: rgb(255, 255, 255); background-color: rgb(118, 81, 25); position: absolute; flex-shrink: 1; width: 900px; height: 1000px;">
+            <ui:VisualElement name="Title" style="flex-grow: 0; flex-basis: 15%; border-left-color: rgb(45, 45, 45); border-right-color: rgb(45, 45, 45); border-top-color: rgb(45, 45, 45); border-bottom-color: rgb(45, 45, 45); border-bottom-width: 8px; align-items: center; justify-content: center; background-color: rgb(178, 125, 45); border-top-left-radius: 24px; border-top-right-radius: 24px; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
+                <ui:Label tabindex="-1" text="Glossary" parse-escape-sequences="true" display-tooltip-when-elided="true" name="TitleLabel" style="font-size: 100px; -unity-font-style: bold; -unity-text-align: middle-center;" />
             </ui:VisualElement>
-            <ui:ScrollView style="flex-basis: 75%; background-color: rgb(58, 39, 10);">
-                <ui:VisualElement name="Mites" class="item" style="flex-grow: 0; align-items: center; justify-content: flex-start; margin-top: 30px;">
-                    <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
-                        <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/MiteIcon.png?fileID=2800000&amp;guid=32d85028191aa8446a25735b43f5c238&amp;type=3#MiteIcon&quot;);" />
-                        <ui:Label tabindex="-1" text="Mites" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-text-align: middle-center; -unity-font-style: bold;" />
+            <ui:VisualElement name="Content" style="flex-grow: 0; flex-basis: 85%; background-color: rgba(255, 255, 255, 0); border-bottom-right-radius: 24px; border-bottom-left-radius: 24px; flex-direction: row; visibility: visible;">
+                <ui:VisualElement name="SideBar" style="flex-grow: 1; flex-basis: 25%; background-color: rgb(115, 75, 15); border-left-color: rgb(45, 45, 45); border-right-color: rgb(45, 45, 45); border-top-color: rgb(45, 45, 45); border-bottom-color: rgb(45, 45, 45); border-right-width: 8px; border-bottom-left-radius: 22px; border-top-left-radius: 0; border-top-right-radius: 0; display: flex; visibility: visible;">
+                    <ui:VisualElement name="Afflictions" class="glossaryTab" style="flex-grow: 0; -unity-background-image-tint-color: rgb(255, 255, 255); background-color: rgba(0, 0, 0, 0.35);">
+                        <ui:Label tabindex="-1" text="Hive Afflictions" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                     </ui:VisualElement>
-                    <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
-                </ui:VisualElement>
-                <ui:VisualElement name="Mice" class="item" style="flex-grow: 0; align-items: center;">
-                    <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
-                        <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/MiteIcon.png?fileID=2800000&amp;guid=32d85028191aa8446a25735b43f5c238&amp;type=3#MiteIcon&quot;); flex-basis: auto;" />
-                        <ui:Label tabindex="-1" text="Mice" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold; -unity-text-align: middle-center;" />
+                    <ui:VisualElement name="Species" class="glossaryTab" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="Bee Species" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                     </ui:VisualElement>
-                    <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
-                </ui:VisualElement>
-                <ui:VisualElement name="Glued" class="item" style="flex-grow: 0; align-items: center;">
-                    <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
-                        <ui:VisualElement name="VisualElement" class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/MiteIcon.png?fileID=2800000&amp;guid=32d85028191aa8446a25735b43f5c238&amp;type=3#MiteIcon&quot;);" />
-                        <ui:Label tabindex="-1" text="Glued" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold; -unity-text-align: middle-center;" />
+                    <ui:VisualElement name="Flowers" class="glossaryTab" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="Flowers" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                     </ui:VisualElement>
-                    <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
-                </ui:VisualElement>
-                <ui:VisualElement name="Aggrevated" class="item" style="flex-grow: 0; align-items: center;">
-                    <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
-                        <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/AggrevatedIcon.png?fileID=2800000&amp;guid=a60bb728aa9ec014398b79b3d565aadc&amp;type=3#AggrevatedIcon&quot;);" />
-                        <ui:Label tabindex="-1" text="Aggrevated" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold; -unity-text-align: middle-center;" />
+                    <ui:VisualElement name="Tools" class="glossaryTab" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="Tools" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                     </ui:VisualElement>
-                    <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
-                </ui:VisualElement>
-                <ui:VisualElement name="Starving" class="item" style="flex-grow: 0; align-items: center;">
-                    <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
-                        <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/MiteIcon.png?fileID=2800000&amp;guid=32d85028191aa8446a25735b43f5c238&amp;type=3#MiteIcon&quot;);" />
-                        <ui:Label tabindex="-1" text="Starving" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold; -unity-text-align: middle-center;" />
+                    <ui:VisualElement name="Hive" class="glossaryTab" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="Hive Information" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                     </ui:VisualElement>
-                    <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
                 </ui:VisualElement>
-                <ui:VisualElement name="Freezing" class="item" style="flex-grow: 0; align-items: center;">
-                    <ui:VisualElement style="flex-grow: 1; flex-basis: 25%; -unity-text-align: middle-center;">
-                        <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/FreezingIcon.png?fileID=2800000&amp;guid=252954fe108b6ce439f9f696ac0df8fe&amp;type=3#FreezingIcon&quot;);" />
-                        <ui:Label tabindex="-1" text="Freezing" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold;" />
+                <ui:ScrollView horizontal-scroller-visibility="Hidden" style="flex-basis: 75%; background-color: rgb(53, 33, 5);">
+                    <ui:VisualElement name="Mites" class="item" style="flex-grow: 0; align-items: center; justify-content: flex-start; margin-top: 30px; margin-bottom: 30px; padding-top: 0; height: 156px;">
+                        <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
+                            <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/MiteIcon.png?fileID=2800000&amp;guid=32d85028191aa8446a25735b43f5c238&amp;type=3#MiteIcon&quot;);" />
+                            <ui:Label tabindex="-1" text="Mites" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-text-align: middle-center; -unity-font-style: bold;" />
+                        </ui:VisualElement>
+                        <ui:Label tabindex="-1" text="Mites are blood-sucking parasites that attach to the back of bees. A hive infested with mites is &lt;color=red&gt;50% less efficient&lt;/color&gt;. &lt;br&gt;&lt;br&gt;&lt;color=green&gt;Mite Repellant&lt;/color&gt; can be used as a short term remedy." parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%; font-size: 18px; white-space: normal; -unity-font-style: bold;" />
                     </ui:VisualElement>
-                    <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
-                </ui:VisualElement>
-            </ui:ScrollView>
+                    <ui:VisualElement name="Mice" class="item" style="flex-grow: 0; align-items: center;">
+                        <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
+                            <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/MiteIcon.png?fileID=2800000&amp;guid=32d85028191aa8446a25735b43f5c238&amp;type=3#MiteIcon&quot;); flex-basis: auto;" />
+                            <ui:Label tabindex="-1" text="Mice" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold; -unity-text-align: middle-center;" />
+                        </ui:VisualElement>
+                        <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Glued" class="item" style="flex-grow: 0; align-items: center;">
+                        <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
+                            <ui:VisualElement name="VisualElement" class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/MiteIcon.png?fileID=2800000&amp;guid=32d85028191aa8446a25735b43f5c238&amp;type=3#MiteIcon&quot;);" />
+                            <ui:Label tabindex="-1" text="Glued" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold; -unity-text-align: middle-center;" />
+                        </ui:VisualElement>
+                        <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Aggrevated" class="item" style="flex-grow: 0; align-items: center;">
+                        <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
+                            <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/AggrevatedIcon.png?fileID=2800000&amp;guid=a60bb728aa9ec014398b79b3d565aadc&amp;type=3#AggrevatedIcon&quot;);" />
+                            <ui:Label tabindex="-1" text="Aggrevated" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold; -unity-text-align: middle-center;" />
+                        </ui:VisualElement>
+                        <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Starving" class="item" style="flex-grow: 0; align-items: center;">
+                        <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
+                            <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/MiteIcon.png?fileID=2800000&amp;guid=32d85028191aa8446a25735b43f5c238&amp;type=3#MiteIcon&quot;);" />
+                            <ui:Label tabindex="-1" text="Starving" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold; -unity-text-align: middle-center;" />
+                        </ui:VisualElement>
+                        <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Freezing" class="item" style="flex-grow: 0; align-items: center;">
+                        <ui:VisualElement style="flex-grow: 1; flex-basis: 25%; -unity-text-align: middle-center;">
+                            <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/FreezingIcon.png?fileID=2800000&amp;guid=252954fe108b6ce439f9f696ac0df8fe&amp;type=3#FreezingIcon&quot;);" />
+                            <ui:Label tabindex="-1" text="Freezing" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 24px; -unity-font-style: bold;" />
+                        </ui:VisualElement>
+                        <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" style="flex-basis: 75%;" />
+                    </ui:VisualElement>
+                </ui:ScrollView>
+            </ui:VisualElement>
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

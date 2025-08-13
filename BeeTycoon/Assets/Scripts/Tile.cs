@@ -30,7 +30,7 @@ public class Tile : MonoBehaviour
         set
         {
             Destroy(flowerObject);
-            if (value != FlowerType.Empty && value != flower)
+            if (value != FlowerType.Empty) //&& value != flower
                 flowerObject = Instantiate(map.flowerList[(int)value], transform.position, Quaternion.identity);
 
             flower = value;

@@ -19,10 +19,12 @@
         </ui:VisualElement>
         <ui:VisualElement name="Center" picking-mode="Ignore" style="flex-grow: 1; flex-basis: 50%; flex-direction: column; align-self: center; align-items: center; height: 100%;" />
         <ui:VisualElement name="Right" focusable="true" style="flex-grow: 1; flex-basis: 35%; background-image: none; justify-content: center;">
-            <ui:VisualElement name="MoneyContainer" style="flex-grow: 1; flex-basis: 12%; flex-direction: row-reverse; align-items: center;">
-                <CustomVisualElement name="MarketButton" style="background-image: url(&quot;project://database/Assets/Sprites/HoneyCombUIOpenRender.png?fileID=2800000&amp;guid=38522a5f81ab10a4392ffed8ef29445d&amp;type=3#HoneyCombUIOpenRender&quot;); width: 128px; height: 128px; align-self: auto; align-items: center; justify-content: center;">
-                    <ui:VisualElement picking-mode="Ignore" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/Honey_Sprite.png?fileID=2800000&amp;guid=95d9997ccce6aa046898a9e8bd880124&amp;type=3#Honey_Sprite&quot;); width: 84px; height: 84px;" />
-                </CustomVisualElement>
+            <ui:VisualElement name="MoneyContainer" style="flex-grow: 1; flex-basis: 12%; flex-direction: row-reverse; align-items: center; margin-top: 10px;">
+                <ui:VisualElement name="MarketContainer" style="flex-grow: 0; width: 152px; height: 152px; justify-content: center; align-items: center; max-width: 152px; max-height: 152px;">
+                    <CustomVisualElement name="MarketButton" style="background-image: url(&quot;project://database/Assets/Sprites/HoneyCombUIOpenRender.png?fileID=2800000&amp;guid=38522a5f81ab10a4392ffed8ef29445d&amp;type=3#HoneyCombUIOpenRender&quot;); width: 128px; height: 128px; align-self: auto; align-items: center; justify-content: center; position: relative; left: auto; top: auto;">
+                        <ui:VisualElement picking-mode="Ignore" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/Honey_Sprite.png?fileID=2800000&amp;guid=95d9997ccce6aa046898a9e8bd880124&amp;type=3#Honey_Sprite&quot;); width: 84px; height: 84px;" />
+                    </CustomVisualElement>
+                </ui:VisualElement>
                 <ui:Label tabindex="-1" text="$" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Money" style="flex-direction: column; color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 32px; margin-right: 50px; margin-top: 10px;" />
             </ui:VisualElement>
             <ui:VisualElement picking-mode="Ignore" style="flex-grow: 1; flex-basis: 88%; justify-content: flex-end; align-self: auto;">

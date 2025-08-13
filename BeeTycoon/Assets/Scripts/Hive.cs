@@ -21,6 +21,7 @@ public class Hive : MonoBehaviour
     private MapLoader map;
     private PlayerController player;
     private GameController game;
+    private UnlockTracker tracker;
 
     [SerializeField]
     private VisualTreeAsset hiveUI;
@@ -42,27 +43,43 @@ public class Hive : MonoBehaviour
 
     [SerializeField]
     private List<Texture2D> remedyIcons = new List<Texture2D>();
+
+    [SerializeField]
+    private VisualTreeAsset honeyGlobIcon;
+
     private Texture2D currentIcon;
 
     public TemplateContainer template;
     private TemplateContainer hoverTemplate;
     private TemplateContainer tooltip;
     public bool empty = true;
-    private bool placed;
+    public bool placed;
 
     public int x;
     public int y;
     public Tile hiveTile;
 
+    private const float conversionRate = 0.006f;
+
     private int size = 1;
-    private float population = 5000;
+    public float population = 5000;
     private float popCap = 20000; //what population the hive can currently house
     private float popSizeCap = 20000; //how much each level of size changes the popCap
-    private float comb = 0;
+    public float comb = 0;
     private int combCap = 8; //how much honey the hive can currently store
-    private int combSizeCap = 8; //how much each level of size changes the honeyCap
-    private float nectar;
-    private float honey;
+    public int combSizeCap = 8; //how much each level of size changes the honeyCap
+    public float nectar;
+    public float honey;
+
+    private float italian;
+    private float russianEff;
+    float spring;
+    float summer;
+    float fall;
+    float greedy;
+    float industrious;
+    float agile;
+    float hiveStandBonus;
 
     private float addedNectar = 0;
 
@@ -78,15 +95,18 @@ public class Hive : MonoBehaviour
     private float construction = 1f; //was 0.5f
     //private float collection = 1f; //was 400 //Not currently in use. Nectar is now caclulated through flowers
     private float resilience = 1;
-    private float aggressivness = 1;
+    private float aggressivness = 3;
 
-    private QueenBee queen;
+    public QueenBee queen;
 
     private Dictionary<FlowerType, float> flowerValues = new Dictionary<FlowerType, float>();
     private Dictionary<FlowerType, float> nectarValues = new Dictionary<FlowerType, float>();
     private float totalFlowerWeight = 0;
-    private FlowerType honeyType = FlowerType.Empty;
-    private float honeyPurity = 0;
+    public FlowerType honeyType = FlowerType.Empty;
+    public float honeyPurity = 0;
+
+    float possibleNectar;
+    float nectarGain;
 
     //UI
     private VisualElement smallHarvest;
@@ -122,6 +142,7 @@ public class Hive : MonoBehaviour
     public bool canBeOpened = true;
     private string condition = "Healthy";
     private TemplateContainer activePopup;
+    private Coroutine activePulse;
 
     public int Size
     {
@@ -194,12 +215,12 @@ public class Hive : MonoBehaviour
                     break;
                 case "Starving":
                     construction /= 2;
-                    currentIcon = remedyIcons[4];
+                    currentIcon = remedyIcons[0];
                     activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[3];
                     break;
                 case "Aggrevated":
                     canBeOpened = false;
-                    currentIcon = remedyIcons[5];
+                    currentIcon = remedyIcons[0];
                     activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[1];
                     break;
                 case "Healthy":
@@ -251,6 +272,7 @@ public class Hive : MonoBehaviour
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         game = GameObject.Find("GameController").GetComponent<GameController>();
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
+        tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
         queen = GetComponent<QueenBee>();
 
         var values = System.Enum.GetValues(typeof(FlowerType));
@@ -280,7 +302,7 @@ public class Hive : MonoBehaviour
             {
                 CloseQueenSelection();
             }
-            else if (isOpen && player.SelectedItem == null)
+            else if (isOpen && player.SelectedItem == null && !GameObject.Find("UIDocument").GetComponent<Glossary>().open)
                 player.CloseHiveUI(this);
         }
 
@@ -328,23 +350,39 @@ public class Hive : MonoBehaviour
                 comb = 4;
         }
 
+        if (game.Season == "winter")
+        {
+            //CONSUME HONEY FOR FOOD
+            //CONVERT ALL LEFTOVER NECTAR INTO HONEY
+            return;
+        }
+
         GetFlowerRatios();
 
-        float possibleComb = construction * queen.constructionMult * hiveEfficency;
+        //Bonuses depending on season
+        spring = (game.Season == "spring") ? 1.5f : 1;
+        summer = (game.Season == "summer") ? 1.5f : 1;
+        fall = (game.Season == "fall") ? 1.5f : 1;
+        greedy = (queen.quirks.Contains("Greedy")) ? tracker.quirkValues["Greedy"] : 1;
+        industrious = (queen.quirks.Contains("Industrious")) ? tracker.quirkValues["Industrious"] : 1;
+        agile = (queen.quirks.Contains("Agile")) ? tracker.quirkValues["Agile"] : 1;
+        hiveStandBonus = (hasStand) ? 1.1f : 1;
+
+        float possibleComb = construction * queen.constructionMult * hiveEfficency * spring * industrious * russianEff * hiveStandBonus;
         if (possibleComb + comb > combCap)
             possibleComb = combCap - comb;
         comb += possibleComb;
         storage = storagePerComb * comb;
 
-        float possibleHoney = production * queen.productionMult * hiveEfficency;
+        float possibleHoney = production * queen.productionMult * hiveEfficency * fall * greedy * italian * russianEff * hiveStandBonus;
         if (possibleHoney > nectar)
             possibleHoney = nectar;
         honey += possibleHoney;
         nectar -= possibleHoney;
 
-        float nectarGain = addedNectar + map.nectarGains.Values.Sum() *.006f; //scale it down to lbs
-        //Debug.Log(queen.collectionMult);
-        float possibleNectar = nectarGain * queen.collectionMult * hiveEfficency; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
+        nectarGain = addedNectar + map.nectarGains.Values.Sum() * conversionRate; //scale it down to lbs
+
+        possibleNectar = nectarGain * queen.collectionMult * hiveEfficency * russianEff * summer * agile * hiveStandBonus; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
         if (possibleNectar + nectar + honey > storage)
             possibleNectar = storage - (nectar + honey);
         nectar += possibleNectar;
@@ -359,41 +397,26 @@ public class Hive : MonoBehaviour
 
         hiveEfficency = (population / popCap) * size;
 
-        //Debug.Log("Population: " + population);
-        //Debug.Log("Comb: " + comb);
-        //Debug.Log("Nectar: " + nectar);
-        //Debug.Log("Honey: " + honey);
-        //Debug.Log("Storage: " + storage);
-        //Debug.Log("Efficiency: " + hiveEfficency);
-
         //reset flowerValues
         foreach (FlowerType key in flowerValues.Keys.ToList())
             flowerValues[key] = 0f;
         totalFlowerWeight = 0f;
 
         CalcHoneyStats();
-        //Harvest();
         if (template != null)
             UpdateMeters();
+        if (Condition != "Healthy" && queen.species == "Japanese" && Random.Range(0, 3) == 0)
+            CureCondition();
 
         TryAddCondition();
+        hasSugar = false;
     }
 
     private void Harvest(float percent)
     {
-        //if (noHarvest.value)
-        //    return;
-
-        //if (harvestDict[smallHarvest])
-        //    harvestPercentage = 0.33f;
-        //else if (harvestDict[mediumHarvest])
-        //    harvestPercentage = 0.66f;
-        //else if (harvestDict[largeHarvest])
-        //    harvestPercentage = 1;
-        Debug.Log(honeyType + " " + honey);
+        float amount = percent * honey;
         if (honeyType != FlowerType.Wildflower)
         {
-            float amount = percent * honey;
             player.inventory[honeyType][0] += amount;
             honey -= amount;
             Debug.Log(amount);
@@ -407,7 +430,6 @@ public class Hive : MonoBehaviour
         }
         else
         {
-            float amount = percent * honey;
             player.inventory[honeyType][0] += amount;
             honey -= amount;
             Debug.Log(amount);
@@ -415,6 +437,88 @@ public class Hive : MonoBehaviour
         }
 
         UpdateMeters();
+
+        StartCoroutine(AnimateHarvest(amount));
+    }
+
+    private IEnumerator AnimateHarvest(float amount)
+    {
+        int rounded = Mathf.RoundToInt(amount);
+
+        List<TemplateContainer> globs = new List<TemplateContainer>();
+
+        for (int i = 0; i < 8; i++)
+        {
+            TemplateContainer glob = honeyGlobIcon.Instantiate();
+            glob.style.position = Position.Absolute;
+            glob.style.visibility = Visibility.Hidden;
+            document.rootVisualElement.Q<VisualElement>("HiveBase").Add(glob);
+            globs.Add(glob);
+
+            yield return new WaitForEndOfFrame(); //let resolved style update
+
+            float dir = Random.Range(0, 359);
+            float radius = Random.Range(125, 175);
+            float xOffset = 24;
+
+            float top = honeyHover.resolvedStyle.top + (honeyHover.resolvedStyle.height / 2) - (glob.Q<VisualElement>("Glob").resolvedStyle.height / 2) + Mathf.Sin(dir) * radius;
+            float left = document.rootVisualElement.Q<VisualElement>("HiveBase").Q<VisualElement>("Center").resolvedStyle.left + (honeyHover.resolvedStyle.width / 2) - (glob.Q<VisualElement>("Glob").resolvedStyle.width / 2) - xOffset + Mathf.Cos(dir) * radius;
+            glob.style.visibility = Visibility.Visible;
+
+            glob.style.top = honeyHover.resolvedStyle.top + (honeyHover.resolvedStyle.height / 2) - (glob.Q<VisualElement>("Glob").resolvedStyle.height / 2);
+            glob.style.left = document.rootVisualElement.Q<VisualElement>("HiveBase").Q<VisualElement>("Center").resolvedStyle.left + (honeyHover.resolvedStyle.width / 2) - (glob.Q<VisualElement>("Glob").resolvedStyle.width / 2) - xOffset;
+
+            yield return new WaitForEndOfFrame(); //let resolved style update
+
+            StartCoroutine(ToPoint(glob, top, left, 0.5f, false));
+
+            yield return new WaitForSeconds(0.1f); //delay per glob 0.1
+        }
+
+        yield return new WaitForSeconds(0.5f);
+
+
+        foreach (TemplateContainer glob in globs) //PROBLEM: Cross from hive ui scope to main scope
+        {
+            float top = -150;
+            float left = document.rootVisualElement.Q<VisualElement>("HiveBase").resolvedStyle.width;
+            StartCoroutine(ToPoint(glob, top, left, 0.5f, true));
+            yield return new WaitForSeconds(0.15f);
+            document.rootVisualElement.Q<VisualElement>("HiveBase").Remove(glob);
+
+            if (activePulse != null)
+                StopCoroutine(activePulse);
+            activePulse = StartCoroutine(Pulse());
+        }
+    }
+
+    private IEnumerator ToPoint(TemplateContainer glob, float top, float left, float t, bool destroyOnEnd)
+    {
+        while (Mathf.Abs(glob.resolvedStyle.left - left) >= 10 || Mathf.Abs(glob.resolvedStyle.top - top) >= 10)
+        {
+            glob.style.left = Mathf.Lerp(glob.resolvedStyle.left, left, t);
+            glob.style.top = Mathf.Lerp(glob.resolvedStyle.top, top, t);
+            yield return new WaitForSeconds(0.05f);
+        }
+    }
+
+    private IEnumerator Pulse()
+    {
+        CustomVisualElement button = document.rootVisualElement.Q<CustomVisualElement>("MarketButton");
+        while (152 - button.resolvedStyle.width >= 5)
+        {
+            button.style.width = Mathf.Lerp(button.resolvedStyle.width, 152, 0.5f);
+            button.style.height = Mathf.Lerp(button.resolvedStyle.height, 152, 0.5f);
+            yield return new WaitForSeconds(0.01f);
+        }
+        while (button.resolvedStyle.width >= 133)
+        {
+            button.style.width = Mathf.Lerp(button.resolvedStyle.width, 128, 0.5f);
+            button.style.height = Mathf.Lerp(button.resolvedStyle.height, 128, 0.5f);
+            yield return new WaitForSeconds(0.01f);
+        }
+        button.style.width = 128;
+        button.style.height = 128;
     }
 
     private void GetFlowerRatios()
@@ -474,30 +578,31 @@ public class Hive : MonoBehaviour
 
     private void UpdateMeters()
     {
+        if (combMeter == null)
+            return;
+
         combMeter.value = (comb / combCap * 100) + 8;
-        float nectarGain = addedNectar + map.nectarGains.Values.Sum() * .006f; //scale it down to lbs.
         if (production * queen.productionMult * hiveEfficency != 0)
-            nectarMeter.value = (nectarGain * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100) + 8;// * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f) 
+            nectarMeter.value = (nectarGain * possibleNectar / (production * queen.productionMult * hiveEfficency * hiveStandBonus * agile) * 100) + 8;// * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f) 
         else
             nectarMeter.value = 8;
-        honeyMeter.value = (honey / (combCap * storagePerComb) * 100) + 8;
+        honeyMeter.value = (honey / (comb * storagePerComb * conversionRate)) + 8;
         UpdateMeterLabels();
     }
 
     private void UpdateMeterLabels()
     {
-        float nectarGain = addedNectar + map.nectarGains.Values.Sum() * .006f;
         if (production * queen.productionMult * hiveEfficency != 0)
-            nectarHover.Q<Label>("Percent").text = (Mathf.Round(nectarGain * queen.collectionMult * hiveEfficency / (production * queen.productionMult * hiveEfficency) * 100 * 10) / 10.0f).ToString() + "%"; //* Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f
+            nectarHover.Q<Label>("Percent").text = (Mathf.Round(nectarGain * possibleNectar / (production * queen.productionMult * hiveEfficency * hiveStandBonus) * 100 * 10) / 10.0f).ToString() + "%"; //* Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f
         else
             nectarHover.Q<Label>("Percent").text = "0%";
-        nectarHover.Q<Label>("Flat").text = (Mathf.Round(nectarGain * queen.collectionMult * hiveEfficency  * 10) / 10.0f) + " lbs."; //*Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
+        nectarHover.Q<Label>("Flat").text = (Mathf.Round(nectarGain * possibleNectar * 10) / 10.0f) + " lbs."; //*Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
 
-        honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (combCap * storagePerComb) * 100 * 10) / 10.0f).ToString() + "%";
-        honeyHover.Q<Label>("Flat").text = (Mathf.Round(production * queen.productionMult * hiveEfficency * 10) / 10.0f) + " lbs.";
+        honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (comb * storagePerComb * conversionRate) * 10) / 10.0f).ToString() + "%";
+        honeyHover.Q<Label>("Flat").text = (Mathf.Round(honey * 10) / 10.0f) + " lbs."; //OLD REPLACE honey: production * queen.productionMult * hiveEfficency
 
         combHover.Q<Label>("Percent").text = (Mathf.Round(comb / combCap * 100) * 10 / 10.0f).ToString() + "%";
-        combHover.Q<Label>("Flat").text = (Mathf.Round(construction * queen.constructionMult * hiveEfficency * 10) / 10.0f) + " lbs.";
+        combHover.Q<Label>("Flat").text = (Mathf.Round(comb * storagePerComb * conversionRate * 100 * 10) / 10.0f) + " lbs."; //OLD REPLACE comb * storagePerComb * conversionRate: construction * queen.constructionMult * hiveEfficency
     }
 
     public void Populate(QueenBee q, Texture2D sprite = null)
@@ -512,42 +617,59 @@ public class Hive : MonoBehaviour
         if (sprite != null)
             queenHex.style.backgroundImage = sprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
+
+        italian = (queen.species == "Italian") ? 1.25f : 1f;
+        russianEff = (queen.species == "Russian") ? 1.1f : 1f;
     }
 
     private void TryAddCondition()
     {
+        return;
         if (Condition == "Healthy")
         {
+            if (game.Season == "winter")
+            {
+
+                float rugged = (queen.quirks.Contains("Rugged")) ? tracker.quirkValues["Rugged"] : 1;
+                if (honey <= population / (16 - resilience * queen.resilienceMult * rugged))
+                    Condition = "Starving";
+                if (Condition == "Starving" && (!hasInsulation || population <= popCap / (Size * 2)))
+                    Debug.Log("Hive died");
+                else if ((!hasInsulation || population <= popCap / (Size * 2)))
+                    Condition = "Freezing";
+
+                if (Condition == "Healthy" && !hasReducer)
+                    Condition = "Mice";
+                return;
+            }
+            
+
             int rand = Random.Range(0, 20);
-            if (!hasRepellant)
+            if (rand <= 4)
             {
                 if (rand <= 1)
-                    Condition = "Mites";
-            }
-            if (!hasReducer)
-            {
-                if (rand <= 3)
-                    Condition = "Mice";
-            }
-            else if (rand <= 5 + aggressivness * queen.aggressivnessMult)
-            {
-                Condition = "Aggrevated";
-            }
-            else if (rand <= 7 + production * queen.productionMult)
-            {
-                Condition = "Glued";
-            }
-            else if (game.Season == "Winter" && honey <= population / (16 - resilience * queen.resilienceMult))
-            {
-                Condition = "Starving";
-            }
-            else if (game.Season == "Winter" && !hasInsulation && population <= popCap / (Size * 2))
-            {
-                Condition = "Freezing";
-            }
-            else
-            {
-                Condition = "Healthy";
+                {
+                    float territorial = (queen.quirks.Contains("Territorial")) ? tracker.quirkValues["Territorial"] : 1;
+                    if (!hasReducer && game.Season != "spring" && game.Season != "summer")
+                        Condition = "Mice";
+                    if (!hasRepellant)
+                       Condition = "Mites";
+                    float russian = (queen.species == "Russian") ? 1.5f : 1f;
+                    if (game.Season != "summer" && Random.Range(0, 24) <= (aggressivness * queen.aggressivnessMult * territorial * russian))
+                        Condition = "Aggrevated";
+
+                    if (Condition == "Healthy")
+                        Condition = "Glued";
+                }
+                else if (rand > 1)
+                {
+                    if (game.Season == "spring")
+                        Condition = "Glued";
+                    else if (game.Season == "summer")
+                        Condition = "Mites";
+                    else if (game.Season == "fall")
+                        Condition = "Aggrevated";
+                }
             }
         }
     }
@@ -575,7 +697,7 @@ public class Hive : MonoBehaviour
     public void AddSugarWater()
     {
         //collection *= 1.5f;
-        addedNectar += 250;
+        addedNectar += 500;
         hasSugar = true;
     }
 

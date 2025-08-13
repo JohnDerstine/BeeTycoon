@@ -30,4 +30,13 @@ public class UnlockTracker : MonoBehaviour
         {"Rugged", "This coloney is 50% more resistant disease"},
         {"Agile", "This coloney is 50% more efficient at collecting nectar"}
     };
+
+    public Dictionary<string, float> quirkValues = new Dictionary<string, float>()
+    {
+        {"Industrious", 1.5f},
+        {"Greedy", 1.5f},
+        {"Territorial", 1.5f},
+        {"Rugged", 1.5f},
+        {"Agile", 1.5f}
+    };
 }

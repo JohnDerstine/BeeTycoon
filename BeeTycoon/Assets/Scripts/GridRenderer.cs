@@ -20,6 +20,7 @@ public class GridRenderer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        loader = GameObject.Find("MapLoader").GetComponent<MapLoader>();
         int x = -1; int z = -1; // Position variables
 
         // FOR JOHN: IDK how to get the grid width and height dynamically but you can do that here

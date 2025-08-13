@@ -1,0 +1,10 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/GlossaryTabStyle.uss?fileID=7433441132597879392&amp;guid=e0f9dffc3879fd348a4574f8939fa1e1&amp;type=3#GlossaryTabStyle" />
+    <ui:VisualElement name="ItemContainer" style="flex-grow: 0; flex-direction: row; width: 100%; height: auto; margin-bottom: 30px; color: rgb(255, 255, 255); -unity-text-align: middle-left; border-bottom-color: rgb(0, 0, 0); border-bottom-width: 8px;">
+        <ui:VisualElement name="ItemHeader" style="flex-grow: 1; flex-basis: 25%; font-size: 14px; -unity-font-style: normal; -unity-text-align: middle-left;">
+            <ui:VisualElement name="ItemIcon" class="icon" style="flex-grow: 1; flex-basis: auto; max-height: 96px; max-width: 96px;" />
+            <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" name="ItemLabel" style="flex-basis: auto; font-size: 22px; -unity-font-style: bold; -unity-text-align: middle-center; white-space: nowrap;" />
+        </ui:VisualElement>
+        <ui:Label tabindex="-1" text="Label" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Description" style="flex-basis: 75%; font-size: 18px; -unity-font-style: bold; white-space: normal; padding-left: 10px;" />
+    </ui:VisualElement>
+</ui:UXML>

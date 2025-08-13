@@ -48,7 +48,13 @@ public class MapLoader : MonoBehaviour
     private bool goldenrodCalced;
     private bool fireweedCalced;
 
-    void Start()
+    void Awake()
+    {
+        tiles = new Tile[mapWidth, mapHeight];
+        GeneratePlot();
+    }
+
+    public void GameStart()
     {
         nectarLabel = document.rootVisualElement.Q<Label>("NectarLabel");
         nectarPlus = document.rootVisualElement.Q<Label>("NectarPlus");
@@ -64,11 +70,6 @@ public class MapLoader : MonoBehaviour
             FlowerType fType = (FlowerType)v;
             nectarGains.Add(fType, 0);
         }
-    }
-
-    void Update()
-    {
-
     }
 
     private void GeneratePlot()
@@ -514,4 +515,34 @@ public class MapLoader : MonoBehaviour
                         validTiles.Add(tiles[i, j]);
         SpreadToAdjacentTiles(validTiles, FlowerType.Buckwheat, 2);
     }
+
+    public void Save(ref MapSaveData data)
+    {
+        List<FlowerType> flowerData = new List<FlowerType>();
+        //loop through each tile, calling it's save function
+        for (int i = 0; i < mapWidth; i++)
+            for (int j = 0; j < mapHeight; j++)
+                flowerData.Add(tiles[i, j].Flower);
+        data.flowerData = flowerData;
+    }
+
+    public void Load(MapSaveData data)
+    {
+        //loop through each tile, calling it's load function
+        int count = 0;
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                tiles[i, j].Flower = data.flowerData[count];
+                count++;
+            }
+        }
+    }
+}
+
+[System.Serializable]
+public struct MapSaveData
+{
+    public List<FlowerType> flowerData;
 }

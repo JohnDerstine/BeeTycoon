@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using UnityEngine.SceneManagement;
 
 public enum GameStates
 {
@@ -24,6 +25,11 @@ public class GameController : MonoBehaviour
     private UIDocument document;
 
     [SerializeField]
+    private VisualTreeAsset mainMenu;
+    [SerializeField]
+    private VisualTreeAsset gameUI;
+
+    [SerializeField]
     private PlayerController player;
 
     [SerializeField]
@@ -33,9 +39,12 @@ public class GameController : MonoBehaviour
     private HoneyMarket honeyMarket;
 
     private int turn = 1;
+    private int year = 1;
     private VisualElement root;
     private CustomVisualElement turnButton;
     private string season = "spring";
+
+    private Button continueButton;
 
     private int quota = 0;
 
@@ -76,11 +85,31 @@ public class GameController : MonoBehaviour
 
     void Awake()
     {
+        root = document.rootVisualElement;
+        continueButton = root.Q<Button>("Continue");
+        continueButton.clickable = new Clickable(e => NewGame());
+    }
+
+    private void NewGame()
+    {
+        SceneManager.LoadScene("Game");
+        SceneManager.sceneLoaded += onSceneLoad;
+    }
+
+    private void onSceneLoad(Scene scene, LoadSceneMode mode)
+    {
+        gameObject.GetComponent<QueenChooser>().OnSceneLoaded();
+        player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+        Debug.Log(player);
+        honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
+        document.visualTreeAsset = gameUI;
         CurrentState = GameStates.Start;
         root = document.rootVisualElement;
         turnButton = root.Q<CustomVisualElement>("TurnButton");
         turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
         Quota = 25;
+
+        map.GameStart();
     }
 
     private IEnumerator NextTurn()
@@ -95,7 +124,10 @@ public class GameController : MonoBehaviour
 
         CurrentState = GameStates.TurnEnd;
         turn++;
-        root.Q<Label>("TurnCount").text = "Turn: " + turn;
+        if (turn == 14)
+            turn = 1;
+
+        root.Q<Label>("TurnCount").text = "Year " + year + " Turn " + turn;
         StartCoroutine(map.GetNectarGains());
 
         yield return new WaitWhile(() => !nectarCollectingFinished);

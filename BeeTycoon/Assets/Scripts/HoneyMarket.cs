@@ -72,29 +72,36 @@ public class HoneyMarket : MonoBehaviour
 
     private VisualElement exit;
 
+    public bool fromSave;
+
     // Start is called before the first frame update
     void Start()
     {
+        document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
+        controller = GameObject.Find("GameController").GetComponent<GameController>();
         marketButton = document.rootVisualElement.Q<CustomVisualElement>("MarketButton");
         marketButton.AddManipulator(new Clickable(e => OpenMarket()));
 
-        foreach (var v in values)
+        if (!fromSave)
         {
-            FlowerType fType = (FlowerType)v;
-            marketValues.Add(fType, new List<float>() { 0, 0, 0}); //Current Value, Growth per Turn, Base Value
-            amountSold.Add(fType, 0);
+            foreach (var v in values)
+            {
+                FlowerType fType = (FlowerType)v;
+                marketValues.Add(fType, new List<float>() { 0, 0, 0 }); //Current Value, Growth per Turn, Base Value
+                amountSold.Add(fType, 0);
+            }
+
+            marketValues[FlowerType.Wildflower][2] = 5;
+            marketValues[FlowerType.Clover][2] = 7;
+            marketValues[FlowerType.Alfalfa][2] = 9;
+            //marketValues[FlowerType.Blossom][2] = 15;
+            marketValues[FlowerType.Buckwheat][2] = 12;
+            marketValues[FlowerType.Fireweed][2] = 10;
+            marketValues[FlowerType.Goldenrod][2] = 15;
+
+            ResetToBaseValue();
+            UpdateMarket();
         }
-
-        marketValues[FlowerType.Wildflower][2] = 5;
-        marketValues[FlowerType.Clover][2] = 7;
-        marketValues[FlowerType.Alfalfa][2] = 9;
-        //marketValues[FlowerType.Blossom][2] = 15;
-        marketValues[FlowerType.Buckwheat][2] = 12;
-        marketValues[FlowerType.Fireweed][2] = 10;
-        marketValues[FlowerType.Goldenrod][2] = 15;
-
-        ResetToBaseValue();
-        UpdateMarket();
     }
 
     private void Update()
@@ -309,6 +316,7 @@ public class HoneyMarket : MonoBehaviour
 
         //element.Q<Label>("Cost").text = "$" + marketValues[fType][0];
         string amount = player.inventory[fType][0].ToString();
+        Debug.Log(amount);
         //Debug.Log(amount);
         if (amount.IndexOf('.') + 3 < amount.Length)
             element.Q<Label>("Change").text = amount.Substring(0, amount.IndexOf('.') + 3) + " lbs.";
@@ -585,4 +593,57 @@ public class HoneyMarket : MonoBehaviour
             Debug.Log(marketValues[fType][0] + " " + marketValues[fType][1]);
         }
     }
+
+    public void Save(ref MarketSaveData data)
+    {
+        List<float> sold = new List<float>();
+        List<float> values = new List<float>();
+
+        foreach (KeyValuePair<FlowerType, List<float>> kvp in marketValues)
+            foreach (float f in kvp.Value)
+                values.Add(f);
+
+
+        foreach (KeyValuePair<FlowerType, float> kvp in amountSold)
+            sold.Add(kvp.Value);
+
+        data.marketValues = values;
+        data.amountSold = sold;
+        data.turn = turn;
+        data.fromSave = fromSave;
+    }
+
+    public void Load(MarketSaveData data)
+    {
+        fromSave = data.fromSave;
+
+        int count = 0;
+        var values = System.Enum.GetValues(typeof(FlowerType));
+        foreach (var v in values)
+        {
+            FlowerType fType = (FlowerType)v;
+            amountSold[fType] = data.amountSold[count];
+            count++;
+        }
+
+        int index = 0;
+        foreach (var v in values)
+        {
+            FlowerType fType = (FlowerType)v;
+            List<float> temp = new List<float>() {data.marketValues[index], data.marketValues[index + 1], data.marketValues[index + 2]};
+            marketValues[fType] = temp;
+            index += 3;
+        }
+
+        turn = data.turn;
+    }
+}
+
+[System.Serializable]
+public struct MarketSaveData
+{
+    public List<float> marketValues;
+    public List<float> amountSold;
+    public int turn;
+    public bool fromSave;
 }

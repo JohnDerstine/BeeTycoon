@@ -122,6 +122,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hiveUI: {fileID: 9197481963319205126, guid: fc2d44516520a4e47ac454e4bfa3e3cb, type: 3}
   queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
+  GlossaryUI: {fileID: 9197481963319205126, guid: e3ac110c7c93fdc4e98d68a8e515d060, type: 3}
   afflictionPopupUI: {fileID: 9197481963319205126, guid: 08265538f8da31a4db376b1f84271779, type: 3}
   afflictionToolTipUI: {fileID: 9197481963319205126, guid: 77601ef736d6e6c45a555ce10cd0a948, type: 3}
   afflictionIcons:
@@ -134,6 +135,7 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 01a694a57347d864280c8accd09161d7, type: 3}
   - {fileID: 2800000, guid: 01a694a57347d864280c8accd09161d7, type: 3}
   - {fileID: 2800000, guid: 01a694a57347d864280c8accd09161d7, type: 3}
+  honeyGlobIcon: {fileID: 9197481963319205126, guid: cb6fa5757dbca154fb4659cc8b885381, type: 3}
   empty: 1
   x: 0
   y: 0

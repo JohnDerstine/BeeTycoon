@@ -6,6 +6,7 @@ public class QueenBee : MonoBehaviour
 {
     public bool nullQueen;
     public bool finishedGenerating;
+    public bool fromSave;
     private UnlockTracker unlocks;
 
     //stat multipliers;
@@ -23,6 +24,9 @@ public class QueenBee : MonoBehaviour
     void Start()
     {
         unlocks = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+
+        if (fromSave)
+            return;
 
         if (!nullQueen)
         {

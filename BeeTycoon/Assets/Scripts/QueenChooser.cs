@@ -53,8 +53,11 @@ public class QueenChooser : MonoBehaviour
 
     private List<QueenBee> queenOptions = new List<QueenBee>();
 
-    void Start()
+    public void OnSceneLoaded()
     {
+        player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+        tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+
         root = document.rootVisualElement;
         queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
         queenMoveCallback = new EventCallback<PointerMoveEvent>(OnQueenMove);

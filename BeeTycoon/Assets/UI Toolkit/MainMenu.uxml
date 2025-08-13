@@ -1,0 +1,17 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Base" style="flex-grow: 1;">
+        <ui:VisualElement name="Top" style="flex-grow: 0; flex-basis: 33%; justify-content: center; align-items: center;">
+            <ui:Label tabindex="-1" text="Bee Profitable" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Title" style="-unity-text-align: middle-center; color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 148px;" />
+        </ui:VisualElement>
+        <ui:VisualElement name="Bottom" style="flex-grow: 0; flex-basis: 66%; align-items: center; justify-content: center;">
+            <ui:Button text="Continue" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Continue" style="flex-shrink: 1; flex-basis: auto; border-top-width: 10px; border-right-width: 10px; border-bottom-width: 10px; border-left-width: 10px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; margin-bottom: 50px; width: 500px; -unity-font-style: bold; font-size: 48px; height: 150px; margin-top: 150px;" />
+            <ui:Button text="New Game" parse-escape-sequences="true" display-tooltip-when-elided="true" name="NewGame" style="flex-basis: auto; width: 500px; border-top-width: 10px; border-right-width: 10px; border-bottom-width: 10px; border-left-width: 10px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); font-size: 48px; -unity-font-style: bold; height: 150px;" />
+            <ui:VisualElement name="Buttons" style="flex-grow: 1; flex-direction: row; justify-content: center; align-items: center;">
+                <CustomVisualElement style="width: 156px; height: 156px; background-image: url(&quot;project://database/Assets/Sprites/HoneyCombUIOpenRender.png?fileID=2800000&amp;guid=38522a5f81ab10a4392ffed8ef29445d&amp;type=3#HoneyCombUIOpenRender&quot;);" />
+                <CustomVisualElement style="width: 156px; height: 156px; background-image: url(&quot;project://database/Assets/Sprites/HoneyCombUIOpenRender.png?fileID=2800000&amp;guid=38522a5f81ab10a4392ffed8ef29445d&amp;type=3#HoneyCombUIOpenRender&quot;);" />
+                <CustomVisualElement style="width: 156px; height: 156px; background-image: url(&quot;project://database/Assets/Sprites/HoneyCombUIOpenRender.png?fileID=2800000&amp;guid=38522a5f81ab10a4392ffed8ef29445d&amp;type=3#HoneyCombUIOpenRender&quot;);" />
+                <CustomVisualElement style="width: 156px; height: 156px; background-image: url(&quot;project://database/Assets/Sprites/HoneyCombUIOpenRender.png?fileID=2800000&amp;guid=38522a5f81ab10a4392ffed8ef29445d&amp;type=3#HoneyCombUIOpenRender&quot;);" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

@@ -66,6 +66,8 @@ public class PlayerController : MonoBehaviour
 
     private TemplateContainer hoverTemplate;
 
+    private Glossary glossary;
+
     //[SerializeField]
     //private VisualTreeAsset hiveUI;
 
@@ -190,6 +192,10 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        game = GameObject.Find("GameController").GetComponent<GameController>();
+        map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
+        ui = GameObject.Find("UIDocument").GetComponent<UIDocument>();
+        glossary = ui.gameObject.GetComponent<Glossary>();
         root = ui.rootVisualElement;
         left = root.Q<VisualElement>("Left");
         moneyLabel = root.Q<Label>("Money");
@@ -235,6 +241,11 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (Input.GetKeyDown(KeyCode.O))
+            SaveSystem.Save();
+        if (Input.GetKeyDown(KeyCode.P))
+            SaveSystem.Load();
+
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             map.GenerateFlowers();
@@ -250,10 +261,10 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            if (honeyMarket.marketOpen)
-            {
+            if (glossary.open)
+                glossary.CloseGlossary();
+            else if (honeyMarket.marketOpen)
                 honeyMarket.CloseMarket();
-            }
             else if (SelectedItem != null)
             {
                 Destroy(hoverObject);
@@ -262,6 +273,9 @@ public class PlayerController : MonoBehaviour
             else
                 CloseTab();
         }
+
+        if (Input.GetKeyDown(KeyCode.G))
+            glossary.OpenGlossary("Species");
 
         pickedUpThisFrame = false;
         //Checks to see if selected item is placed
@@ -407,18 +421,15 @@ public class PlayerController : MonoBehaviour
                         {
                             if (!h.hasStand)
                             {
+                                h.hasStand = true;
                                 Instantiate(standObject, h.transform.position, Quaternion.identity);
                                 h.transform.position += Vector3.up;
                             }
                         }
                         else if (selectedItem.tag == "Repellant")
                         {
-                            if (!h.hasRepellant)
-                            {
-                                h.hasRepellant = true;
-                                if (h.Condition == "Mites")
-                                    h.CureCondition();
-                            }
+                            if (h.Condition == "Mites")
+                                h.CureCondition();
                         }
                         else if (selectedItem.tag == "Insulation")
                         {
@@ -955,4 +966,288 @@ public class PlayerController : MonoBehaviour
         }
     }
     #endregion
+
+    #region Save Load
+    public void Save(ref PlayerSaveData data)
+    {
+        data.savedMoney = money;
+
+        List<int> xs = new List<int>();
+        List<int> ys = new List<int>();
+        List<bool> hasSugar = new List<bool>();
+        List<bool> hasReducer = new List<bool>();
+        List<bool> hasStand = new List<bool>();
+        List<bool> hasRepellant = new List<bool>();
+        List<bool> hasInsulation = new List<bool>();
+        List<float> honey = new List<float>();
+        List<float> honeyPurity = new List<float>();
+        List<FlowerType> honeyType = new List<FlowerType>();
+        List<float> comb = new List<float>();
+        List<int> combSizeCap = new List<int>();
+        List<float> nectar = new List<float>();
+        List<float> population = new List<float>();
+        List<int> size = new List<int>();
+        List<string> condition = new List<string>();
+
+
+        //Queen
+        List<bool> nullQueen = new List<bool>();
+        List<bool> finishedGenerating = new List<bool>();
+        List<float> constructionMult = new List<float>();
+        List<float> productionMult = new List<float>();
+        List<float> collectionMult = new List<float>();
+        List<float> resilienceMult = new List<float>();
+        List<float> aggressivnessMult = new List<float>();
+        List<string> species = new List<string>();
+        List<int> age = new List<int>();
+        List<float> grade = new List<float>();
+        List<string> quirks = new List<string>();
+        List<int> quirksCount = new List<int>();
+        List<bool> queenPurchased = new List<bool>();
+        List<int> queenPrice = new List<int>();
+
+        //honey inventory
+        List<float> honeyInventory = new List<float>();
+
+        foreach (Hive h in hives)
+        {
+            xs.Add(h.x);
+            ys.Add(h.y);
+            hasSugar.Add(h.hasSugar);
+            hasReducer.Add(h.hasReducer);
+            hasStand.Add(h.hasStand);
+            hasRepellant.Add(h.hasRepellant);
+            hasInsulation.Add(h.hasInsulation);
+            honey.Add(h.honey);
+            honeyPurity.Add(h.honeyPurity);
+            honeyType.Add(h.honeyType);
+            comb.Add(h.comb);
+            combSizeCap.Add(h.combSizeCap);
+            nectar.Add(h.nectar);
+            population.Add(h.population);
+            size.Add(h.Size);
+            condition.Add(h.Condition);
+
+            //Queen
+            nullQueen.Add(h.queen.nullQueen);
+            finishedGenerating.Add(h.queen.finishedGenerating);
+            constructionMult.Add(h.queen.constructionMult);
+            productionMult.Add(h.queen.productionMult);
+            collectionMult.Add(h.queen.collectionMult);
+            resilienceMult.Add(h.queen.resilienceMult);
+            aggressivnessMult.Add(h.queen.aggressivnessMult);
+            species.Add(h.queen.species);
+            age.Add(h.queen.age);
+            grade.Add(h.queen.grade);
+            foreach (string s in h.queen.quirks)
+                quirks.Add(s);
+            quirksCount.Add(h.queen.quirks.Count);
+            queenPurchased.Add(true);
+            queenPrice.Add(0);
+
+            var values = System.Enum.GetValues(typeof(FlowerType));
+            foreach (var v in values)
+            {
+                FlowerType fType = (FlowerType)v;
+                for (int i = 0; i < 4; i++)
+                    honeyInventory.Add(inventory[fType][i]);
+            }
+        }
+
+        //Shop queens
+        foreach (GameObject go in beeObjectList)
+        {
+            QueenBee queen = go.GetComponent<QueenBee>();
+            nullQueen.Add(false);
+            finishedGenerating.Add(true);
+            constructionMult.Add(queen.constructionMult);
+            productionMult.Add(queen.productionMult);
+            collectionMult.Add(queen.collectionMult);
+            resilienceMult.Add(queen.resilienceMult);
+            aggressivnessMult.Add(queen.aggressivnessMult);
+            species.Add(queen.species);
+            age.Add(queen.age);
+            grade.Add(queen.grade);
+            foreach (string s in queen.quirks)
+                quirks.Add(s);
+            quirksCount.Add(queen.quirks.Count);
+            queenPurchased.Add(queen.gameObject.GetComponent<Cost>().purchased);
+            queenPrice.Add(queen.gameObject.GetComponent<Cost>().Price);
+        }
+
+        data.hiveCount = hives.Count;
+        data.xs = xs;
+        data.ys = ys;
+        data.hasSugar = hasSugar;
+        data.hasReducer = hasReducer;
+        data.hasStand = hasStand;
+        data.hasRepellant = hasRepellant;
+        data.hasInsulation = hasInsulation;
+        data.honey = honey;
+        data.honeyPurity = honeyPurity;
+        data.honeyType = honeyType;
+        data.comb = comb;
+        data.combSizeCap = combSizeCap;
+        data.nectar = nectar;
+        data.population = population;
+        data.size = size;
+        data.condition = condition;
+
+        //Queen
+        data.nullQueen = nullQueen;
+        data.finishedGenerating = finishedGenerating;
+        data.constructionMult = constructionMult;
+        data.productionMult = productionMult;
+        data.collectionMult = collectionMult;
+        data.resilienceMult = resilienceMult;
+        data.aggressivnessMult = aggressivnessMult;
+        data.species = species;
+        data.age = age;
+        data.grade = grade;
+        data.quirks = quirks;
+        data.quirksCount = quirksCount;
+        data.queenPurchased = queenPurchased;
+        data.queenPrice = queenPrice;
+
+        data.queenCount = beeObjectList.Count;
+
+        data.honeyInventory = honeyInventory;
+    }
+
+    public void Load(PlayerSaveData data)
+    {
+        money = data.savedMoney;
+
+        for (int i = 0; i < data.hiveCount + data.queenCount; i++)
+        {
+            Hive hive = null;
+            if (i < data.hiveCount - 1)
+            {
+                Vector3 pos = new Vector3(data.xs[i], 0, data.ys[i]);
+                GameObject hiveObject = Instantiate(hivePrefab, pos, Quaternion.identity);
+                hive = hiveObject.GetComponent<Hive>();
+                hive.placed = true;
+                hive.x = data.xs[i];
+                hive.y = data.ys[i];
+                hive.hiveTile = map.tiles[data.xs[i] / 2, data.ys[i] / 2];
+                hive.hasSugar = data.hasSugar[i];
+                hive.hasReducer = data.hasReducer[i];
+                hive.hasStand = data.hasStand[i];
+                hive.hasRepellant = data.hasRepellant[i];
+                hive.hasInsulation = data.hasInsulation[i];
+                hive.honey = data.honey[i];
+                hive.honeyPurity = data.honeyPurity[i];
+                hive.honeyType = data.honeyType[i];
+                hive.comb = data.comb[i];
+                hive.combSizeCap = data.combSizeCap[i];
+                hive.nectar = data.nectar[i];
+                hive.population = data.population[i];
+                hive.Size = data.size[i];
+                hive.Condition = data.condition[i];
+            }
+
+            //hive queens
+            QueenBee queen = (hive != null) ? hive.gameObject.GetComponent<QueenBee>() : Instantiate(testQueen, new Vector3(-100, -100, -100), Quaternion.identity).GetComponent<QueenBee>();
+            queen.fromSave = true;
+            SetQueens(queen, data, i);
+            if (hive == null)
+            {
+                queen.gameObject.GetComponent<Cost>().purchased = data.queenPurchased[i];
+                queen.gameObject.GetComponent<Cost>().Price = data.queenPrice[i];
+                StartCoroutine(AddQueen(queen));
+            }
+
+            //honey inventory
+            int count = 0;
+            var values = System.Enum.GetValues(typeof(FlowerType));
+            foreach (var v in values)
+            {
+                FlowerType fType = (FlowerType)v;
+                List<float> inv = new List<float>(){data.honeyInventory[count], data.honeyInventory[count + 1], data.honeyInventory[count + 2], data.honeyInventory[count + 3]};
+                inventory[fType] = inv;
+                count += 4;
+            }
+
+        }
+    }
+
+    private void SetQueens(QueenBee queen, PlayerSaveData data, int i)
+    {
+        if (data.nullQueen[i] == false)
+        {
+            queen.nullQueen = false;
+            queen.finishedGenerating = true;
+            queen.constructionMult = data.constructionMult[i];
+            queen.productionMult = data.productionMult[i];
+            queen.collectionMult = data.collectionMult[i];
+            queen.resilienceMult = data.resilienceMult[i];
+            queen.aggressivnessMult = data.aggressivnessMult[i];
+            queen.species = data.species[i];
+            queen.age = data.age[i];
+            queen.grade = data.grade[i];
+
+            int count = 0;
+            for (int j = 0; count < data.quirksCount[i]; j = 0)
+            {
+                Debug.Log(j + " " + data.quirks.Count);
+                if (data.quirks.Count == 0)
+                    break;
+                queen.quirks.Add(data.quirks[j]);
+                data.quirks.RemoveAt(j);
+                count++;
+            }
+        }
+        else
+        {
+            queen.nullQueen = true;
+            queen.finishedGenerating = true;
+        }
+    }
+    #endregion
+}
+
+[System.Serializable]
+public struct PlayerSaveData
+{
+    public int savedMoney;
+
+    public int hiveCount;
+    public List<int> xs;
+    public List<int> ys;
+    public List<bool> hasSugar;
+    public List<bool> hasReducer;
+    public List<bool> hasStand;
+    public List<bool> hasRepellant;
+    public List<bool> hasInsulation;
+    public List<float> honey;
+    public List<float> honeyPurity;
+    public List<FlowerType> honeyType;
+    public List<float> comb;
+    public List<int> combSizeCap;
+    public List<float> nectar;
+    public List<float> population;
+    public List<int> size;
+    public List<string> condition;
+
+    //queen
+    public List<bool> nullQueen;
+    public List<bool> finishedGenerating;
+    public List<float> constructionMult;
+    public List<float> productionMult;
+    public List<float> collectionMult;
+    public List<float> resilienceMult;
+    public List<float> aggressivnessMult;
+    public List<string> species;
+    public List<int> age;
+    public List<float> grade;
+    public List<string> quirks;
+    public List<int> quirksCount;
+
+    //Shop queens
+    public int queenCount;
+    public List<bool> queenPurchased;
+    public List<int> queenPrice;
+
+    //honey inventory
+    public List<float> honeyInventory;
 }
