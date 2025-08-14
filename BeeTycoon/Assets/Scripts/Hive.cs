@@ -590,12 +590,12 @@ public class Hive : MonoBehaviour
         if (combMeter == null)
             return;
 
-        combMeter.value = (comb / combCap * 100) + 8;
+        combMeter.value = (comb / combCap * 100) + 0;
         if (production * queen.productionMult * hiveEfficency != 0)
-            nectarMeter.value = (nectarGain * possibleNectar / (production * queen.productionMult * hiveEfficency * hiveStandBonus * agile) * 100) + 8;// * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f) 
+            nectarMeter.value = (nectarGain * possibleNectar / (production * queen.productionMult * hiveEfficency * hiveStandBonus * agile) * 100) + 0;// * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f) 
         else
-            nectarMeter.value = 8;
-        honeyMeter.value = (honey / (comb * storagePerComb * conversionRate)) + 8;
+            nectarMeter.value = 0;
+        honeyMeter.value = (honey / (comb * storagePerComb * conversionRate)) + 0;
         UpdateMeterLabels();
     }
 
@@ -607,8 +607,10 @@ public class Hive : MonoBehaviour
             nectarHover.Q<Label>("Percent").text = "0%";
         nectarHover.Q<Label>("Flat").text = (Mathf.Round(nectarGain * possibleNectar * 10) / 10.0f) + " lbs."; //*Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
 
-        Debug.Log(honey);
-        honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (comb * storagePerComb * conversionRate) * 10) / 10.0f).ToString() + "%";
+        if (comb * storagePerComb * conversionRate != 0)
+            honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (comb * storagePerComb * conversionRate) * 10) / 10.0f).ToString() + "%";
+        else
+            honeyHover.Q<Label>("Percent").text = "0%";
         honeyHover.Q<Label>("Flat").text = (Mathf.Round(honey * 10) / 10.0f) + " lbs."; //OLD REPLACE honey: production * queen.productionMult * hiveEfficency
 
         combHover.Q<Label>("Percent").text = (Mathf.Round(comb / combCap * 100) * 10 / 10.0f).ToString() + "%";

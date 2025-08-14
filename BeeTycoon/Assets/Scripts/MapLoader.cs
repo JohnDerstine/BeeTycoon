@@ -406,16 +406,16 @@ public class MapLoader : MonoBehaviour
     {
         foreach (Tile t in validTiles)
         {
-            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Fireweed) //Fired weed exception
+            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Fireweed && !tiles[t.x + 1, t.y].HasHive) //Fired weed exception
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x + 1, t.y].Flower = fType;
-            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower != FlowerType.Empty && tiles[t.x - 1, t.y].Flower != FlowerType.Fireweed)
+            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower != FlowerType.Empty && tiles[t.x - 1, t.y].Flower != FlowerType.Fireweed && !tiles[t.x - 1, t.y].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x - 1, t.y].Flower = fType;
-            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower != FlowerType.Empty && tiles[t.x, t.y + 1].Flower != FlowerType.Fireweed)
+            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower != FlowerType.Empty && tiles[t.x, t.y + 1].Flower != FlowerType.Fireweed && !tiles[t.x, t.y + 1].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y + 1].Flower = fType;
-            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower != FlowerType.Empty && tiles[t.x, t.y - 1].Flower != FlowerType.Fireweed)
+            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower != FlowerType.Empty && tiles[t.x, t.y - 1].Flower != FlowerType.Fireweed && !tiles[t.x, t.y - 1].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y - 1].Flower = fType;
         }
@@ -425,16 +425,16 @@ public class MapLoader : MonoBehaviour
     {
         foreach (Tile t in validTiles)
         {
-            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower == FlowerType.Empty)
+            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower == FlowerType.Empty && !tiles[t.x + 1, t.y].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x + 1, t.y].Flower = fType;
-            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower == FlowerType.Empty)
+            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower == FlowerType.Empty && !tiles[t.x - 1, t.y].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x - 1, t.y].Flower = fType;
-            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower == FlowerType.Empty)
+            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower == FlowerType.Empty && !tiles[t.x, t.y + 1].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y + 1].Flower = fType;
-            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower == FlowerType.Empty)
+            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower == FlowerType.Empty && !tiles[t.x, t.y - 1].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y - 1].Flower = fType;
         }

@@ -157,7 +157,7 @@ public class PlayerController : MonoBehaviour
                 if (objectToMove != null)
                 {
                     if (objectToMove.TryGetComponent<Hive>(out Hive h))
-                        h.hiveTile.hasHive = true;
+                        h.hiveTile.HasHive = true;
 
                     objectToMove.transform.position = storedPos;
                     objectToMove = null;
@@ -344,7 +344,7 @@ public class PlayerController : MonoBehaviour
                             SelectedItem = null;
                             h.Placed = true;
                             h.SetUpTemplate();
-                            t.hasHive = true;
+                            t.HasHive = true;
                             h.hiveTile = t;
                         }
                         else if (hoverObject.TryGetComponent<Cost>(out Cost c))
@@ -447,11 +447,11 @@ public class PlayerController : MonoBehaviour
                         selectedItemSprite = null;
                     }
 
-                    if (SelectedItem != null && selectedItem.tag == "Dolly" && h.hiveTile.hasHive == true)
+                    if (SelectedItem != null && selectedItem.tag == "Dolly" && h.hiveTile.HasHive == true)
                     {
                         objectToMove = h.gameObject;
                         storedPos = h.gameObject.transform.position;
-                        h.hiveTile.hasHive = false;
+                        h.hiveTile.HasHive = false;
                         pickedUpThisFrame = true;
                         Debug.Log("Picked up object");
                     }
@@ -479,12 +479,12 @@ public class PlayerController : MonoBehaviour
             {
                 if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
                 {
-                    if (t.Flower == FlowerType.Empty && !t.hasHive)
+                    if (t.Flower == FlowerType.Empty && !t.HasHive)
                     {
                         if (objectToMove.TryGetComponent<Hive>(out Hive h))
                         {
                             h.hiveTile = t;
-                            t.hasHive = true;
+                            t.HasHive = true;
                             Debug.Log("Put down object");
                         }
                         else

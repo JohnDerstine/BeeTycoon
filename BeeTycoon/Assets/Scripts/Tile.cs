@@ -9,7 +9,7 @@ public class Tile : MonoBehaviour
     private FlowerType flower = FlowerType.Empty;
     private GameObject flowerObject;
     public bool completed;
-    public bool hasHive;
+    private bool hasHive;
 
     [SerializeField]
     private Material greenMat;
@@ -23,7 +23,16 @@ public class Tile : MonoBehaviour
     public int x;
     public int y;
 
-    
+    public bool HasHive
+    {
+        get { return hasHive; }
+        set
+        {
+            if (value)
+                Flower = FlowerType.Empty;
+            hasHive = value;
+        }
+    }
     public FlowerType Flower
     {
         get { return flower; }
