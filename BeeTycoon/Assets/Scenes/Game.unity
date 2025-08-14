@@ -825,11 +825,13 @@ MonoBehaviour:
   testQueenSprite: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
   queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
   standObject: {fileID: 6697024670040299877, guid: f2fc76a289fb7bf448a3d8f1a520149e, type: 3}
+  hiveUI: {fileID: 9197481963319205126, guid: fc2d44516520a4e47ac454e4bfa3e3cb, type: 3}
   currentHive: {fileID: 0}
   hex: {fileID: 2800000, guid: 38522a5f81ab10a4392ffed8ef29445d, type: 3}
   tabStyle: {fileID: 7433441132597879392, guid: db82af968aa77354d90ac85bca8ba754, type: 3}
   itemStyle: {fileID: 7433441132597879392, guid: bdf693ba0f0048f4583b9bb0b085768b, type: 3}
   costStyle: {fileID: 7433441132597879392, guid: 24b5367f1a29d884cbfe6b7a485461d5, type: 3}
+  fromSave: 0
 --- !u!4 &1759206123
 Transform:
   m_ObjectHideFlags: 0
@@ -879,6 +881,7 @@ MonoBehaviour:
   player: {fileID: 1759206122}
   controller: {fileID: 0}
   marketOpen: 0
+  fromSave: 0
 --- !u!4 &2020842570
 Transform:
   m_ObjectHideFlags: 0

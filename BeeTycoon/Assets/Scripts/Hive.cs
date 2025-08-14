@@ -47,6 +47,9 @@ public class Hive : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset honeyGlobIcon;
 
+    [SerializeField]
+    private Texture2D queenSprite;
+
     private Texture2D currentIcon;
 
     public TemplateContainer template;
@@ -100,15 +103,17 @@ public class Hive : MonoBehaviour
     public QueenBee queen;
 
     private Dictionary<FlowerType, float> flowerValues = new Dictionary<FlowerType, float>();
-    private Dictionary<FlowerType, float> nectarValues = new Dictionary<FlowerType, float>();
+    public Dictionary<FlowerType, float> nectarValues = new Dictionary<FlowerType, float>();
     private float totalFlowerWeight = 0;
     public FlowerType honeyType = FlowerType.Empty;
     public float honeyPurity = 0;
 
-    float possibleNectar;
-    float nectarGain;
+    public float possibleNectar;
+    public float nectarGain;
 
     //UI
+    private Label honeyPurityLabel;
+    private Label honeyTypeLabel;
     private VisualElement smallHarvest;
     private VisualElement mediumHarvest;
     private VisualElement largeHarvest;
@@ -143,6 +148,7 @@ public class Hive : MonoBehaviour
     private string condition = "Healthy";
     private TemplateContainer activePopup;
     private Coroutine activePulse;
+    public bool fromSave;
 
     public int Size
     {
@@ -280,7 +286,8 @@ public class Hive : MonoBehaviour
         {
             FlowerType fType = (FlowerType)v;
             flowerValues.Add(fType, 0);
-            nectarValues.Add(fType, 0);
+            if (!fromSave)
+                nectarValues.Add(fType, 0);
         }
 
         Color darkTintColor = Color.black;
@@ -373,7 +380,6 @@ public class Hive : MonoBehaviour
             possibleComb = combCap - comb;
         comb += possibleComb;
         storage = storagePerComb * comb;
-
         float possibleHoney = production * queen.productionMult * hiveEfficency * fall * greedy * italian * russianEff * hiveStandBonus;
         if (possibleHoney > nectar)
             possibleHoney = nectar;
@@ -564,19 +570,22 @@ public class Hive : MonoBehaviour
             nectarValues[key] += inputNectar * (flowerValues[key] / totalFlowerWeight);
     }
 
-    private void CalcHoneyStats()
+    public void CalcHoneyStats()
     {
         //set honeyType and honeyPurity to the type of honey that is most appundant from the available flowers this turn
         if (honey > 0)
         {
             honeyType = nectarValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
             honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();
+            honeyTypeLabel.text = "Type:\n" + honeyType.ToString();
+            float roundedPurity = Mathf.Round(honeyPurity * 1000) / 10.0f;
+            honeyPurityLabel.text = "Purity:\n" + roundedPurity + "%";
             //Debug.Log(honeyType);
             //Debug.Log(honeyPurity);
         }
     }
 
-    private void UpdateMeters()
+    public void UpdateMeters()
     {
         if (combMeter == null)
             return;
@@ -598,6 +607,7 @@ public class Hive : MonoBehaviour
             nectarHover.Q<Label>("Percent").text = "0%";
         nectarHover.Q<Label>("Flat").text = (Mathf.Round(nectarGain * possibleNectar * 10) / 10.0f) + " lbs."; //*Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
 
+        Debug.Log(honey);
         honeyHover.Q<Label>("Percent").text = (Mathf.Round(honey / (comb * storagePerComb * conversionRate) * 10) / 10.0f).ToString() + "%";
         honeyHover.Q<Label>("Flat").text = (Mathf.Round(honey * 10) / 10.0f) + " lbs."; //OLD REPLACE honey: production * queen.productionMult * hiveEfficency
 
@@ -605,7 +615,7 @@ public class Hive : MonoBehaviour
         combHover.Q<Label>("Flat").text = (Mathf.Round(comb * storagePerComb * conversionRate * 100 * 10) / 10.0f) + " lbs."; //OLD REPLACE comb * storagePerComb * conversionRate: construction * queen.constructionMult * hiveEfficency
     }
 
-    public void Populate(QueenBee q, Texture2D sprite = null)
+    public void Populate(QueenBee q)
     {
         if (q == null)
             return;
@@ -613,13 +623,36 @@ public class Hive : MonoBehaviour
         StartCoroutine(queen.TransferStats(q));
         Destroy(q.gameObject);
         empty = false;
-
-        if (sprite != null)
-            queenHex.style.backgroundImage = sprite;
+        queenHex.style.backgroundImage = queenSprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
 
         italian = (queen.species == "Italian") ? 1.25f : 1f;
         russianEff = (queen.species == "Russian") ? 1.1f : 1f;
+    }
+
+    //Load queen from save doesn't require transfering stats
+    public void LoadPopulate()
+    {
+        if (queen.nullQueen == false)
+            empty = false;
+        queenHex.style.backgroundImage = queenSprite;
+        queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
+        game = GameObject.Find("GameController").GetComponent<GameController>();
+        tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+
+        italian = (queen.species == "Italian") ? 1.25f : 1f;
+        russianEff = (queen.species == "Russian") ? 1.1f : 1f;
+        spring = (game.Season == "spring") ? 1.5f : 1;
+        summer = (game.Season == "summer") ? 1.5f : 1;
+        fall = (game.Season == "fall") ? 1.5f : 1;
+        greedy = (queen.quirks.Contains("Greedy")) ? tracker.quirkValues["Greedy"] : 1;
+        industrious = (queen.quirks.Contains("Industrious")) ? tracker.quirkValues["Industrious"] : 1;
+        agile = (queen.quirks.Contains("Agile")) ? tracker.quirkValues["Agile"] : 1;
+        hiveStandBonus = (hasStand) ? 1.1f : 1;
+        hiveEfficency = (population / popCap) * size;
+
+        CalcHoneyStats();
+        UpdateMeters();
     }
 
     private void TryAddCondition()
@@ -725,6 +758,9 @@ public class Hive : MonoBehaviour
             //noHarvest = template.Q<Toggle>();
             //noHarvest.RegisterValueChangedCallback(OnHarvestToggled);
 
+            honeyPurityLabel = template.Q<Label>("HoneyPurity");
+            honeyTypeLabel = template.Q<Label>("HoneyType");
+
             smallHarvest = template.Q<VisualElement>("SmallClick");
             mediumHarvest = template.Q<VisualElement>("MediumClick");
             largeHarvest = template.Q<VisualElement>("LargeClick");
@@ -739,7 +775,6 @@ public class Hive : MonoBehaviour
             combMeter = template.Q<ProgressBar>("CombBar");
             nectarMeter = template.Q<ProgressBar>("NectarBar");
             honeyMeter = template.Q<ProgressBar>("HoneyBar");
-
             queenHex = template.Q<VisualElement>("QueenHex");
             queenClick = template.Q<CustomVisualElement>("QueenClick");
             queenClick.AddManipulator(assignQueen);

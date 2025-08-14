@@ -44,6 +44,7 @@ public class GameController : MonoBehaviour
     private CustomVisualElement turnButton;
     private string season = "spring";
 
+    private Button newGameButton;
     private Button continueButton;
 
     private int quota = 0;
@@ -62,10 +63,7 @@ public class GameController : MonoBehaviour
         set
         {
             quota = value;
-
-            //update UI
-            root.Q<Label>("Quota").text = "Quota: $" + quota;
-            root.Q<Label>("Turns").text = "Due in " + (4 - ((turn - 1) % 4)) + " turns";
+            UpdateLabels();
         }
     }
 
@@ -76,7 +74,7 @@ public class GameController : MonoBehaviour
         {
             if (value == GameStates.Start)
             {
-                List<int> choiceList = new List<int>() { 3, 2, 2, 2};
+                List<int> choiceList = new List<int>() { 3, 2, 2, 2 };
                 StartCoroutine(choices.GiveChoice(choiceList, true));
             }
             currentState = value;
@@ -86,21 +84,39 @@ public class GameController : MonoBehaviour
     void Awake()
     {
         root = document.rootVisualElement;
+        newGameButton = root.Q<Button>("NewGame");
         continueButton = root.Q<Button>("Continue");
-        continueButton.clickable = new Clickable(e => NewGame());
+        newGameButton.clickable = new Clickable(e => NewGame());
+        if (!SaveSystem.CheckSaveFile())
+            continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
+        else
+            continueButton.clickable = new Clickable(e => ContinueGame());
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.O))
+            SaveSystem.Save();
+        if (Input.GetKeyDown(KeyCode.P))
+            SaveSystem.Load();
+    }
+
+    private void ContinueGame()
+    {
+        SceneManager.LoadScene("Game");
+        SceneManager.sceneLoaded += OnSceneLoadContinue;
     }
 
     private void NewGame()
     {
         SceneManager.LoadScene("Game");
-        SceneManager.sceneLoaded += onSceneLoad;
+        SceneManager.sceneLoaded += OnSceneLoadNew;
     }
 
-    private void onSceneLoad(Scene scene, LoadSceneMode mode)
+    private void OnSceneLoadNew(Scene scene, LoadSceneMode mode)
     {
         gameObject.GetComponent<QueenChooser>().OnSceneLoaded();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
-        Debug.Log(player);
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         document.visualTreeAsset = gameUI;
         CurrentState = GameStates.Start;
@@ -109,7 +125,28 @@ public class GameController : MonoBehaviour
         turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
         Quota = 25;
 
-        map.GameStart();
+        map.GameStart(false);
+    }
+
+    private void OnSceneLoadContinue(Scene scene, LoadSceneMode mode)
+    {
+        gameObject.GetComponent<QueenChooser>().OnSceneLoaded();
+        player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+        honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
+        document.visualTreeAsset = gameUI;
+        CurrentState = GameStates.Running;
+        root = document.rootVisualElement;
+        turnButton = root.Q<CustomVisualElement>("TurnButton");
+        turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
+
+        map.GameStart(true);
+    }
+
+    private void UpdateLabels()
+    {
+        root.Q<Label>("TurnCount").text = "Year " + year + " Turn " + turn;
+        root.Q<Label>("Quota").text = "Quota: $" + quota;
+        root.Q<Label>("Turns").text = "Due in " + (4 - ((turn - 1) % 4)) + " turns";
     }
 
     private IEnumerator NextTurn()
@@ -127,7 +164,7 @@ public class GameController : MonoBehaviour
         if (turn == 14)
             turn = 1;
 
-        root.Q<Label>("TurnCount").text = "Year " + year + " Turn " + turn;
+        UpdateLabels();
         StartCoroutine(map.GetNectarGains());
 
         yield return new WaitWhile(() => !nectarCollectingFinished);
@@ -155,7 +192,6 @@ public class GameController : MonoBehaviour
             player.Money -= Quota;
             if (player.Money < 0)
                 EndGame();
-            Debug.Log("Updating quota");
             Quota = (int)(1.5f * Quota);
         }
         else
@@ -172,4 +208,30 @@ public class GameController : MonoBehaviour
         currentState = GameStates.End;
         Debug.Log("Game Over");
     }
+
+    public void Save(ref GameSaveData data)
+    {
+        data.quota = quota;
+        data.turn = turn;
+        data.year = year;
+        data.season = season;
+    }
+
+    public void Load(GameSaveData data)
+    {
+        Quota = data.quota;
+        turn = data.turn;
+        year = data.year;
+        season = data.season;
+        UpdateLabels();
+    }
+}
+
+[System.Serializable]
+public struct GameSaveData
+{
+    public int quota;
+    public int turn;
+    public int year;
+    public string season;
 }

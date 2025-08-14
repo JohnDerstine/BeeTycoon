@@ -64,6 +64,9 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private GameObject standObject;
 
+    [SerializeField]
+    private VisualTreeAsset hiveUI;
+
     private TemplateContainer hoverTemplate;
 
     private Glossary glossary;
@@ -133,6 +136,8 @@ public class PlayerController : MonoBehaviour
 
     private int money = 50;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
+
+    public bool fromSave;
 
     public GameObject SelectedItem
     {
@@ -226,11 +231,14 @@ public class PlayerController : MonoBehaviour
         queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
         queenMoveCallback = new EventCallback<PointerMoveEvent, int>(OnQueenMove);
 
-        var values = System.Enum.GetValues(typeof(FlowerType));
-        foreach (var v in values)
+        if (!fromSave)
         {
-            FlowerType fType = (FlowerType)v;
-            inventory.Add(fType, new List<float> {0, 0, 0, 0});
+            var values = System.Enum.GetValues(typeof(FlowerType));
+            foreach (var v in values)
+            {
+                FlowerType fType = (FlowerType)v;
+                inventory.Add(fType, new List<float> { 0, 0, 0, 0 });
+            }
         }
 
         for (int i = 0; i < flowerObjectList.Count; i++)
@@ -241,11 +249,6 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.O))
-            SaveSystem.Save();
-        if (Input.GetKeyDown(KeyCode.P))
-            SaveSystem.Load();
-
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             map.GenerateFlowers();
@@ -377,7 +380,7 @@ public class PlayerController : MonoBehaviour
                         Money -= cost;
                         if (selectedItem.TryGetComponent(out QueenBee queen))
                         {
-                            h.Populate(queen, selectedItemSprite);
+                            h.Populate(queen);
                             Money -= hoverObject.GetComponent<Cost>().Price;
                             beeObjectList.Remove(SelectedItem);
                             beeSprites.Remove(selectedItemSprite);
@@ -765,7 +768,7 @@ public class PlayerController : MonoBehaviour
             return;
 
         Money -= cost;
-        hive.Populate(item.GetComponent<QueenBee>(), sprite);
+        hive.Populate(item.GetComponent<QueenBee>());
         beeObjectList.Remove(item);
         beeSprites.Remove(sprite);
         tab1ItemCount--;
@@ -970,6 +973,7 @@ public class PlayerController : MonoBehaviour
     #region Save Load
     public void Save(ref PlayerSaveData data)
     {
+        var values = System.Enum.GetValues(typeof(FlowerType));
         data.savedMoney = money;
 
         List<int> xs = new List<int>();
@@ -985,9 +989,12 @@ public class PlayerController : MonoBehaviour
         List<float> comb = new List<float>();
         List<int> combSizeCap = new List<int>();
         List<float> nectar = new List<float>();
+        List<float> nectarGain = new List<float>();
+        List<float> possibleNectar = new List<float>();
         List<float> population = new List<float>();
         List<int> size = new List<int>();
         List<string> condition = new List<string>();
+        List<float> nectarValues = new List<float>();
 
 
         //Queen
@@ -1009,6 +1016,10 @@ public class PlayerController : MonoBehaviour
         //honey inventory
         List<float> honeyInventory = new List<float>();
 
+        //tools
+        List<bool> toolsPurchased = new List<bool>();
+        List<int> toolPrice = new List<int>();
+
         foreach (Hive h in hives)
         {
             xs.Add(h.x);
@@ -1024,6 +1035,8 @@ public class PlayerController : MonoBehaviour
             comb.Add(h.comb);
             combSizeCap.Add(h.combSizeCap);
             nectar.Add(h.nectar);
+            nectarGain.Add(h.nectarGain);
+            possibleNectar.Add(h.nectarGain);
             population.Add(h.population);
             size.Add(h.Size);
             condition.Add(h.Condition);
@@ -1045,12 +1058,11 @@ public class PlayerController : MonoBehaviour
             queenPurchased.Add(true);
             queenPrice.Add(0);
 
-            var values = System.Enum.GetValues(typeof(FlowerType));
+            //nectar values
             foreach (var v in values)
             {
                 FlowerType fType = (FlowerType)v;
-                for (int i = 0; i < 4; i++)
-                    honeyInventory.Add(inventory[fType][i]);
+                nectarValues.Add(h.nectarValues[fType]);
             }
         }
 
@@ -1075,6 +1087,21 @@ public class PlayerController : MonoBehaviour
             queenPrice.Add(queen.gameObject.GetComponent<Cost>().Price);
         }
 
+        foreach (var v in values)
+        {
+            FlowerType fType = (FlowerType)v;
+            for (int i = 0; i < 4; i++)
+                honeyInventory.Add(inventory[fType][i]);
+        }
+
+        //Tools
+        foreach (GameObject go in toolObjectList)
+        {
+            Cost cost = go.GetComponent<Cost>();
+            toolsPurchased.Add(cost.purchased);
+            toolPrice.Add(cost.Price);
+        }
+
         data.hiveCount = hives.Count;
         data.xs = xs;
         data.ys = ys;
@@ -1089,9 +1116,13 @@ public class PlayerController : MonoBehaviour
         data.comb = comb;
         data.combSizeCap = combSizeCap;
         data.nectar = nectar;
+        data.nectarGain = nectarGain;
+        data.possibleNectar = possibleNectar;
         data.population = population;
         data.size = size;
         data.condition = condition;
+
+        data.nectarValues = nectarValues;
 
         //Queen
         data.nullQueen = nullQueen;
@@ -1112,12 +1143,20 @@ public class PlayerController : MonoBehaviour
         data.queenCount = beeObjectList.Count;
 
         data.honeyInventory = honeyInventory;
+
+        data.toolsPurchased = toolsPurchased;
+        data.toolPrice = toolPrice;
     }
 
     public void Load(PlayerSaveData data)
     {
+        fromSave = true;
+        game = GameObject.Find("GameController").GetComponent<GameController>();
+        map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
+        ui = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         money = data.savedMoney;
-
+        var values = System.Enum.GetValues(typeof(FlowerType));
+        int k = 0;
         for (int i = 0; i < data.hiveCount + data.queenCount; i++)
         {
             Hive hive = null;
@@ -1126,6 +1165,7 @@ public class PlayerController : MonoBehaviour
                 Vector3 pos = new Vector3(data.xs[i], 0, data.ys[i]);
                 GameObject hiveObject = Instantiate(hivePrefab, pos, Quaternion.identity);
                 hive = hiveObject.GetComponent<Hive>();
+                hive.fromSave = true;
                 hive.placed = true;
                 hive.x = data.xs[i];
                 hive.y = data.ys[i];
@@ -1133,6 +1173,11 @@ public class PlayerController : MonoBehaviour
                 hive.hasSugar = data.hasSugar[i];
                 hive.hasReducer = data.hasReducer[i];
                 hive.hasStand = data.hasStand[i];
+                if (data.hasStand[i])
+                {
+                    Instantiate(standObject, hive.transform.position, Quaternion.identity);
+                    hive.transform.position += Vector3.up;
+                }
                 hive.hasRepellant = data.hasRepellant[i];
                 hive.hasInsulation = data.hasInsulation[i];
                 hive.honey = data.honey[i];
@@ -1141,9 +1186,18 @@ public class PlayerController : MonoBehaviour
                 hive.comb = data.comb[i];
                 hive.combSizeCap = data.combSizeCap[i];
                 hive.nectar = data.nectar[i];
+                hive.nectarGain = data.nectarGain[i];
+                hive.possibleNectar = data.possibleNectar[i];
                 hive.population = data.population[i];
                 hive.Size = data.size[i];
                 hive.Condition = data.condition[i];
+
+                foreach (var v in values)
+                {
+                    FlowerType fType = (FlowerType)v;
+                    hive.nectarValues[fType] = data.nectarValues[k];
+                    k++;
+                }
             }
 
             //hive queens
@@ -1156,10 +1210,20 @@ public class PlayerController : MonoBehaviour
                 queen.gameObject.GetComponent<Cost>().Price = data.queenPrice[i];
                 StartCoroutine(AddQueen(queen));
             }
+            else
+            {
+                hive.queen = queen;
+                OpenHiveUI(null, hiveUI, hive);
+                hive.SetUpTemplate();
+                CloseHiveUI(hive);
+                hive.LoadPopulate();
+                //hive.CalcHoneyStats();
+                hive.UpdateMeters();
+                hives.Add(hive);
+            }
 
             //honey inventory
             int count = 0;
-            var values = System.Enum.GetValues(typeof(FlowerType));
             foreach (var v in values)
             {
                 FlowerType fType = (FlowerType)v;
@@ -1167,8 +1231,17 @@ public class PlayerController : MonoBehaviour
                 inventory[fType] = inv;
                 count += 4;
             }
-
         }
+
+        int l = 0;
+        foreach (GameObject go in toolObjectList)
+        {
+            Cost cost = go.GetComponent<Cost>();
+            cost.purchased = data.toolsPurchased[l];
+            cost.Price = data.toolPrice[l];
+            l++;
+        }
+
     }
 
     private void SetQueens(QueenBee queen, PlayerSaveData data, int i)
@@ -1189,7 +1262,6 @@ public class PlayerController : MonoBehaviour
             int count = 0;
             for (int j = 0; count < data.quirksCount[i]; j = 0)
             {
-                Debug.Log(j + " " + data.quirks.Count);
                 if (data.quirks.Count == 0)
                     break;
                 queen.quirks.Add(data.quirks[j]);
@@ -1225,9 +1297,13 @@ public struct PlayerSaveData
     public List<float> comb;
     public List<int> combSizeCap;
     public List<float> nectar;
+    public List<float> nectarGain;
+    public List<float> possibleNectar;
     public List<float> population;
     public List<int> size;
     public List<string> condition;
+
+    public List<float> nectarValues;
 
     //queen
     public List<bool> nullQueen;
@@ -1250,4 +1326,7 @@ public struct PlayerSaveData
 
     //honey inventory
     public List<float> honeyInventory;
+
+    public List<bool> toolsPurchased;
+    public List<int> toolPrice;
 }

@@ -136,10 +136,20 @@ MonoBehaviour:
   - {fileID: 2800000, guid: 01a694a57347d864280c8accd09161d7, type: 3}
   - {fileID: 2800000, guid: 01a694a57347d864280c8accd09161d7, type: 3}
   honeyGlobIcon: {fileID: 9197481963319205126, guid: cb6fa5757dbca154fb4659cc8b885381, type: 3}
+  queenSprite: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
   empty: 1
+  placed: 0
   x: 0
   y: 0
   hiveTile: {fileID: 0}
+  population: 5000
+  comb: 0
+  combSizeCap: 8
+  nectar: 0
+  honey: 0
+  queen: {fileID: 0}
+  honeyType: 0
+  honeyPurity: 0
   selectingQueen: 0
   isOpen: 0
   hasSugar: 0
@@ -162,6 +172,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   nullQueen: 1
   finishedGenerating: 0
+  fromSave: 0
   productionMult: 0
   constructionMult: 0
   collectionMult: 0

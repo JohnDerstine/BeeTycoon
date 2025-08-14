@@ -610,12 +610,11 @@ public class HoneyMarket : MonoBehaviour
         data.marketValues = values;
         data.amountSold = sold;
         data.turn = turn;
-        data.fromSave = fromSave;
     }
 
     public void Load(MarketSaveData data)
     {
-        fromSave = data.fromSave;
+        fromSave = true;
 
         int count = 0;
         var values = System.Enum.GetValues(typeof(FlowerType));
@@ -645,5 +644,4 @@ public struct MarketSaveData
     public List<float> marketValues;
     public List<float> amountSold;
     public int turn;
-    public bool fromSave;
 }

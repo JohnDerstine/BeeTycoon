@@ -13,6 +13,7 @@ public class SaveSystem
         public PlayerSaveData PlayerData;
         public MapSaveData MapData;
         public MarketSaveData MarketData;
+        public GameSaveData GameData;
     }
 
     public static string SaveFileName()
@@ -26,12 +27,11 @@ public class SaveSystem
         HandleSaveData();
 
         File.WriteAllText(SaveFileName(), JsonUtility.ToJson(_saveData, true));
-
-        Debug.Log(Application.persistentDataPath);
     }
 
     private static void HandleSaveData()
     {
+        GameObject.Find("GameController").GetComponent<GameController>().Save(ref _saveData.GameData);
         GameObject.Find("PlayerController").GetComponent<PlayerController>().Save(ref _saveData.PlayerData);
         GameObject.Find("MapLoader").GetComponent<MapLoader>().Save(ref _saveData.MapData);
         GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().Save(ref _saveData.MarketData);
@@ -47,8 +47,14 @@ public class SaveSystem
 
     private static void HandleLoadData()
     {
+        GameObject.Find("GameController").GetComponent<GameController>().Load(_saveData.GameData);
         GameObject.Find("MapLoader").GetComponent<MapLoader>().Load(_saveData.MapData);
         GameObject.Find("PlayerController").GetComponent<PlayerController>().Load(_saveData.PlayerData);
         GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().Load(_saveData.MarketData);
+    }
+
+    public static bool CheckSaveFile()
+    {
+        return File.Exists(SaveFileName());
     }
 }

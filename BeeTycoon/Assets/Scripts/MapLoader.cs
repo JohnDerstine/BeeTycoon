@@ -51,10 +51,10 @@ public class MapLoader : MonoBehaviour
     void Awake()
     {
         tiles = new Tile[mapWidth, mapHeight];
-        GeneratePlot();
+        //GeneratePlot(false);
     }
 
-    public void GameStart()
+    public void GameStart(bool fromSave)
     {
         nectarLabel = document.rootVisualElement.Q<Label>("NectarLabel");
         nectarPlus = document.rootVisualElement.Q<Label>("NectarPlus");
@@ -62,7 +62,7 @@ public class MapLoader : MonoBehaviour
         SetNectarVisibility(false);
 
         tiles = new Tile[mapWidth, mapHeight];
-        GeneratePlot();
+        GeneratePlot(fromSave);
 
         var values = System.Enum.GetValues(typeof(FlowerType));
         foreach (var v in values)
@@ -72,7 +72,7 @@ public class MapLoader : MonoBehaviour
         }
     }
 
-    private void GeneratePlot()
+    private void GeneratePlot(bool fromSave)
     {
         for (int i = 0; i < mapWidth; i++)
         {
@@ -102,7 +102,10 @@ public class MapLoader : MonoBehaviour
 
         GenerateBorder();
         GenerateFoliage();
-        GenerateFlowers();
+        if (!fromSave)
+            GenerateFlowers();
+        else
+            SaveSystem.Load();
     }
 
     private void GenerateBorder()
