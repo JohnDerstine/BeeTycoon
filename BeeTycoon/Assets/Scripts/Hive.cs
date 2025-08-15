@@ -484,7 +484,7 @@ public class Hive : MonoBehaviour
         yield return new WaitForSeconds(0.5f);
 
 
-        foreach (TemplateContainer glob in globs) //PROBLEM: Cross from hive ui scope to main scope
+        foreach (TemplateContainer glob in globs)
         {
             float top = -150;
             float left = document.rootVisualElement.Q<VisualElement>("HiveBase").resolvedStyle.width;
@@ -527,7 +527,7 @@ public class Hive : MonoBehaviour
         button.style.height = 128;
     }
 
-    private void GetFlowerRatios()
+    private void GetFlowerRatios() //Returns the same number for all flowers right now, but might be used for balancing later
     {
         for (int i = 0; i < map.mapWidth; i++)
         {
@@ -544,10 +544,13 @@ public class Hive : MonoBehaviour
                     case FlowerType.Alfalfa:
                         flowerValues[FlowerType.Alfalfa] += 1f / distance;
                         break;
-                    //case FlowerType.Blossom:
-                    //    flowerValues[FlowerType.Blossom] += 1f / distance;
-                        //break;
                     case FlowerType.Buckwheat:
+                        flowerValues[FlowerType.Buckwheat] += 1f / distance;
+                        break;
+                    case FlowerType.Fireweed:
+                        flowerValues[FlowerType.Buckwheat] += 1f / distance;
+                        break;
+                    case FlowerType.Goldenrod:
                         flowerValues[FlowerType.Buckwheat] += 1f / distance;
                         break;
                     case FlowerType.Empty:
@@ -558,9 +561,6 @@ public class Hive : MonoBehaviour
             }
         }
         totalFlowerWeight = flowerValues.Values.Sum();
-
-        //foreach (KeyValuePair<FlowerType, float> kvp in flowerValues)
-        //    Debug.Log(kvp.Key + ": " + kvp.Value);
     }
 
     private void SplitNectar(float inputNectar)
