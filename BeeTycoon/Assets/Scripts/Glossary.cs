@@ -64,7 +64,15 @@ public class Glossary : MonoBehaviour
         "Enterance Reducer",
         "Sugar Water",
         "Mite Repellant",
-        "Insulation"
+        "Insulation",
+
+        "HONEYCYCLE",
+
+        "SEASONS",
+
+        "HONEYMARKET",
+
+        "BEESTATS",
     };
 
     List<string> afflictions = new List<string>()
@@ -121,6 +129,23 @@ public class Glossary : MonoBehaviour
         "Insulation",
     };
 
+    List<string> honeyCycle = new List<string>()
+    {
+        "HONEYCYCLE"
+    };
+    List<string> seasons = new List<string>()
+    {
+        "SEASONS"
+    };
+    List<string> honeyMarket = new List<string>()
+    {
+        "HONEYMARKET"
+    };
+    List<string> beeStats = new List<string>()
+    {
+        "BEESTATS"
+    };
+
     Dictionary<string, string> descriptions = new Dictionary<string, string>()
     {
         {"AFFLICTIONS", "<b><size=36px><color=white>Afflictions</size><br><br>    Hives can become afflicted with certain conditions over time.</color></b> Every turn, depending on the season, species of bee, and many other factors, a hive may develop an affliction. These afflictions disrupt the colony and their honey production in different ways. Listed below are all the afflictions, what causes them, and what can be done to remedy them."},
@@ -128,8 +153,8 @@ public class Glossary : MonoBehaviour
         {"Mice", "Mice love to eat honey and comb. During the fall, and the winter especially, mice can find their way into the hive and build a nest, for the cold seasons. <color=red>Every turn a mouse is left in the hive, half a frame of comb is destroyed.</color><br><br>To prevent mice from getting in, give the hive an <color=green>enterance reducer.</color>"},
         {"Glued", "Over time, bees build up a substance called propolis in the hive. This substance acts as glued to keep the hive sealed and insulated. <color=red>Hives that are glued shut can not be accessed by the player.</color> <br><br>This can be remedied by using a <color=green>hive tool.</color>"},
         {"Aggrevated", "Bees can get quite defenseive of their hives to protect their honey and the queen. <color=red>An aggrevated colony can not be accessed by the player.</color> <br><br>This can be remedied by using a <color=green>smoker.</color>"},
-        {"Starving", "During the winter, bees live off of their stored honey. <color=red>If the hive runs out of honey, the hive will die.</color> <br><br>During the winter turn, if a hive is starving, the player can relieve pressure by adding <color=green>sugar water.</color> <color=red>This is a last resort and does not gurantee the hive's survival.<br><br>NOTE: If a hive is starving and freezing at the same time, it is guaranteed to die next turn.</color>"},
-        {"Freezing", "During the winter, bees huggle together around the queen to stay warm. <color=red>If the hive's population drops too low and there is no insulation on the hive, the hive will die.</color> <br><br><color=green>Insulation</color> is the best preventative, <color=red>but nothing can be done once the hive has started freezing.</color> A freezing hive still has a <color=green>chance to survive.</color> <br><br><color=red>NOTE: If a hive is starving and freezing at the same time, it is guaranteed to die next turn.</color>"},
+        {"Starving", "During the winter, bees live off of their stored honey. <color=red>If the hive runs out of honey, the hive will die.</color> <br><br>During the winter turn, if a hive is starving, the player can relieve pressure by adding <color=green>sugar water.</color> <color=red>This is a last resort and does not gurantee the hive's survival.<br><br>NOTE: If a hive has freezing and <color=yellow>any other affliction</color> at the same time, it is guaranteed to die next turn.</color>"},
+        {"Freezing", "During the winter, bees huggle together around the queen to stay warm. <color=red>If the hive's population drops too low and there is no insulation on the hive, the hive will die.</color> <br><br><color=green>Insulation</color> is the best preventative, <color=red>but nothing can be done once the hive has started freezing.</color> A freezing hive still has a <color=green>chance to survive.</color> <br><br><color=red>NOTE: If a hive has starving and <color=yellow>any other affliction</color> at the same time, it is guaranteed to die next turn.</color>"},
 
         {"SPECIES", "<b><size=36px><color=white>Species</size></color></b><br><br>    There are many different species of honey bees. Each species has evolved and adapted to survive and thrive in their respective environments. These traits can be leveraged in order to reach desired outcomes. <br><br>    In the beginning you will only have access to 3 species: Italian, Russian, and Japanese.<br><b><color=white>More species can be unlocked through the research tree.</color></b>"},
         {"Italian", "Due to the abundance of flora and mild temperatures of Italy, Italian honey bees are better at producing honey than other species. <br><br>Unique species effect: <color=green>25% increased honey production</color>"},
@@ -160,7 +185,33 @@ public class Glossary : MonoBehaviour
         {"Enterance Reducer", "An enterenace reducer reduces the enterance to a smaller hole. This is used to <color=green>cure</color> the <color=yellow>mice affliction</color> and is a <color=yellow>permanent</color> fix."},
         {"Sugar Water", "Sugar water mimics nectar from flowers, which allows the bees to have better nectar collection. <color=green>Increases nectar collection by 500</color>. <color=yellow>Only lasts 1 turn</color>."},
         {"Mite Repellant", "Mite repellant cures the <color=yellow>mites affliction</color>. This <color=red>does not prevent</color> the hive of getting mites again in the future."},
-        {"Insulation", "Helps insulate the hive in <color=yellow>winter</color>. This <color=green>lowers the chance</color> of a hive to start <color=yellow>freezing</color>."}
+        {"Insulation", "Helps insulate the hive in <color=yellow>winter</color>. This <color=green>lowers the chance</color> of a hive to start <color=yellow>freezing</color>."},
+
+        {"HONEYCYCLE", "<b><size=36px><color=white>Honey Cycle</color></size></b><br><br>    The <color=yellow>Honey Cycle</color> describes the process of constructing comb, collecting nectar, and producing honey. In order to produce honey, the hive must first have comb construct to store it, and nectar collected. <b><color=white>If a hive has no comb with nectar stored it cannot produce honey yet</color></b>. This means that hives will <color=red>not be able to produce honey</color> for their first 2 turns." +
+            "<br><br><b>To construct comb</b>, nothing is required other than the hive having a <colore=yellow>queen</color> assigned to it. <br><br><b><color=white>Collecting nectar</color></b> requires there to be flowers on the plot of land. The more flowers, the more nectar is collected per turn. See the <coloryellow>Flowers tab</color> for more information on how to increase nectar gains."},
+
+        {"SEASONS", "<b><size=36px><color=white>Seasons</color></size></b><br><br>    <b><color=white>Different seasons can increase or decrease the likeliness of something to happen, or how productive a hive is.</color></b> <color=green>At the end of each season, a reward is given.</color> <br><br><br>" +
+            "<b><color=green>Spring</color></b>: <color=white><br><br>The <color=red>glued affliction</color> is more likely to occur. <br><br>The <color=red>mice affliction</color> is less likely to occur.<br><br> <color=green>Hives build comb at a higher rate</color>.</color>" +
+            "<br><br><br><b><color=yellow>Summer</color></b>: <color=white><br><br>The <color=red>mites affliction</color> is more likely to occur. <br><br>The <color=red>aggrevated affliction</color> is less likely to occur.<br><br> <color=green>Hives collect nectar at a higher rate</color>.</color>" +
+            "<br><br><br><b><color=orange>Fall</color></b>: <color=white><br><br>The <color=red>aggrevated affliction</color> is more likely to occur. <br><br>The <color=red>glued affliction</color> is less likely to occur.<br><br> <color=green>Hives produce honey at a higher rate</color>.</color>" +
+            "<br><br><br><b><color=blue>Winter</color></b>: <color=white><br><br>The <color=red>mice affliction</color> is <b>much</b> more likely to occur. <br><br>The <color=red>starving</color> and <color=red>freezing afflictions</color> can occur. These afflictions are particularly deadly. Hives are not guranteed to survive the winter if they have <b><color=white>either</color></b> of the afflictions. If a hive has <b><color=white>both</color></b> it will die. Hives can be supplemented once per winter, to try and remedy these afflictions, but at a hefty cost.<br><br> <color=green>Completeing the winter gives you access to one of 3 bonus rewards.</color>.</color>"},
+
+        {"HONEYMARKET", "<b><size=36px><color=white>Honey Market</color></size></b><br><br>    The honey market is where you go to sell your hard-earned honey. <color=white><b>Different types of honey have different price-points they sell for, which change over time as supply and demand changes.</color></b> <br><br>" +
+            "You can tell if the price of a honey is trending upwards if it's banner is green, and downwards if it is red. The number at the top of the banner represents the price 1lb of that honey is selling for, and the number at the bottom of the banner represents how many lbs you havel." +
+            "After a certain amount of time, the prices for each honey will reset back to their original price. <br><br>" +
+            "<color=white><b>You can also choose to buy honey in the honey market</color></b>. This is useful if you need to supplement a hive with honey over the winter, or if you want to invest in a certain type of honey while it's price is low. <br><br>" +
+            "Lastly, at the bottom of the honey market there is a bar with 2 sliding brackets. <color=white><b>This is used to select what <color=yellow>quality</color> of honey you want to sell</color></b>. Higher quality honey sells for more, so it might be smart to hold on to it for when the market value is at its highest." +
+            "The red portion of the bar represents low quality honey, the yellow represents average quality, and the green represents high quality. A honey's quality is determined by the purity of the honey. <br><br><color=white>For example</color>, if you only have 1 type of flower on your plot, the purity will be 100%."},
+
+        {"BEESTATS", "<b><size=36px><color=white>Bee Stats</color></size></b><br><br>    Each queen bee comes with an array of stats that are randomly generated, as well as some quirks. <color=white><b>To see what a quirk does, hover over the quirk on the queen bee info panel</b></color>. <br><br>" +
+            "Each queen bee also comes with a species and a grade. The species effects can be viewed in the <color=yellow>Bee Species tab</color>. Grade is determined by taking an average of the stats of the queen. <color=white><b>This grade is what determines the price of a queen in the shop</b></color>. <br><br>" +
+            "<color=white><b>There is no way to directly look at the stat values a queen provides, but you can use the grade as a good estimate.</b></color><br><br> " +
+            "Each stat is listed below. <br><br>" +
+            "<color=white><b>Construction</b></color>: Affects how much <color=green>comb</color> is constrcuted each turn. <br><br>" +
+            "<color=white><b>Collection</b></color>: Affects how much <color=green>nectar</color> is gathered each turn. <br><br>" +
+            "<color=white><b>Production</b></color>: Affects how much <color=green>honey</color> is produced each turn. <br><br>" +
+            "<color=white><b>Aggressiveness</b></color>: Affects likeliness of a hive being <color=red>aggressive</color>. Reduces chance of <color=red>Mice</color>.<br><br>" +
+            "<color=white><b>Resilience</b></color>: Affects how resistant a hive is to succumbing to <color=red>freezing</color> or <color=red>starving</color>. <br><br>"}
     };
 
     Dictionary<string, Texture2D> icons = new Dictionary<string, Texture2D>();
@@ -186,6 +237,10 @@ public class Glossary : MonoBehaviour
             activeGlossary.Q<VisualElement>("Flowers").AddManipulator(new Clickable(e => OpenTab("Flowers")));
             activeGlossary.Q<VisualElement>("Tools").AddManipulator(new Clickable(e => OpenTab("Tools")));
             activeGlossary.Q<VisualElement>("Hive").AddManipulator(new Clickable(e => OpenTab("Hive")));
+            activeGlossary.Q<VisualElement>("HoneyCycle").AddManipulator(new Clickable(e => OpenTab("HoneyCycle")));
+            activeGlossary.Q<VisualElement>("Seasons").AddManipulator(new Clickable(e => OpenTab("Seasons")));
+            activeGlossary.Q<VisualElement>("HoneyMarket").AddManipulator(new Clickable(e => OpenTab("HoneyMarket")));
+            activeGlossary.Q<VisualElement>("BeeStats").AddManipulator(new Clickable(e => OpenTab("BeeStats")));
         }
         root.Q<VisualElement>("Base").Add(activeGlossary);
         OpenTab(tabName);
@@ -207,7 +262,7 @@ public class Glossary : MonoBehaviour
         activeGlossary.Q<VisualElement>(tabName).style.backgroundColor = new Color(0, 0, 0, 0.35f);
 
         //clear tab items list
-        VisualElement list = activeGlossary.Q<VisualElement>(content);
+        VisualElement list = activeGlossary.Q<ScrollView>("List").Q<VisualElement>(content);
         list.Clear();
 
         //Add tab items to the list
@@ -228,6 +283,18 @@ public class Glossary : MonoBehaviour
                 break;
             case "Hive":
                 itemsToAdd = hive;
+                break;
+            case "HoneyCycle":
+                itemsToAdd = honeyCycle;
+                break;
+            case "Seasons":
+                itemsToAdd = seasons;
+                break;
+            case "HoneyMarket":
+                itemsToAdd = honeyMarket;
+                break;
+            case "BeeStats":
+                itemsToAdd = beeStats;
                 break;
             default:
                 itemsToAdd = hive;
@@ -258,7 +325,7 @@ public class Glossary : MonoBehaviour
                 description.style.unityTextAlign = TextAnchor.MiddleLeft;
                 description.style.flexBasis = Length.Percent(100);
                 description.style.fontSize = 24;
-                description.style.color = new Color(0.83f, 0.83f, 0.83f);
+                description.style.color = new Color(0.87f, 0.87f, 0.87f);
                 description.style.unityFontStyleAndWeight = FontStyle.Normal;
             }
 

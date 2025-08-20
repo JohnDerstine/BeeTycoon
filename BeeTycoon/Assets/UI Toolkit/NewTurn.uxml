@@ -1,0 +1,5 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="Blur" style="flex-grow: 1; justify-content: center; align-items: center; background-color: rgba(255, 255, 255, 0.4);">
+        <ui:Label tabindex="-1" text="&lt;color=white&gt;&lt;gradient=&quot;TurnText&quot;&gt;Spring 1 Turn 1&lt;/gradient&gt;&lt;/color&gt;" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Turn" style="font-size: 172px; -unity-font-style: bold-and-italic; color: rgb(255, 255, 255); -unity-text-align: middle-center; -unity-text-outline-width: 4px; -unity-text-outline-color: rgb(0, 0, 0);" />
+    </ui:VisualElement>
+</ui:UXML>

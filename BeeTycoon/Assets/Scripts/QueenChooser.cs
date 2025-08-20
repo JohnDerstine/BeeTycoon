@@ -67,7 +67,23 @@ public class QueenChooser : MonoBehaviour
 
     public IEnumerator GiveChoice(int choice, bool starter = false)
     {
-        yield return new WaitUntil(() => !selectionActive);
+        isChoosing = true;
+        template = choicesContainer.Instantiate();
+        container = template.Q<VisualElement>("Container");
+        template.style.position = Position.Absolute;
+        template.style.flexDirection = FlexDirection.Row;
+        template.style.justifyContent = Justify.FlexStart;
+        container.style.justifyContent = Justify.SpaceAround;
+        document.rootVisualElement.Q<VisualElement>("Base").Add(template);
+
+        StartCoroutine(SpawnChoices(choice, starter));
+        yield return new WaitForFixedUpdate(); //Wait for selectionActive to be updated
+        yield return new WaitUntil(() => !selectionActive); //Wait for selectionActive to be false until spawning more choices
+
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
+        template = null;
+        container = null;
+        isChoosing = false;
     }
 
     public IEnumerator GiveChoice(List<int> choices, bool starter = true)
@@ -106,7 +122,7 @@ public class QueenChooser : MonoBehaviour
         yield return new WaitForFixedUpdate(); //Wait a frame for the Queens to be instatiated
 
         template.Q<Label>("ChooseLabel").text = "Choose 1 of " + numChoices; //Set up instruction text
-        if (starter && numChoices == 2)
+        if (numChoices == 2)
             template.Q<Label>("Description").text = "This will be added to your shop";
 
         List<string> possibilites = new List<string>(); //Get a list of the species of bees the player has unlocked

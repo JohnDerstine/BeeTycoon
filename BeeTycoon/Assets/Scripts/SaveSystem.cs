@@ -57,4 +57,9 @@ public class SaveSystem
     {
         return File.Exists(SaveFileName());
     }
+
+    public static void DeleteSave()
+    {
+        File.Delete(SaveFileName());
+    }
 }

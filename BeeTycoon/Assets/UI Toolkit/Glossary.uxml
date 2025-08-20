@@ -6,7 +6,22 @@
                 <ui:Label tabindex="-1" text="Glossary" parse-escape-sequences="true" display-tooltip-when-elided="true" name="TitleLabel" style="font-size: 100px; -unity-font-style: bold; -unity-text-align: middle-center;" />
             </ui:VisualElement>
             <ui:VisualElement name="Content" style="flex-grow: 0; flex-basis: 85%; background-color: rgba(255, 255, 255, 0); border-bottom-right-radius: 24px; border-bottom-left-radius: 24px; flex-direction: row; visibility: visible;">
-                <ui:VisualElement name="SideBar" style="flex-grow: 1; flex-basis: 25%; background-color: rgb(115, 75, 15); border-left-color: rgb(45, 45, 45); border-right-color: rgb(45, 45, 45); border-top-color: rgb(45, 45, 45); border-bottom-color: rgb(45, 45, 45); border-right-width: 8px; border-bottom-left-radius: 22px; border-top-left-radius: 0; border-top-right-radius: 0; display: flex; visibility: visible;">
+                <ui:ScrollView name="SideBar" horizontal-page-size="-1" vertical-page-size="-1" mouse-wheel-scroll-size="18" style="flex-basis: 25%;">
+                    <ui:VisualElement name="HoneyCycle" class="glossaryTab" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="Honey Cycle" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Seasons" class="glossaryTab" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="Seasons" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="HoneyMarket" class="glossaryTab" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="Honey Market" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="BeeStats" class="glossaryTab" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="Bee Stats" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+                    </ui:VisualElement>
+                    <ui:VisualElement name="Hive" class="glossaryTab" style="flex-grow: 0;">
+                        <ui:Label tabindex="-1" text="Hive Information" parse-escape-sequences="true" display-tooltip-when-elided="true" />
+                    </ui:VisualElement>
                     <ui:VisualElement name="Afflictions" class="glossaryTab" style="flex-grow: 0; -unity-background-image-tint-color: rgb(255, 255, 255); background-color: rgba(0, 0, 0, 0.35);">
                         <ui:Label tabindex="-1" text="Hive Afflictions" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                     </ui:VisualElement>
@@ -19,11 +34,8 @@
                     <ui:VisualElement name="Tools" class="glossaryTab" style="flex-grow: 0;">
                         <ui:Label tabindex="-1" text="Tools" parse-escape-sequences="true" display-tooltip-when-elided="true" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="Hive" class="glossaryTab" style="flex-grow: 0;">
-                        <ui:Label tabindex="-1" text="Hive Information" parse-escape-sequences="true" display-tooltip-when-elided="true" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
-                <ui:ScrollView horizontal-scroller-visibility="Hidden" style="flex-basis: 75%; background-color: rgb(53, 33, 5);">
+                </ui:ScrollView>
+                <ui:ScrollView horizontal-scroller-visibility="Hidden" name="List" style="flex-basis: 75%; background-color: rgb(53, 33, 5);">
                     <ui:VisualElement name="Mites" class="item" style="flex-grow: 0; align-items: center; justify-content: flex-start; margin-top: 30px; margin-bottom: 30px; padding-top: 0; height: 156px;">
                         <ui:VisualElement style="flex-grow: 1; flex-basis: 25%;">
                             <ui:VisualElement class="icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/MiteIcon.png?fileID=2800000&amp;guid=32d85028191aa8446a25735b43f5c238&amp;type=3#MiteIcon&quot;);" />

@@ -444,7 +444,7 @@ public class HoneyMarket : MonoBehaviour
 
         if (player.inventory[selectedType][0] < amount)
             amount = player.inventory[selectedType][0];
-        player.Money += Mathf.RoundToInt(amount * price);
+        player.Money = Mathf.RoundToInt(amount * price);
         float toBePaid = amount;
 
         if (lowSelected)
@@ -519,7 +519,7 @@ public class HoneyMarket : MonoBehaviour
             return;
         if (player.Money < amount * price)
             amount = Mathf.RoundToInt(player.Money / price);
-        player.Money -= Mathf.RoundToInt(amount * price);
+        player.Money = -Mathf.RoundToInt(amount * price);
         player.inventory[selectedType][0] += amount;
         player.inventory[selectedType][2] += amount;
         SetAllLabels();

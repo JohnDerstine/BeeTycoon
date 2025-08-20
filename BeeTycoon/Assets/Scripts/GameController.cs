@@ -38,19 +38,32 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private HoneyMarket honeyMarket;
 
+    [SerializeField]
+    private VisualTreeAsset newTurnUI;
+
+    [SerializeField]
+    private VisualTreeAsset quotaScreenUI;
+
     private int turn = 1;
     private int year = 1;
     private VisualElement root;
     private CustomVisualElement turnButton;
     private string season = "spring";
 
+    private TemplateContainer quotaContainer;
+
     private Button newGameButton;
     private Button continueButton;
 
     private int quota = 0;
+    private int previousQuota = 0;
 
     public bool nectarCollectingFinished;
     public bool flowerAdvanceFinished;
+    private bool turnAnimationFinished;
+    private bool quotaScreenFinished;
+
+    private int previousMoney;
 
     public string Season
     {
@@ -144,7 +157,9 @@ public class GameController : MonoBehaviour
 
     private void UpdateLabels()
     {
-        root.Q<Label>("TurnCount").text = "Year " + year + " Turn " + turn;
+        string adjustedSeason = Season.ToString();
+        adjustedSeason = adjustedSeason.Substring(0, 1).ToUpper() + adjustedSeason.Substring(1);
+        root.Q<Label>("TurnCount").text = adjustedSeason + " " + year + " Turn " + turn;
         root.Q<Label>("Quota").text = "Quota: $" + quota;
         root.Q<Label>("Turns").text = "Due in " + (4 - ((turn - 1) % 4)) + " turns";
     }
@@ -161,16 +176,19 @@ public class GameController : MonoBehaviour
 
         CurrentState = GameStates.TurnEnd;
         turn++;
-        if (turn == 14)
+        if (turn == 5)
             turn = 1;
 
-        UpdateLabels();
-        StartCoroutine(map.GetNectarGains());
+        //StartCoroutine(map.GetNectarGains());
 
-        yield return new WaitWhile(() => !nectarCollectingFinished);
-        nectarCollectingFinished = false;
-
+        //yield return new WaitWhile(() => !nectarCollectingFinished);
+        //nectarCollectingFinished = false;
         player.OnTurnIncrement();
+
+        previousQuota = quota;
+        map.AdvanceFlowerStates(); //This should be done after all the animations for GetNectarGains is done.
+        yield return new WaitWhile(() => !flowerAdvanceFinished);
+        flowerAdvanceFinished = false;
 
         if ((turn - 1) % 4 == 0)
         {
@@ -189,24 +207,120 @@ public class GameController : MonoBehaviour
                     season = "spring";
                     break;
             }
-            player.Money -= Quota;
+            previousMoney = player.Money;
+            player.Money = -Quota;
             if (player.Money < 0)
-                EndGame();
-            Quota = (int)(1.5f * Quota);
+            {
+                CurrentState = GameStates.End;
+                StartCoroutine(QuotaScreen());
+            }
+
+            StartCoroutine(QuotaScreen());
+            yield return new WaitWhile(() => !quotaScreenFinished);
+            quotaScreenFinished = false;
+
+            StartCoroutine(choices.GiveChoice(2, false));
+            yield return new WaitWhile(() => choices.isChoosing);
         }
         else
             Quota = quota;
 
-        map.AdvanceFlowerStates(); //This should be done after all the animations for GetNectarGains is done.
-        yield return new WaitWhile(() => !flowerAdvanceFinished);
-        flowerAdvanceFinished = false;
+        StartCoroutine(NewTurnAnimation());
+        yield return new WaitWhile(() => !turnAnimationFinished);
+        turnAnimationFinished = false;
+
+        if ((turn - 1) % 4 == 0)
+        {
+
+            Quota = (int)(1.5f * Quota);
+        }
+
+
         CurrentState = GameStates.Running;
     }
 
-    public void EndGame()
+    private IEnumerator QuotaScreen()
     {
-        currentState = GameStates.End;
-        Debug.Log("Game Over");
+        quotaContainer = quotaScreenUI.Instantiate();
+        quotaContainer.style.position = Position.Absolute;
+        quotaContainer.style.width = Screen.width;
+        quotaContainer.style.height = Screen.height;
+        quotaContainer.Q<Button>().clicked += NextButton;
+        string outcome = (CurrentState == GameStates.End) ? "<color=white><gradient=\"Failure\">Failed</gradient></color>" : "<color=white><gradient=\"TurnText\">Reached!</gradient></color>";
+        quotaContainer.Q<Label>("Outcome").text = outcome;
+        quotaContainer.Q<Label>("QuotaResult").text = "<color=green>$" + previousMoney + "</color> / <color=yellow>$" + previousQuota;
+        quotaContainer.Q<Label>("MoneyEarned").text = "Money Earned: <indent=80%>$" + player.moneyEarned;
+        quotaContainer.Q<Label>("MoneySpent").text = "Money Spent: <indent=80%>$" + Mathf.Abs(player.moneySpent);
+        quotaContainer.Q<Label>("HoneySold").text = "Honey Sold: <indent=80%>" + player.Money + " lbs.";
+        quotaContainer.Q<Label>("Hives").text = "Hives: <indent=80%>" + player.HivesCount;
+        string nextText = (CurrentState == GameStates.End) ? "End Run" : "Choose Reward";
+        quotaContainer.Q<Button>().text = nextText;
+        Color color = (CurrentState == GameStates.End) ? new Color(0.68f, 0.31f, 0.13f) : new Color(0.37f, 0.68f, 0.13f);
+        quotaContainer.Q<Button>().style.backgroundColor = color;
+        root.Q<VisualElement>("Base").Add(quotaContainer);
+        player.moneyEarned = 0;
+        player.moneySpent = 0;
+        yield return null;
+    }
+
+    private void NextButton()
+    {
+        if (currentState == GameStates.End)
+        {
+            SaveSystem.DeleteSave();
+            ReturnToMainMenu();
+        }
+
+        quotaScreenFinished = true;
+        root.Q<VisualElement>("Base").Remove(quotaContainer);
+    }
+
+    private IEnumerator NewTurnAnimation()
+    {
+        TemplateContainer temp = newTurnUI.Instantiate();
+        Label label = temp.Q<Label>();
+        temp.style.position = Position.Absolute;
+        temp.style.width = Screen.width;
+        temp.style.height = Screen.height;
+        label.style.fontSize = 24;
+        string adjustedSeason = Season.ToString();
+        adjustedSeason = adjustedSeason.Substring(0, 1).ToUpper() + adjustedSeason.Substring(1);
+        label.text = "<color=white><gradient=TurnText>" + adjustedSeason + " " + year + " Turn " + turn + "</gradient></color>";
+        root.Q<VisualElement>("Base").Add(temp);
+        yield return new WaitForEndOfFrame();
+        while (label.resolvedStyle.fontSize < 172)
+        {
+            label.style.fontSize = label.resolvedStyle.fontSize + 7f;
+            yield return new WaitForSeconds(0.01f);
+        }
+
+        yield return new WaitForSeconds(2f);
+
+        while (label.resolvedStyle.fontSize > 24)
+        {
+            label.style.fontSize = label.resolvedStyle.fontSize - 12;
+            yield return new WaitForSeconds(0.01f);
+        }
+        root.Q<VisualElement>("Base").Remove(temp);
+        UpdateLabels();
+
+        turnAnimationFinished = true;
+    }
+
+    private void ReturnToMainMenu()
+    {
+        currentState = GameStates.Menu;
+        SceneManager.LoadScene("MainMenu");
+        SceneManager.sceneLoaded += OnLoadMainMenu;
+    }
+
+    private void OnLoadMainMenu(Scene scene, LoadSceneMode mode)
+    {
+        newGameButton.clickable = new Clickable(e => NewGame());
+        if (!SaveSystem.CheckSaveFile())
+            continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
+        else
+            continueButton.clickable = new Clickable(e => ContinueGame());
     }
 
     public void Save(ref GameSaveData data)

@@ -556,6 +556,10 @@ MonoBehaviour:
   - {fileID: 2800000, guid: b5792b787771c404aac6d024dd7b9964, type: 3}
   - {fileID: 2800000, guid: 01a694a57347d864280c8accd09161d7, type: 3}
   - {fileID: 2800000, guid: 252954fe108b6ce439f9f696ac0df8fe, type: 3}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   open: 0
 --- !u!1 &2079847516
 GameObject:
@@ -595,6 +599,8 @@ MonoBehaviour:
   player: {fileID: 0}
   map: {fileID: 1594075282}
   honeyMarket: {fileID: 0}
+  newTurnUI: {fileID: 9197481963319205126, guid: 49f28a6cb8817ca40855ba553a8a6a49, type: 3}
+  quotaScreenUI: {fileID: 9197481963319205126, guid: 64080b72d1d49f24891b47cd502e34cc, type: 3}
   nectarCollectingFinished: 0
   flowerAdvanceFinished: 0
 --- !u!114 &2079847518

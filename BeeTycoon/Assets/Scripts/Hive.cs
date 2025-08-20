@@ -69,8 +69,8 @@ public class Hive : MonoBehaviour
     private float popCap = 20000; //what population the hive can currently house
     private float popSizeCap = 20000; //how much each level of size changes the popCap
     public float comb = 0;
-    private int combCap = 8; //how much honey the hive can currently store
-    public int combSizeCap = 8; //how much each level of size changes the honeyCap
+    private int combCap = 6; //how much honey the hive can currently store
+    public int combSizeCap = 6; //how much each level of size changes the combCap
     public float nectar;
     public float honey;
 
@@ -193,6 +193,11 @@ public class Hive : MonoBehaviour
                 document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
                 activePopup = null;
             }
+            if (tooltip != null)
+            {
+                document.rootVisualElement.Q<VisualElement>("Base").Remove(tooltip);
+                tooltip = null;
+            }
 
             condition = value;
             activePopup = afflictionPopupUI.Instantiate();
@@ -231,6 +236,13 @@ public class Hive : MonoBehaviour
                     break;
                 case "Healthy":
                     activePopup = null;
+                    break;
+                case "Dead":
+                    empty = true;
+                    if (queen != null)
+                        queen = null;
+                    currentIcon = remedyIcons[4];
+                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[4];
                     break;
             }
             Debug.Log(condition);
@@ -280,6 +292,8 @@ public class Hive : MonoBehaviour
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
         queen = GetComponent<QueenBee>();
+        if (queen.nullQueen)
+            Condition = "Dead";
 
         var values = System.Enum.GetValues(typeof(FlowerType));
         foreach (var v in values)
@@ -620,11 +634,15 @@ public class Hive : MonoBehaviour
     public void Populate(QueenBee q)
     {
         if (q == null)
+        {
+            Condition = "Dead";
             return;
+        }
 
         StartCoroutine(queen.TransferStats(q));
         Destroy(q.gameObject);
         empty = false;
+        Condition = "Healthy";
         queenHex.style.backgroundImage = queenSprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
 
@@ -636,7 +654,12 @@ public class Hive : MonoBehaviour
     public void LoadPopulate()
     {
         if (queen.nullQueen == false)
+        {
             empty = false;
+            Condition = "Healthy";
+        }
+        else
+            Condition = "Dead";
         queenHex.style.backgroundImage = queenSprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
         game = GameObject.Find("GameController").GetComponent<GameController>();
@@ -659,17 +682,18 @@ public class Hive : MonoBehaviour
 
     private void TryAddCondition()
     {
-        return;
-        if (Condition == "Healthy")
+        if (Condition == "Healthy" || game.Season == "winter")
         {
             if (game.Season == "winter")
             {
 
                 float rugged = (queen.quirks.Contains("Rugged")) ? tracker.quirkValues["Rugged"] : 1;
-                if (honey <= population / (16 - resilience * queen.resilienceMult * rugged))
+                if (Condition != "Healthy" && honey <= population / (16 - resilience * queen.resilienceMult * rugged))
+                    Condition = "Dead";
+                else if (honey <= population / (16 - resilience * queen.resilienceMult * rugged))
                     Condition = "Starving";
-                if (Condition == "Starving" && (!hasInsulation || population <= popCap / (Size * 2)))
-                    Debug.Log("Hive died");
+                if (Condition != "Healthy" && (!hasInsulation || population <= popCap / (Size * 2)))
+                    Condition = "Dead";
                 else if ((!hasInsulation || population <= popCap / (Size * 2)))
                     Condition = "Freezing";
 
@@ -693,7 +717,7 @@ public class Hive : MonoBehaviour
                     if (game.Season != "summer" && Random.Range(0, 24) <= (aggressivness * queen.aggressivnessMult * territorial * russian))
                         Condition = "Aggrevated";
 
-                    if (Condition == "Healthy")
+                    if (Condition == "Healthy" && game.Season != "fall")
                         Condition = "Glued";
                 }
                 else if (rand > 1)
@@ -734,6 +758,15 @@ public class Hive : MonoBehaviour
         //collection *= 1.5f;
         addedNectar += 500;
         hasSugar = true;
+    }
+
+    private void OnDestroy()
+    {
+        if (activePopup != null)
+        {
+            document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
+            activePopup = null;
+        }
     }
 
     #region UI
@@ -807,6 +840,8 @@ public class Hive : MonoBehaviour
             exit = template.Q<VisualElement>("Close");
             exit.AddManipulator(new Clickable(() => player.CloseHiveUI(this)));
 
+            if (queen == null)
+                queen = GetComponent<QueenBee>();
             UpdateMeterLabels();
         }
     }

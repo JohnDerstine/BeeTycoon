@@ -67,6 +67,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset hiveUI;
 
+    [SerializeField]
+    private Material darkHive;
+
+    [SerializeField]
+    private Material lightHive;
+
     private TemplateContainer hoverTemplate;
 
     private Glossary glossary;
@@ -135,6 +141,8 @@ public class PlayerController : MonoBehaviour
     EventCallback<PointerLeaveEvent> queenExitCallback;
 
     private int money = 50;
+    public int moneyEarned = 0;
+    public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
 
     public bool fromSave;
@@ -144,6 +152,8 @@ public class PlayerController : MonoBehaviour
         get { return selectedItem; }
         set
         {
+            foreach (Hive h in hives)
+                h.gameObject.GetComponent<MeshRenderer>().material = lightHive;
             selectedItem = value;
             if (value == null)// && selectedItem != null)
             {
@@ -165,6 +175,8 @@ public class PlayerController : MonoBehaviour
             }
             else if (value != null)
             {
+                foreach (Hive h in hives)
+                    HighlightHives(selectedItem, h);
                 if (selectedItem.tag == "Placeable" || selectedItem.tag == "Super")
                     hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
                 else
@@ -186,12 +198,22 @@ public class PlayerController : MonoBehaviour
         get { return money; }
         set
         {
-            money = value;
+            money += value;
             moneyLabel.text = "$" + money;
 
             if (honeyMarket.marketOpen)
                 honeyMarket.marketTemplate.Q<Label>("MoneyLabel").text = "$" + money;
+
+            if (value < 0)
+                moneySpent += value;
+            else
+                moneyEarned += value;
         }
+    }
+
+    public int HivesCount
+    {
+        get { return hives.Count; }
     }
 
     // Start is called before the first frame update
@@ -338,7 +360,7 @@ public class PlayerController : MonoBehaviour
                         if (hoverObject.TryGetComponent(out Hive h))
                         {
                             hives.Add(h);
-                            Money -= hoverObject.GetComponent<Cost>().Price;
+                            Money = -hoverObject.GetComponent<Cost>().Price;
                             h.x = (int)t.transform.position.x;
                             h.y = (int)t.transform.position.z;
                             SelectedItem = null;
@@ -353,7 +375,7 @@ public class PlayerController : MonoBehaviour
                             hoverObject = null;
                             if (c.ftype != FlowerType.Empty)
                                 t.Flower = c.ftype;
-                            Money -= c.Price;
+                            Money = -c.Price;
                             SelectedItem = null;
                         }
                         return;
@@ -377,11 +399,11 @@ public class PlayerController : MonoBehaviour
                     if (selectedItem.tag != "Placeable" && selectedItem.tag != "Dolly" && selectedItem.tag != "Shovel" && selectedItem.tag != "HiveTool" && selectedItem.tag != "Smoker")
                     {
                         int cost = selectedItem.GetComponent<Cost>().Price;
-                        Money -= cost;
+                        Money = -cost;
                         if (selectedItem.TryGetComponent(out QueenBee queen))
                         {
                             h.Populate(queen);
-                            Money -= hoverObject.GetComponent<Cost>().Price;
+                            //Money = -hoverObject.GetComponent<Cost>().Price;
                             beeObjectList.Remove(SelectedItem);
                             beeSprites.Remove(selectedItemSprite);
                             tab1ItemCount--;
@@ -501,9 +523,56 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void HighlightHives(GameObject item, Hive h)
+    {
+        switch (item.tag)
+        {
+            case "HiveTool":
+                if (h.Condition != "Glued")
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Smoker":
+                if (h.Condition != "Aggrevated")
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Insulation":
+                if (!h.hasInsulation)
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Repellant":
+                if (!h.hasRepellant)
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Reducer":
+                if (!h.hasReducer)
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Sugar":
+                if (!h.hasSugar)
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Stand":
+                if (!h.hasStand)
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Super":
+                if (h.Size >= 5)
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Frame":
+                if (h.Frames >= 10)
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Bee":
+                if (h.Condition != "Dead")
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+        }
+
+    }
+
     public void OnTurnIncrement()
     {
-        Debug.Log("turn++");
         foreach (Hive h in hives)
             h.UpdateHive();
         honeyMarket.UpdateMarket();
@@ -754,7 +823,7 @@ public class PlayerController : MonoBehaviour
             item.GetComponent<Cost>().Purchased = true;
             Label costLabel = hex.Q<Label>();
             costLabel.text = "Purchased";
-            Money -= cost;
+            Money = -cost;
         }
 
         hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 1f);
@@ -767,7 +836,7 @@ public class PlayerController : MonoBehaviour
         if (money < cost)
             return;
 
-        Money -= cost;
+        Money = -cost;
         hive.Populate(item.GetComponent<QueenBee>());
         beeObjectList.Remove(item);
         beeSprites.Remove(sprite);
