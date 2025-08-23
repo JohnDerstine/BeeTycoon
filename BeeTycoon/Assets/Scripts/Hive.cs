@@ -149,6 +149,7 @@ public class Hive : MonoBehaviour
     private TemplateContainer activePopup;
     private Coroutine activePulse;
     public bool fromSave;
+    public int repellantTurns;
 
     public int Size
     {
@@ -179,7 +180,11 @@ public class Hive : MonoBehaviour
         {
             placed = value;
             if (value)
+            {
+                if (queen.nullQueen)
+                    Condition = "Dead";
                 player.OpenHiveUI(template, hiveUI, this);
+            }
         }
     }
 
@@ -211,27 +216,27 @@ public class Hive : MonoBehaviour
                     break;
                 case "Mice":
                     construction /= 2;
-                    currentIcon = remedyIcons[1];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[1];
+                    currentIcon = remedyIcons[4];
+                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[6];
                     break;
                 case "Glued":
                     canBeOpened = false;
                     currentIcon = remedyIcons[2];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[2];
+                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[3];
                     break;
                 case "Freezing":
                     construction /= 2;
-                    currentIcon = remedyIcons[3];
+                    currentIcon = remedyIcons[5];
                     activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[2];
                     break;
                 case "Starving":
                     construction /= 2;
-                    currentIcon = remedyIcons[0];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[3];
+                    currentIcon = remedyIcons[5];
+                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[4];
                     break;
                 case "Aggrevated":
                     canBeOpened = false;
-                    currentIcon = remedyIcons[0];
+                    currentIcon = remedyIcons[1];
                     activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[1];
                     break;
                 case "Healthy":
@@ -241,8 +246,8 @@ public class Hive : MonoBehaviour
                     empty = true;
                     if (queen != null)
                         queen = null;
-                    currentIcon = remedyIcons[4];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[4];
+                    currentIcon = remedyIcons[3];
+                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[5];
                     break;
             }
             Debug.Log(condition);
@@ -254,7 +259,16 @@ public class Hive : MonoBehaviour
                 activePopup.style.flexGrow = 0;
                 document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
                 activePopup.RegisterCallback<PointerEnterEvent>(OnAfflictionHover);
+                activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
             }
+        }
+    }
+
+    private void GlossaryOpen(PointerDownEvent e)
+    {
+        if (e.button == 1)
+        {
+            document.GetComponent<Glossary>().OpenGlossary("Afflictions");
         }
     }
 
@@ -292,8 +306,6 @@ public class Hive : MonoBehaviour
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
         queen = GetComponent<QueenBee>();
-        if (queen.nullQueen)
-            Condition = "Dead";
 
         var values = System.Enum.GetValues(typeof(FlowerType));
         foreach (var v in values)
@@ -371,10 +383,28 @@ public class Hive : MonoBehaviour
                 comb = 4;
         }
 
+        if (hasRepellant)
+        {
+            repellantTurns--;
+            if (repellantTurns == 0)
+                hasRepellant = false;
+        }
+
         if (game.Season == "winter")
         {
-            //CONSUME HONEY FOR FOOD
             //CONVERT ALL LEFTOVER NECTAR INTO HONEY
+            honey += nectar;
+            nectar = 0;
+
+            //CONSUME HONEY FOR FOOD
+            honey -= population / 20000;
+
+            //POP DECLINE
+            if (honey < 0)
+            {
+                population /= 2f;
+                honey = 0;
+            }
             return;
         }
 
@@ -410,7 +440,7 @@ public class Hive : MonoBehaviour
         if (possibleNectar > 0)
             SplitNectar(possibleNectar);
 
-        float possiblePop = birthRate;
+        float possiblePop = birthRate * comb/combCap;
         if (possiblePop + population > popCap)
             possiblePop = popCap - population;
         population += possiblePop;
@@ -430,6 +460,10 @@ public class Hive : MonoBehaviour
 
         TryAddCondition();
         hasSugar = false;
+
+        Debug.Log("Population: " + population);
+        Debug.Log("Honey: " + honey);
+        Debug.Log(honey - population / 20000);
     }
 
     private void Harvest(float percent)
@@ -748,6 +782,11 @@ public class Hive : MonoBehaviour
             case "Aggrevated":
                 canBeOpened = true;
                 break;
+            case "Freezing":
+                break;
+            case "Starving":
+                honey += storage / 4;
+                break;
         }
 
         Condition = "Healthy";
@@ -806,6 +845,9 @@ public class Hive : MonoBehaviour
             smallHarvest.AddManipulator(new Clickable(e => SelectHarvest(smallHarvest)));
             mediumHarvest.AddManipulator(new Clickable(e => SelectHarvest(mediumHarvest)));
             largeHarvest.AddManipulator(new Clickable(e => SelectHarvest(largeHarvest)));
+            smallHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
+            mediumHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
+            largeHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
 
             combMeter = template.Q<ProgressBar>("CombBar");
             nectarMeter = template.Q<ProgressBar>("NectarBar");
@@ -813,6 +855,7 @@ public class Hive : MonoBehaviour
             queenHex = template.Q<VisualElement>("QueenHex");
             queenClick = template.Q<CustomVisualElement>("QueenClick");
             queenClick.AddManipulator(assignQueen);
+            queenClick.RegisterCallback<PointerDownEvent>(e => BeeStatsReference(e));
             queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
             queenMoveCallback = new EventCallback<PointerMoveEvent>(OnQueenMove);
             queenClick.RegisterCallback(queenMoveCallback);
@@ -828,14 +871,19 @@ public class Hive : MonoBehaviour
             nectarHover = template.Q<CustomVisualElement>("NectarHover");
             nectarHover.RegisterCallback(moveCallback);
             nectarHover.RegisterCallback(exitCallback);
+            nectarHover.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
 
             honeyHover = template.Q<CustomVisualElement>("HoneyHover");
             honeyHover.RegisterCallback(moveCallback);
             honeyHover.RegisterCallback(exitCallback);
+            honeyHover.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
 
             combHover = template.Q<CustomVisualElement>("CombHover");
             combHover.RegisterCallback(moveCallback);
             combHover.RegisterCallback(exitCallback);
+            combHover.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
+
+            template.Q<VisualElement>("FlowerInfo").RegisterCallback<PointerDownEvent>(e => FlowersReference(e));
 
             exit = template.Q<VisualElement>("Close");
             exit.AddManipulator(new Clickable(() => player.CloseHiveUI(this)));
@@ -1011,6 +1059,30 @@ public class Hive : MonoBehaviour
             activePopup.RegisterCallback<PointerEnterEvent>(OnAfflictionHover);
         }
 
+    }
+
+    private void OnMouseUp()
+    {
+        if (Input.GetMouseButtonUp(1))
+            document.GetComponent<Glossary>().OpenGlossary("Hive");
+    }
+
+    private void HoneyCycleReference(PointerDownEvent e)
+    {
+        if (e.button == 1)
+            document.GetComponent<Glossary>().OpenGlossary("HoneyCycle");
+    }
+
+    private void FlowersReference(PointerDownEvent e)
+    {
+        if (e.button == 1)
+            document.GetComponent<Glossary>().OpenGlossary("Flowers");
+    }
+
+    private void BeeStatsReference(PointerDownEvent e)
+    {
+        if (e.button == 1)
+            document.GetComponent<Glossary>().OpenGlossary("BeeStats");
     }
     #endregion
 }

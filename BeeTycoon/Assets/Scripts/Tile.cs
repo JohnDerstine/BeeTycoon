@@ -86,4 +86,10 @@ public class Tile : MonoBehaviour
 
         completed = true;
     }
+
+    private void OnMouseUp()
+    {
+        if (Input.GetMouseButtonUp(1) && Flower != FlowerType.Empty)
+            GameObject.Find("UIDocument").GetComponent<Glossary>().OpenGlossary("Flowers");
+    }
 }

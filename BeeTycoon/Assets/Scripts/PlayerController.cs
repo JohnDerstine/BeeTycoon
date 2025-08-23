@@ -94,7 +94,7 @@ public class PlayerController : MonoBehaviour
 
     private int tab1ItemCount = 0;
     private int tab2ItemCount = 6;
-    private int tab3ItemCount = 8;
+    private int tab3ItemCount = 9;
     private int tab4ItemCount = 5;
 
     [SerializeField]
@@ -248,6 +248,11 @@ public class PlayerController : MonoBehaviour
         tab4.AddManipulator(open4);
         tabs.Add(tab4);
 
+        tab1.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "BeeStats"));
+        tab2.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Tools"));
+        tab3.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Hive"));
+        tab4.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Flowers"));
+
         RefreshMenuLists();
 
         queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
@@ -266,6 +271,12 @@ public class PlayerController : MonoBehaviour
         for (int i = 0; i < flowerObjectList.Count; i++)
             flowerObjectList[i].GetComponent<Cost>().ftype = (FlowerType)(i + 2);
 
+    }
+
+    private void ReferToGlossary(PointerDownEvent e, string keyword)
+    {
+        if (e.button == 1)
+            glossary.OpenGlossary(keyword);
     }
 
     // Update is called once per frame
@@ -455,6 +466,7 @@ public class PlayerController : MonoBehaviour
                         {
                             if (h.Condition == "Mites")
                                 h.CureCondition();
+                            h.repellantTurns = 4;
                         }
                         else if (selectedItem.tag == "Insulation")
                         {
@@ -462,6 +474,10 @@ public class PlayerController : MonoBehaviour
                             {
                                 h.hasInsulation = true;
                             }
+                        }
+                        else if (selectedItem.tag == "Emergency" && (h.Condition == "Freezing" || h.Condition == "Starving"))
+                        {
+                            h.CureCondition();
                         }
 
                         Destroy(hoverObject);
@@ -565,6 +581,10 @@ public class PlayerController : MonoBehaviour
                 break;
             case "Bee":
                 if (h.Condition != "Dead")
+                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                break;
+            case "Emergency":
+                if (h.Condition != "Freezing" && h.Condition != "Starving")
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
         }

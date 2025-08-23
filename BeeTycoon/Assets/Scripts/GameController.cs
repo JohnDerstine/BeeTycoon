@@ -132,6 +132,7 @@ public class GameController : MonoBehaviour
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         document.visualTreeAsset = gameUI;
+        document.GetComponent<Glossary>().GameLoaded();
         CurrentState = GameStates.Start;
         root = document.rootVisualElement;
         turnButton = root.Q<CustomVisualElement>("TurnButton");
@@ -147,6 +148,7 @@ public class GameController : MonoBehaviour
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         document.visualTreeAsset = gameUI;
+        document.GetComponent<Glossary>().GameLoaded();
         CurrentState = GameStates.Running;
         root = document.rootVisualElement;
         turnButton = root.Q<CustomVisualElement>("TurnButton");
@@ -179,10 +181,10 @@ public class GameController : MonoBehaviour
         if (turn == 5)
             turn = 1;
 
-        //StartCoroutine(map.GetNectarGains());
+        StartCoroutine(map.GetNectarGains());
 
-        //yield return new WaitWhile(() => !nectarCollectingFinished);
-        //nectarCollectingFinished = false;
+        yield return new WaitWhile(() => !nectarCollectingFinished);
+        nectarCollectingFinished = false;
         player.OnTurnIncrement();
 
         previousQuota = quota;

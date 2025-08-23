@@ -81,6 +81,7 @@ public class HoneyMarket : MonoBehaviour
         controller = GameObject.Find("GameController").GetComponent<GameController>();
         marketButton = document.rootVisualElement.Q<CustomVisualElement>("MarketButton");
         marketButton.AddManipulator(new Clickable(e => OpenMarket()));
+        marketButton.RegisterCallback<PointerDownEvent>(e => ReferenceGlossary(e));
 
         if (!fromSave)
         {
@@ -102,6 +103,12 @@ public class HoneyMarket : MonoBehaviour
             ResetToBaseValue();
             UpdateMarket();
         }
+    }
+
+    private void ReferenceGlossary(PointerDownEvent e)
+    {
+        if (e.button == 1)
+            document.GetComponent<Glossary>().OpenGlossary("HoneyMarket");
     }
 
     private void Update()

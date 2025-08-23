@@ -65,6 +65,7 @@ public class Glossary : MonoBehaviour
         "Sugar Water",
         "Mite Repellant",
         "Insulation",
+        "Emergency Kit",
 
         "HONEYCYCLE",
 
@@ -127,6 +128,7 @@ public class Glossary : MonoBehaviour
         "Sugar Water",
         "Mite Repellant",
         "Insulation",
+        "Emergency Kit"
     };
 
     List<string> honeyCycle = new List<string>()
@@ -153,8 +155,8 @@ public class Glossary : MonoBehaviour
         {"Mice", "Mice love to eat honey and comb. During the fall, and the winter especially, mice can find their way into the hive and build a nest, for the cold seasons. <color=red>Every turn a mouse is left in the hive, half a frame of comb is destroyed.</color><br><br>To prevent mice from getting in, give the hive an <color=green>enterance reducer.</color>"},
         {"Glued", "Over time, bees build up a substance called propolis in the hive. This substance acts as glued to keep the hive sealed and insulated. <color=red>Hives that are glued shut can not be accessed by the player.</color> <br><br>This can be remedied by using a <color=green>hive tool.</color>"},
         {"Aggrevated", "Bees can get quite defenseive of their hives to protect their honey and the queen. <color=red>An aggrevated colony can not be accessed by the player.</color> <br><br>This can be remedied by using a <color=green>smoker.</color>"},
-        {"Starving", "During the winter, bees live off of their stored honey. <color=red>If the hive runs out of honey, the hive will die.</color> <br><br>During the winter turn, if a hive is starving, the player can relieve pressure by adding <color=green>sugar water.</color> <color=red>This is a last resort and does not gurantee the hive's survival.<br><br>NOTE: If a hive has freezing and <color=yellow>any other affliction</color> at the same time, it is guaranteed to die next turn.</color>"},
-        {"Freezing", "During the winter, bees huggle together around the queen to stay warm. <color=red>If the hive's population drops too low and there is no insulation on the hive, the hive will die.</color> <br><br><color=green>Insulation</color> is the best preventative, <color=red>but nothing can be done once the hive has started freezing.</color> A freezing hive still has a <color=green>chance to survive.</color> <br><br><color=red>NOTE: If a hive has starving and <color=yellow>any other affliction</color> at the same time, it is guaranteed to die next turn.</color>"},
+        {"Starving", "During the winter, bees live off of their stored honey. <color=red>If the hive runs out of honey, the hive will die.</color> <br><br>During the winter turn, if a hive is starving, the player can relieve pressure by adding <color=green>sugar water.</color> <color=red>This is a last resort and does not gurantee the hive's survival.<br><br>NOTE: If a hive has freezing and <color=yellow>any other affliction</color> at the same time, it is guaranteed to die.</color>"},
+        {"Freezing", "During the winter, bees huggle together around the queen to stay warm. <color=red>If the hive's population drops too low and there is no insulation on the hive, the hive will die.</color> <br><br><color=green>Insulation</color> is the best preventative, <color=red>but nothing can be done once the hive has started freezing.</color> A freezing hive still has a <color=green>chance to survive.</color> <br><br><color=red>NOTE: If a hive has starving and <color=yellow>any other affliction</color> at the same time, it is guaranteed to die.</color>"},
 
         {"SPECIES", "<b><size=36px><color=white>Species</size></color></b><br><br>    There are many different species of honey bees. Each species has evolved and adapted to survive and thrive in their respective environments. These traits can be leveraged in order to reach desired outcomes. <br><br>    In the beginning you will only have access to 3 species: Italian, Russian, and Japanese.<br><b><color=white>More species can be unlocked through the research tree.</color></b>"},
         {"Italian", "Due to the abundance of flora and mild temperatures of Italy, Italian honey bees are better at producing honey than other species. <br><br>Unique species effect: <color=green>25% increased honey production</color>"},
@@ -184,8 +186,9 @@ public class Glossary : MonoBehaviour
         {"Hive Stand", "The hive stand raises the hive off the ground, making it more accessible. <color=green>Increases hive efficieny by 10%</color>. It also just looks nice."},
         {"Enterance Reducer", "An enterenace reducer reduces the enterance to a smaller hole. This is used to <color=green>cure</color> the <color=yellow>mice affliction</color> and is a <color=yellow>permanent</color> fix."},
         {"Sugar Water", "Sugar water mimics nectar from flowers, which allows the bees to have better nectar collection. <color=green>Increases nectar collection by 500</color>. <color=yellow>Only lasts 1 turn</color>."},
-        {"Mite Repellant", "Mite repellant cures the <color=yellow>mites affliction</color>. This <color=red>does not prevent</color> the hive of getting mites again in the future."},
+        {"Mite Repellant", "Mite repellant cures the <color=yellow>mites affliction</color>. This <color=red>does not prevent</color> the hive of getting mites again in the future. It will last for <color=green>4 turns</color>."},
         {"Insulation", "Helps insulate the hive in <color=yellow>winter</color>. This <color=green>lowers the chance</color> of a hive to start <color=yellow>freezing</color>."},
+        {"Emergency Kit", "Can be used during winter to prevent a hive from <color=red>freezing</color> or <color=red>starving</color>."},
 
         {"HONEYCYCLE", "<b><size=36px><color=white>Honey Cycle</color></size></b><br><br>    The <color=yellow>Honey Cycle</color> describes the process of constructing comb, collecting nectar, and producing honey. In order to produce honey, the hive must first have comb construct to store it, and nectar collected. <b><color=white>If a hive has no comb with nectar stored it cannot produce honey yet</color></b>. This means that hives will <color=red>not be able to produce honey</color> for their first 2 turns." +
             "<br><br><b>To construct comb</b>, nothing is required other than the hive having a <colore=yellow>queen</color> assigned to it. <br><br><b><color=white>Collecting nectar</color></b> requires there to be flowers on the plot of land. The more flowers, the more nectar is collected per turn. See the <coloryellow>Flowers tab</color> for more information on how to increase nectar gains."},
@@ -331,5 +334,10 @@ public class Glossary : MonoBehaviour
 
             list.Add(item);
         }
+    }
+
+    public void GameLoaded()
+    {
+        document.rootVisualElement.Q<CustomVisualElement>("GlossaryButton").AddManipulator(new Clickable(() => OpenGlossary("Hive")));
     }
 }

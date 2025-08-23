@@ -18,6 +18,7 @@ TagManager:
   - Insulation
   - Reducer
   - Repellant
+  - Emergency
   layers:
   - Default
   - TransparentFX

@@ -241,7 +241,6 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                Debug.Log(tiles[i, j].Flower);
                 if (tiles[i, j].Flower == FlowerType.Clover)
                 {
                     List<Tile> adjTiles = GetAdjacentFlowers(FlowerType.Clover, i, j);
