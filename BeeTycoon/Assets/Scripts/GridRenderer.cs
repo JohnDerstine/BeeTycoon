@@ -56,4 +56,21 @@ public class GridRenderer : MonoBehaviour
             line.GetComponent<LineRenderer>().endWidth = lineWidth;
         }
     }
+
+    public void Reload()
+    {
+        lines.Clear();
+
+        int x = -1; int z = -1; // Position variables
+
+        // FOR JOHN: IDK how to get the grid width and height dynamically but you can do that here
+        for (int i = 0; i <= loader.mapWidth; i++)
+        {
+            for (int j = 0; j <= loader.mapHeight; j++)
+            {
+                lines.Add(createLine(lineObject, x + i * 2, z, x + i * 2, z + loader.mapHeight * 2, lineWidth)); // Vertical lines
+                lines.Add(createLine(lineObject, x, z + j * 2, x + loader.mapWidth * 2, z + j * 2, lineWidth)); // Horizontal lines
+            }
+        }
+    }
 }

@@ -17,12 +17,22 @@ public class MapLoader : MonoBehaviour
     [SerializeField]
     UIDocument document;
 
+    [SerializeField]
+    private List<Material> leafMats = new List<Material>();
+    [SerializeField]
+    private List<Material> grassMats = new List<Material>();
+    [SerializeField]
+    private List<Material> tileMats = new List<Material>();
+    [SerializeField]
+    private List<Material> tuftMats = new List<Material>();
+
     private Label nectarLabel;
     private Label nectarPlus;
     private VisualElement nectarIcon;
 
-    public int mapWidth = 10;
-    public int mapHeight = 10;
+    private int spawnChance = 4;
+    public int mapWidth = 6;
+    public int mapHeight = 6;
     private int foliageDensityMin = 5;
     private int foliageDensityMax = 12;
 
@@ -47,6 +57,11 @@ public class MapLoader : MonoBehaviour
     private bool buckwheatCalced;
     private bool goldenrodCalced;
     private bool fireweedCalced;
+
+    private List<GameObject> trees = new List<GameObject>();
+    private List<GameObject> oobTiles = new List<GameObject>();
+    private List<GameObject> tileList = new List<GameObject>();
+    private List<GameObject> tufts = new List<GameObject>();
 
     void Awake()
     {
@@ -87,6 +102,7 @@ public class MapLoader : MonoBehaviour
                 tiles[i, j].Flower = (FlowerType)0;
                 tiles[i, j].x = i;
                 tiles[i, j].y = j;
+                tileList.Add(temp);
                 //}
                 //else
                 //{
@@ -100,8 +116,8 @@ public class MapLoader : MonoBehaviour
             }
         }
 
-        GenerateBorder();
         GenerateFoliage();
+        GenerateBorder();
         if (!fromSave)
             GenerateFlowers();
         else
@@ -111,27 +127,28 @@ public class MapLoader : MonoBehaviour
     private void GenerateBorder()
     {
         //spawn border tiles along edge of map for out-of-bounds area
-        for (int i = 0; i < mapWidth; i += 2)
+        for (int i = 0; i < mapWidth; i += 2) // * 2 to mapWidth results in double the amount of border tiles
         {
             for (int x = 0; x < mapWidth + i + 2; x++)
             {
                 Vector3 offset = new Vector3(Random.Range(-0.2f, 0.2f), 0, Random.Range(-0.2f, 0.2f));
                 int rotatationRand = Random.Range(0, 360);
-                Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i), Quaternion.identity);
-                Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i) + offset, Quaternion.Euler(0, rotatationRand, 0));
-                Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 - x * 2 + i, 0, mapHeight * 2 + i), Quaternion.identity);
-                Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, mapHeight * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0));
+                oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i), Quaternion.identity));
+                trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
+                oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 - x * 2 + i, 0, mapHeight * 2 + i), Quaternion.identity));
+                trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, mapHeight * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
             }
             for (int y = 0; y < mapHeight + i + 2; y++)
             {
                 Vector3 offset = new Vector3(Random.Range(-0.2f, 0.2f), 0, Random.Range(-0.2f, 0.2f));
                 int rotatationRand = Random.Range(0, 360);
-                Instantiate(outOfBoundsTile, new Vector3(-2 - i, 0, mapHeight * 2 - y * 2 + i), Quaternion.identity);
-                Instantiate(outOfBoundsTree, new Vector3(-2 - i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0));
-                Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i), Quaternion.identity);
-                Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0));
+                oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(-2 - i, 0, mapHeight * 2 - y * 2 + i), Quaternion.identity));
+                trees.Add(Instantiate(outOfBoundsTree, new Vector3(-2 - i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
+                oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i), Quaternion.identity));
+                trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
             }
         }
+        SeasonRecolor();
     }
 
     private void GenerateFoliage()
@@ -145,30 +162,99 @@ public class MapLoader : MonoBehaviour
                 {
                     Vector3 rotation = new Vector3(0, Random.Range(0, 360), 0);
                     Vector3 offset = new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f));
-                    Instantiate(grass, new Vector3(i * 2, 0, j * 2) + offset, Quaternion.Euler(rotation));
+                    tufts.Add(Instantiate(grass, new Vector3(i * 2, 0, j * 2) + offset, Quaternion.Euler(rotation)));
                 }
 
-                if (Random.Range(0, 5) == 0)
-                {
-                    Vector3 rotation = new Vector3(0, Random.Range(0, 360), 0);
-                    Vector3 offset = new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f));
-                    Instantiate(mushroom, new Vector3(i * 2, 0, j * 2) + offset, Quaternion.Euler(rotation));
-                }
+                //if (Random.Range(0, 5) == 0)
+                //{
+                //    Vector3 rotation = new Vector3(0, Random.Range(0, 360), 0);
+                //    Vector3 offset = new Vector3(Random.Range(-1f, 1f), 0, Random.Range(-1f, 1f));
+                //    Instantiate(mushroom, new Vector3(i * 2, 0, j * 2) + offset, Quaternion.Euler(rotation));
+                //}
             }
+        }
+    }
+
+    public void SeasonRecolor()
+    {
+        int startingIndex = 0;
+        int grassIndex = 0;
+        switch (game.Season)
+        {
+            case "winter":
+                startingIndex = 9;
+                grassIndex = 3;
+                break;
+            case "spring":
+                startingIndex = 0;
+                grassIndex = 0;
+                break;
+            case "summer":
+                startingIndex = 3;
+                grassIndex = 1;
+                break;
+            case "fall":
+                startingIndex = 6;
+                grassIndex = 2;
+                break;
+        }
+
+        Material[] matArr = outOfBoundsTree.GetComponent<MeshRenderer>().sharedMaterials;
+
+        foreach (GameObject tree in trees)
+        {
+            int rand = Random.Range(0, 3);
+            matArr[1] = leafMats[startingIndex + rand];
+            matArr[3] = leafMats[startingIndex + rand];
+            matArr[5] = leafMats[startingIndex + rand];
+            tree.GetComponent<MeshRenderer>().materials = matArr;
+        }
+
+        Material[] oobTileMaterial = new Material[1];
+        oobTileMaterial[0] = grassMats[grassIndex];
+        foreach (GameObject tile in oobTiles)
+        {
+            tile.GetComponent<MeshRenderer>().materials = oobTileMaterial;
+        }
+
+        Material[] tileMaterial = new Material[1];
+        tileMaterial[0] = tileMats[grassIndex];
+        foreach (GameObject tile in tileList)
+        {
+            tile.GetComponent<MeshRenderer>().materials = tileMaterial;
+        }
+
+        Material[] tuftMaterial = new Material[1];
+        tuftMaterial[0] = tuftMats[grassIndex];
+        foreach (GameObject tuft in tufts)
+        {
+            tuft.GetComponent<MeshRenderer>().materials = tuftMaterial;
         }
     }
 
     public void GenerateFlowers()
     {
+        var values = System.Enum.GetValues(typeof(FlowerType));
         for (int i = 0; i < mapWidth; i++)
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                if (Random.Range(0, 4) == 0) //3
+                if (Random.Range(0, spawnChance) == 0)
                 {
-                    int rand = Random.Range(2, 7); //2 - 7
-                    tiles[i, j].Flower = (FlowerType)rand;
+                    FlowerType rand = (FlowerType)Random.Range(2, values.Length);
+                    tiles[i, j].Flower = rand;
                 }
+            }
+        }
+    }
+
+    public void ClearFlowers()
+    {
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                tiles[i, j].Flower = FlowerType.Empty;
             }
         }
     }
@@ -518,6 +604,60 @@ public class MapLoader : MonoBehaviour
         SpreadToAdjacentTiles(validTiles, FlowerType.Buckwheat, 2);
     }
 
+    public void IncreaseMapSize()
+    {
+        mapWidth++;
+        mapHeight++;
+        FlowerType[,] flowers = new FlowerType[mapWidth, mapHeight];
+        for (int i = 0; i < mapWidth - 1; i++)
+        {
+            for (int j = 0; j < mapHeight - 1; j++)
+            {
+                flowers[i, j] = tiles[i, j].Flower;
+            }
+        }
+
+        ClearAllTiles();
+        tiles = new Tile[mapWidth, mapHeight];
+        GeneratePlot(false);
+        GenerateBorder();
+        GameObject.Find("GridRenderer").GetComponent<GridRenderer>().Reload();
+        GameObject.Find("PlayerController").GetComponent<PlayerController>().CenterCamera();
+        ClearFlowers();
+
+        for (int i = 0; i < mapWidth - 1; i++)
+        {
+            for (int j = 0; j < mapHeight - 1; j++)
+            {
+                tiles[i, j].Flower = flowers[i, j];
+            }
+        }
+    }
+
+    private void ClearAllTiles()
+    {
+        for (int i = 0; i < mapWidth - 1; i++)
+        {
+            for (int j = 0; j < mapHeight - 1; j++)
+            {
+                tiles[i, j].Flower = FlowerType.Empty;
+                Destroy(tiles[i, j]);
+            }
+        }
+
+        foreach (GameObject tile in oobTiles)
+            Destroy(tile);
+        foreach (GameObject tree in trees)
+            Destroy(tree);
+        foreach (GameObject tuft in tufts)
+            Destroy(tuft);
+
+        trees.Clear();
+        oobTiles.Clear();
+        tufts.Clear();
+        tileList.Clear();
+    }
+
     public void Save(ref MapSaveData data)
     {
         List<FlowerType> flowerData = new List<FlowerType>();
@@ -526,6 +666,8 @@ public class MapLoader : MonoBehaviour
             for (int j = 0; j < mapHeight; j++)
                 flowerData.Add(tiles[i, j].Flower);
         data.flowerData = flowerData;
+        data.width = mapWidth;
+        data.height = mapHeight;
     }
 
     public void Load(MapSaveData data)
@@ -540,6 +682,9 @@ public class MapLoader : MonoBehaviour
                 count++;
             }
         }
+
+        mapWidth = data.width;
+        mapHeight = data.height;
     }
 }
 
@@ -547,4 +692,6 @@ public class MapLoader : MonoBehaviour
 public struct MapSaveData
 {
     public List<FlowerType> flowerData;
+    public int width;
+    public int height;
 }

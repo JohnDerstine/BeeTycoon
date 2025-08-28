@@ -105,6 +105,11 @@ public class HoneyMarket : MonoBehaviour
         }
     }
 
+    public float GetPrice(FlowerType f)
+    {
+        return marketValues[f][0];
+    }
+
     private void ReferenceGlossary(PointerDownEvent e)
     {
         if (e.button == 1)

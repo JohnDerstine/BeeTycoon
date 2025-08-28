@@ -87,7 +87,7 @@ public class GameController : MonoBehaviour
         {
             if (value == GameStates.Start)
             {
-                List<int> choiceList = new List<int>() { 3, 2, 2, 2 };
+                List<int> choiceList = new List<int>() { 3, 3, 3, 3 };
                 StartCoroutine(choices.GiveChoice(choiceList, true));
             }
             currentState = value;
@@ -140,6 +140,7 @@ public class GameController : MonoBehaviour
         Quota = 25;
 
         map.GameStart(false);
+        SceneManager.sceneLoaded -= OnSceneLoadNew;
     }
 
     private void OnSceneLoadContinue(Scene scene, LoadSceneMode mode)
@@ -155,6 +156,7 @@ public class GameController : MonoBehaviour
         turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
 
         map.GameStart(true);
+        SceneManager.sceneLoaded -= OnSceneLoadContinue;
     }
 
     private void UpdateLabels()
@@ -163,7 +165,8 @@ public class GameController : MonoBehaviour
         adjustedSeason = adjustedSeason.Substring(0, 1).ToUpper() + adjustedSeason.Substring(1);
         root.Q<Label>("TurnCount").text = adjustedSeason + " " + year + " Turn " + turn;
         root.Q<Label>("Quota").text = "Quota: $" + quota;
-        root.Q<Label>("Turns").text = "Due in " + (4 - ((turn - 1) % 4)) + " turns";
+        int turns = (season == "winter") ? (2 - ((turn - 1) % 4)) : (4 - ((turn - 1) % 4));
+        root.Q<Label>("Turns").text = "Due in " + turns + " turns";
     }
 
     private IEnumerator NextTurn()
@@ -171,6 +174,8 @@ public class GameController : MonoBehaviour
         //Don't let player go next turn if the last turn is still processing
         if (CurrentState == GameStates.TurnEnd || CurrentState == GameStates.Paused)
             yield break;
+
+        player.CenterCamera();
 
         player.CloseHiveUI(player.currentHive);
         player.CloseTab();
@@ -192,8 +197,9 @@ public class GameController : MonoBehaviour
         yield return new WaitWhile(() => !flowerAdvanceFinished);
         flowerAdvanceFinished = false;
 
-        if ((turn - 1) % 4 == 0)
+        if ((turn - 1) % 4 == 0 || (season == "winter" && (turn - 1) % 4 == 2))
         {
+            bool newYear = false;
             switch (season)
             {
                 case "spring":
@@ -204,25 +210,39 @@ public class GameController : MonoBehaviour
                     break;
                 case "fall":
                     season = "winter";
+                    map.ClearFlowers();
                     break;
                 case "winter":
+                    year++;
                     season = "spring";
+                    newYear = true;
+                    map.GenerateFlowers();
                     break;
             }
+            map.SeasonRecolor();
             previousMoney = player.Money;
             player.Money = -Quota;
             if (player.Money < 0)
             {
                 CurrentState = GameStates.End;
                 StartCoroutine(QuotaScreen());
+                yield break;
             }
 
             StartCoroutine(QuotaScreen());
             yield return new WaitWhile(() => !quotaScreenFinished);
             quotaScreenFinished = false;
 
-            StartCoroutine(choices.GiveChoice(2, false));
-            yield return new WaitWhile(() => choices.isChoosing);
+            if (newYear)
+            {
+                StartCoroutine(choices.GiveChoice(3, false));
+                yield return new WaitWhile(() => choices.isChoosing);
+            }
+            else
+            {
+                StartCoroutine(choices.GiveChoice(2, false));
+                yield return new WaitWhile(() => choices.isChoosing);
+            }
         }
         else
             Quota = quota;
@@ -312,6 +332,8 @@ public class GameController : MonoBehaviour
     private void ReturnToMainMenu()
     {
         currentState = GameStates.Menu;
+        Destroy(map.gameObject);
+        Destroy(document.gameObject);
         SceneManager.LoadScene("MainMenu");
         SceneManager.sceneLoaded += OnLoadMainMenu;
     }
@@ -323,6 +345,7 @@ public class GameController : MonoBehaviour
             continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
         else
             continueButton.clickable = new Clickable(e => ContinueGame());
+        Destroy(gameObject);
     }
 
     public void Save(ref GameSaveData data)

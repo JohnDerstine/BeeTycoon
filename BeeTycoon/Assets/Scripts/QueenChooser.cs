@@ -13,6 +13,15 @@ public class QueenChooser : MonoBehaviour
     private VisualTreeAsset queenUI;
 
     [SerializeField]
+    private VisualTreeAsset flowerUI;
+
+    [SerializeField]
+    private VisualTreeAsset honeyUI;
+
+    [SerializeField]
+    private VisualTreeAsset sizeUI;
+
+    [SerializeField]
     private VisualTreeAsset choicesContainer;
 
     [SerializeField]
@@ -43,15 +52,22 @@ public class QueenChooser : MonoBehaviour
 
     private VisualElement root;
     private VisualElement container;
-    EventCallback<PointerMoveEvent> queenMoveCallback;
-    EventCallback<PointerLeaveEvent> queenExitCallback;
+    EventCallback<PointerMoveEvent, MyCustomData> queenMoveCallback;
+    EventCallback<PointerLeaveEvent, MyCustomData> queenExitCallback;
 
     EventCallback<PointerEnterEvent, string> quirkEnterCallback;
     EventCallback<PointerLeaveEvent> quirkExitCallback;
-    Color darkTint = new Color(0.8f, 0.8f, 0.8f, 1f);
-    Color lightTint = Color.white;
+    Color beeDark = new Color(0.6f, 0.6f, 0.6f, 1f);
+    Color beeLight = new Color(0.8f, 0.8f, 0.8f, 1f);
+    Color honeyDark = new Color(0.8f, 0.8f, 0.8f, 1f);
+    Color honeyLight = Color.white;
+    Color flowerDark = new Color(0, 0.75f, 0.89f);
+    Color flowerLight = new Color(0.44f, 1, 0.91f);
+    Color sizeDark = new Color(0, 0.4f, 1);
+    Color sizeLight = new Color(0, 0.6f, 1);
 
     private List<QueenBee> queenOptions = new List<QueenBee>();
+    private List<VisualTreeAsset> rngOptions;
 
     public void OnSceneLoaded()
     {
@@ -59,10 +75,11 @@ public class QueenChooser : MonoBehaviour
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
 
         root = document.rootVisualElement;
-        queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
-        queenMoveCallback = new EventCallback<PointerMoveEvent>(OnQueenMove);
+        queenExitCallback = new EventCallback<PointerLeaveEvent, MyCustomData>(OnQueenExit);
+        queenMoveCallback = new EventCallback<PointerMoveEvent, MyCustomData>(OnQueenMove);
         quirkExitCallback = new EventCallback<PointerLeaveEvent>(OnQuirkExit);
         quirkEnterCallback = new EventCallback<PointerEnterEvent, string>(OnQuirkEnter);
+        rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI};
     }
 
     public IEnumerator GiveChoice(int choice, bool starter = false)
@@ -86,7 +103,7 @@ public class QueenChooser : MonoBehaviour
         isChoosing = false;
     }
 
-    public IEnumerator GiveChoice(List<int> choices, bool starter = true)
+    public IEnumerator GiveChoice(List<int> choices, bool starter = false)
     {
         isChoosing = true;
         template = choicesContainer.Instantiate();
@@ -101,6 +118,7 @@ public class QueenChooser : MonoBehaviour
             StartCoroutine(SpawnChoices(choices[i], starter));
             yield return new WaitForFixedUpdate(); //Wait for selectionActive to be updated
             yield return new WaitUntil(() => !selectionActive); //Wait for selectionActive to be false until spawning more choices
+            starter = false;
         }
 
         document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
@@ -113,18 +131,87 @@ public class QueenChooser : MonoBehaviour
     //Takes an input for the number of choices and whether or not this will be the player's starter Queen
     private IEnumerator SpawnChoices(int numChoices, bool starter)
     {
-        //Instatiate Queen Objects
-        for (int i = 0; i < numChoices; i++)
+
+        //Get the options that user will have to choose from
+        List<VisualTreeAsset> rngChoices = new List<VisualTreeAsset>();
+        if (starter)
         {
-            GameObject temp = Instantiate(queenPrefab, new Vector3(-100, -100, -100), Quaternion.identity);
-            queenOptions.Add(temp.GetComponent<QueenBee>());
+            for (int i = 0; rngChoices.Count < numChoices; i++)
+                rngChoices.Add(queenUI);
         }
-        yield return new WaitForFixedUpdate(); //Wait a frame for the Queens to be instatiated
+        else
+        {
+            rngChoices.Add(queenUI);
+            for (int i = 0; rngChoices.Count < numChoices; i++)
+            {
+                int rand = Random.Range(0, rngOptions.Count);
+                rngChoices.Add(rngOptions[rand]);
+                if (rngOptions[rand] == sizeUI)
+                    rngOptions.RemoveAt(rand);
+            }
+        }
+
+        StartCoroutine(SetUpQueens(rngChoices, starter));
+        
+        for (int i = 0; i < rngChoices.Count; i++)
+        {
+            if (rngChoices[i] != queenUI)
+            {
+                //Set up UI template for choice
+                TemplateContainer temp = rngChoices[i].Instantiate();
+                VisualElement popup = temp.Q<VisualElement>("Popup");
+
+                if (rngChoices[i] == honeyUI)
+                {
+                    MyCustomData colors = new MyCustomData(honeyDark, honeyLight);
+                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
+                    popup.RegisterCallback(queenExitCallback, colors);
+
+                    var values = System.Enum.GetValues(typeof(FlowerType));
+                    FlowerType rand = (FlowerType)Random.Range(2, values.Length);
+                    popup.Q<Label>("Type").text = rand.ToString();
+                    popup.Q<Label>("Price").text = "$" + GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().GetPrice(rand) + " / lb.";
+                    popup.AddManipulator(new Clickable(e => SelectHoney(rand)));
+                }
+            
+                else if (rngChoices[i] == flowerUI)
+                {
+                    MyCustomData colors = new MyCustomData(flowerDark, flowerLight);
+                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
+                    popup.RegisterCallback(queenExitCallback, colors);
+
+                    var values = System.Enum.GetValues(typeof(FlowerType));
+                    FlowerType rand = (FlowerType)Random.Range(2, values.Length);
+                    popup.Q<Label>("Type").text = rand.ToString();
+                    popup.Q<VisualElement>("Icon").style.backgroundImage = player.flowerSprites[(int)rand - 2];
+
+                    popup.AddManipulator(new Clickable(e => SelectFlower(rand)));
+                }
+                else if (rngChoices[i] == sizeUI)
+                {
+                    MyCustomData colors = new MyCustomData(sizeDark, sizeLight);
+                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
+                    popup.RegisterCallback(queenExitCallback, colors);
+
+                    popup.AddManipulator(new Clickable(e => SelectSize()));
+                }
+
+                container.Add(temp);
+            }
+        }
+
+        yield return new WaitForFixedUpdate();
 
         template.Q<Label>("ChooseLabel").text = "Choose 1 of " + numChoices; //Set up instruction text
-        if (numChoices == 2)
+        if (!starter)
             template.Q<Label>("Description").text = "This will be added to your shop";
 
+        rngOptions = new List<VisualTreeAsset>() { queenUI, sizeUI, sizeUI, sizeUI };
+        selectionActive = true;
+    }
+
+    private IEnumerator SetUpQueens(List<VisualTreeAsset> rngChoices, bool starter)
+    {
         List<string> possibilites = new List<string>(); //Get a list of the species of bees the player has unlocked
         foreach (KeyValuePair<string, bool> kvp in tracker.species)
         {
@@ -132,8 +219,20 @@ public class QueenChooser : MonoBehaviour
                 possibilites.Add(kvp.Key);
         }
 
-        //Set up each queen choice
-        for (int i = 0; i < numChoices; i++)
+        //Instatiate Queen Objects
+        for (int i = 0; i < rngChoices.Count; i++)
+        {
+            if (rngChoices[i] == queenUI)
+            {
+                GameObject q = Instantiate(queenPrefab, new Vector3(-100, -100, -100), Quaternion.identity);
+                queenOptions.Add(q.GetComponent<QueenBee>());
+            }
+        }
+
+        yield return new WaitForFixedUpdate(); //Wait a frame for the Queens to be instatiated
+
+        ////Set up each queen choice
+        for (int i = 0; i < queenOptions.Count; i++)
         {
             //Decide the queen's species
             if (starter)
@@ -141,15 +240,16 @@ public class QueenChooser : MonoBehaviour
                 int rand = Random.Range(0, possibilites.Count);
                 queenOptions[i].species = possibilites[rand];
                 possibilites.RemoveAt(rand);
-                if (numChoices == 3) //First queen of game is free.
+                if (starter) //First queen of game is free.
                     queenOptions[i].GetComponent<Cost>().Price = 0;
             }
 
             //Set up UI template for queen choice
             TemplateContainer temp = queenUI.Instantiate();
             VisualElement popup = temp.Q<VisualElement>("Popup");
-            popup.RegisterCallback(queenMoveCallback); //register callbacks for hovering over the choices
-            popup.RegisterCallback(queenExitCallback);
+            MyCustomData colors = new MyCustomData(beeDark, beeLight);
+            popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
+            popup.RegisterCallback(queenExitCallback, colors);
 
             int savedI = i; //I needs to be saved to a variable for callbacks to reference it correctly
             popup.AddManipulator(new Clickable(e => SelectQueen(savedI))); //Add Click event
@@ -174,7 +274,31 @@ public class QueenChooser : MonoBehaviour
             //Add choice to the UI Document
             container.Add(temp);
         }
-        selectionActive = true;
+    }
+    
+    private void SelectFlower(FlowerType f)
+    {
+        selectionActive = false;
+        player.flowersOwned[f] += 5;
+        queenOptions.Clear();
+        document.rootVisualElement.Q<VisualElement>("Container").Clear();
+    }
+
+    private void SelectHoney(FlowerType f)
+    {
+        selectionActive = false;
+        player.inventory[f][0] += 5; //add to total honey
+        player.inventory[f][2] += 5; //add to medium quality honey
+        queenOptions.Clear();
+        document.rootVisualElement.Q<VisualElement>("Container").Clear();
+    }
+
+    private void SelectSize()
+    {
+        selectionActive = false;
+        GameObject.Find("MapLoader").GetComponent<MapLoader>().IncreaseMapSize();
+        queenOptions.Clear();
+        document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }
 
     private void SelectQueen(int num)
@@ -191,19 +315,19 @@ public class QueenChooser : MonoBehaviour
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }
 
-    private void OnQueenMove(PointerMoveEvent e)
+    private void OnQueenMove(PointerMoveEvent e, MyCustomData colors)
     {
         CustomVisualElement target = e.currentTarget as CustomVisualElement;
         if (target.ContainsPoint(e.localPosition))
-            target.style.unityBackgroundImageTintColor = lightTint;
+            target.style.unityBackgroundImageTintColor = colors.light;
         else
-            target.style.unityBackgroundImageTintColor = darkTint;
+            target.style.unityBackgroundImageTintColor = colors.dark;
     }
 
-    private void OnQueenExit(PointerLeaveEvent e)
+    private void OnQueenExit(PointerLeaveEvent e, MyCustomData colors)
     {
         CustomVisualElement target = e.currentTarget as CustomVisualElement;
-        target.style.unityBackgroundImageTintColor = darkTint;
+        target.style.unityBackgroundImageTintColor = colors.dark;
     }
 
     private void OnQuirkEnter(PointerEnterEvent e, string quirk)
@@ -228,4 +352,16 @@ public class QueenChooser : MonoBehaviour
         document.rootVisualElement.Remove(activeLabel);
         activeLabel = null;
     }
+}
+
+public class MyCustomData
+{
+    public MyCustomData (Color dark, Color light)
+    {
+        this.dark = dark;
+        this.light = light;
+    }
+
+    public Color dark { get; set; }
+    public Color light { get; set; }
 }

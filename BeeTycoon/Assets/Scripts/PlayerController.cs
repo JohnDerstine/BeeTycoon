@@ -17,10 +17,10 @@ public class PlayerController : MonoBehaviour
     List<List<GameObject>> objectList = new List<List<GameObject>>();
 
     [SerializeField]
-    List<Texture2D> flowerSprites = new List<Texture2D>();
+    public List<Texture2D> flowerSprites = new List<Texture2D>();
 
     [SerializeField]
-    List<GameObject> flowerObjectList = new List<GameObject>();
+    private List<GameObject> flowerObjectList = new List<GameObject>();
 
     [SerializeField]
     List<Texture2D> beeSprites = new List<Texture2D>();
@@ -145,6 +145,8 @@ public class PlayerController : MonoBehaviour
     public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
 
+    public Dictionary<FlowerType, int> flowersOwned = new Dictionary<FlowerType, int>();
+
     public bool fromSave;
 
     public GameObject SelectedItem
@@ -264,12 +266,16 @@ public class PlayerController : MonoBehaviour
             foreach (var v in values)
             {
                 FlowerType fType = (FlowerType)v;
-                inventory.Add(fType, new List<float> { 0, 0, 0, 0 });
+                inventory.Add(fType, new List<float> { 0, 0, 0, 0 }); //total, low, medium, high
+                flowersOwned.Add(fType, 0);
             }
         }
 
         for (int i = 0; i < flowerObjectList.Count; i++)
             flowerObjectList[i].GetComponent<Cost>().ftype = (FlowerType)(i + 2);
+
+
+        CenterCamera();
 
     }
 
@@ -385,7 +391,15 @@ public class PlayerController : MonoBehaviour
                             Destroy(hoverObject);
                             hoverObject = null;
                             if (c.ftype != FlowerType.Empty)
+                            {
                                 t.Flower = c.ftype;
+                                if (flowersOwned[c.ftype] > 0)
+                                {
+                                    flowersOwned[c.ftype]--;
+                                    RefreshMenuLists();
+                                    OpenTab(3, open4, false);
+                                }
+                            }
                             Money = -c.Price;
                             SelectedItem = null;
                         }
@@ -729,14 +743,20 @@ public class PlayerController : MonoBehaviour
         icon.styleSheets.Add(itemStyle);
         icon.style.backgroundImage = spriteList[num][index];
         costLabel.styleSheets.Add(costStyle);
-        int cost = objectList[num][index].GetComponent<Cost>().Price;
+        Cost cost = objectList[num][index].GetComponent<Cost>();
+        int price = cost.Price;
         if (num == 2 && objectList[num][index].GetComponent<Cost>().Purchased)
         {
             costLabel.text = "Purchased";
             return 0;
         }
-        costLabel.text = (cost == 0) ? "Purchased" : "$" + cost; 
-        return cost;
+        else if (cost.ftype != FlowerType.Empty && flowersOwned[(FlowerType)(index + 2)] > 0)
+        {
+            costLabel.text = flowersOwned[(FlowerType)(index + 2)] + " free";
+            return 0;
+        }
+        costLabel.text = (price == 0) ? "Purchased" : "$" + price; 
+        return price;
     }
 
     private void AddHexManipulators(CustomVisualElement hex, bool fromHive, int num, int index, int cost)
@@ -1021,10 +1041,10 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 cameraPos = Camera.main.transform.position;
         Vector3 scrollY = new Vector3(0, Input.mouseScrollDelta.y * Time.deltaTime * 75f, 0);
-        if (cameraPos.y - scrollY.y > 22.5)
-            Camera.main.transform.position = new Vector3(cameraPos.x, 22.5f, cameraPos.z);
-        else if (cameraPos.y - scrollY.y < 10)
-            Camera.main.transform.position = new Vector3(cameraPos.x, 10f, cameraPos.z);
+        if (cameraPos.y - scrollY.y > 2.25f * map.mapWidth)
+            Camera.main.transform.position = new Vector3(cameraPos.x, 2.25f * map.mapWidth, cameraPos.z);
+        else if (cameraPos.y - scrollY.y < map.mapWidth)
+            Camera.main.transform.position = new Vector3(cameraPos.x, map.mapWidth, cameraPos.z);
         else
             Camera.main.transform.position -= scrollY;
     }
@@ -1056,6 +1076,12 @@ public class PlayerController : MonoBehaviour
             else
                 Camera.main.transform.position += panX;
         }
+    }
+
+    public void CenterCamera()
+    {
+        int offset = (map.mapWidth % 2 == 0) ? 2 : 3;
+        Camera.main.transform.position = new Vector3(map.mapWidth + (0.15f * Mathf.Pow(map.mapWidth, 1.75f)), 2.25f * map.mapWidth, (map.mapWidth / 2) + offset);
     }
     #endregion
 

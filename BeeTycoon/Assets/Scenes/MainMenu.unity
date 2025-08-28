@@ -396,11 +396,39 @@ MonoBehaviour:
   game: {fileID: 2079847517}
   popUp: {fileID: 1594075283}
   document: {fileID: 1944616203}
-  mapWidth: 10
-  mapHeight: 10
+  leafMats:
+  - {fileID: 2100000, guid: b71e6be143bd1c04d9443a50bc4543b3, type: 2}
+  - {fileID: 2100000, guid: a64886cd4e0aca14badf394470d56b69, type: 2}
+  - {fileID: 2100000, guid: b439f3291505698458ba96b848aa6a53, type: 2}
+  - {fileID: 2100000, guid: 94d8fca3e393e93489f6a86e887718b1, type: 2}
+  - {fileID: 2100000, guid: 3b529fcc79015514ab1366e213bab286, type: 2}
+  - {fileID: 2100000, guid: 00a3fd68f75532d45842a71188bd77b0, type: 2}
+  - {fileID: 2100000, guid: a664dc8ee3ff57245ad6a50044cc7585, type: 2}
+  - {fileID: 2100000, guid: eeb609bba709074449f2d5819b140b6e, type: 2}
+  - {fileID: 2100000, guid: 8eaf928244d94364d90caddce7152377, type: 2}
+  - {fileID: 2100000, guid: c7f3ffc0532dd354db619888374de567, type: 2}
+  - {fileID: 2100000, guid: c7f3ffc0532dd354db619888374de567, type: 2}
+  - {fileID: 2100000, guid: c7f3ffc0532dd354db619888374de567, type: 2}
+  grassMats:
+  - {fileID: 2100000, guid: f5b1b0b3a546eb3488ed5f07aa8061a7, type: 2}
+  - {fileID: 2100000, guid: 677536e24b1a9834aa080dbd1e40739b, type: 2}
+  - {fileID: 2100000, guid: db5bdbb31d5ad5442a185cd89ef2980c, type: 2}
+  - {fileID: 2100000, guid: c76af0690792a524fa21cfe426f3f846, type: 2}
+  tileMats:
+  - {fileID: 2100000, guid: 0d4c7f459de3197459f2e854644ed630, type: 2}
+  - {fileID: 2100000, guid: d4b682cbfae731d468d9726265fcb2f1, type: 2}
+  - {fileID: 2100000, guid: 1966ef7df26345644a256652d1bef120, type: 2}
+  - {fileID: 2100000, guid: 8327ee9b2b4e80847aa242675cddb2a9, type: 2}
+  tuftMats:
+  - {fileID: 2100000, guid: e57ff3a8e0e4fc44d98d4b089cc85762, type: 2}
+  - {fileID: 2100000, guid: 71cdd3d573189cc4daf34a1e400b4a47, type: 2}
+  - {fileID: 2100000, guid: b48f7da1c9771104da901b8984b376a0, type: 2}
+  - {fileID: 2100000, guid: 0b446541e368bd3469ac7dce16d3c522, type: 2}
+  mapWidth: 6
+  mapHeight: 6
   grassTile: {fileID: 3245402207894986299, guid: 6f89e49dfea7b9541b8585cad3982a5d, type: 3}
   outOfBoundsTile: {fileID: 4122546693745475818, guid: 713b8a673b383e84d83c2b05b003eb7a, type: 3}
-  outOfBoundsTree: {fileID: 4493155916989654783, guid: 9d4ded38eacecf94e90f9c5440eafd8d, type: 3}
+  outOfBoundsTree: {fileID: 919132149155446097, guid: 992112074f49b6c488f04ebf6bbea763, type: 3}
   grass: {fileID: 919132149155446097, guid: 80083742448a94841bfb2d8d8fbb14d1, type: 3}
   mushroom: {fileID: 919132149155446097, guid: 18d74e496c0d7e648875b53dd53fec86, type: 3}
 --- !u!114 &1594075283
@@ -618,6 +646,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   testQueenSprite: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
   queenUI: {fileID: 9197481963319205126, guid: e245947465bf3cd45a1b4793dd8b6307, type: 3}
+  flowerUI: {fileID: 9197481963319205126, guid: 41289ee943797054c89352f188954b6a, type: 3}
+  honeyUI: {fileID: 9197481963319205126, guid: 5c3e9fc69f4c6e848971094a8c80bf55, type: 3}
+  sizeUI: {fileID: 9197481963319205126, guid: edcd16dad186d5e48a2de415661125fc, type: 3}
   choicesContainer: {fileID: 9197481963319205126, guid: 4824afd6568b8da419faf5736df0e8a6, type: 3}
   document: {fileID: 1944616203}
   player: {fileID: 0}
