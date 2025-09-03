@@ -45,7 +45,7 @@ public class GameController : MonoBehaviour
     private VisualTreeAsset quotaScreenUI;
 
     private int turn = 1;
-    private int year = 1;
+    public int year = 1;
     private VisualElement root;
     private CustomVisualElement turnButton;
     private string season = "spring";
@@ -56,6 +56,7 @@ public class GameController : MonoBehaviour
     private Button continueButton;
 
     private int quota = 0;
+    private float quotaScaling = 1.5f;
     private int previousQuota = 0;
 
     public bool nectarCollectingFinished;
@@ -87,7 +88,7 @@ public class GameController : MonoBehaviour
         {
             if (value == GameStates.Start)
             {
-                List<int> choiceList = new List<int>() { 3, 3, 3, 3 };
+                List<int> choiceList = new List<int>() { 3, 3, 3};
                 StartCoroutine(choices.GiveChoice(choiceList, true));
             }
             currentState = value;
@@ -116,12 +117,14 @@ public class GameController : MonoBehaviour
 
     private void ContinueGame()
     {
+        document.GetComponent<AudioSource>().Play();
         SceneManager.LoadScene("Game");
         SceneManager.sceneLoaded += OnSceneLoadContinue;
     }
 
     private void NewGame()
     {
+        document.GetComponent<AudioSource>().Play();
         SceneManager.LoadScene("Game");
         SceneManager.sceneLoaded += OnSceneLoadNew;
     }
@@ -174,6 +177,7 @@ public class GameController : MonoBehaviour
         //Don't let player go next turn if the last turn is still processing
         if (CurrentState == GameStates.TurnEnd || CurrentState == GameStates.Paused)
             yield break;
+        document.GetComponent<AudioSource>().Play();
 
         player.CenterCamera();
 
@@ -217,6 +221,7 @@ public class GameController : MonoBehaviour
                     season = "spring";
                     newYear = true;
                     map.GenerateFlowers();
+                    quotaScaling += 0.5f;
                     break;
             }
             map.SeasonRecolor();
@@ -254,7 +259,7 @@ public class GameController : MonoBehaviour
         if ((turn - 1) % 4 == 0)
         {
 
-            Quota = (int)(1.5f * Quota);
+            Quota = (int)(quotaScaling * Quota);
         }
 
 
@@ -287,6 +292,7 @@ public class GameController : MonoBehaviour
 
     private void NextButton()
     {
+        document.GetComponent<AudioSource>().Play();
         if (currentState == GameStates.End)
         {
             SaveSystem.DeleteSave();
@@ -335,16 +341,6 @@ public class GameController : MonoBehaviour
         Destroy(map.gameObject);
         Destroy(document.gameObject);
         SceneManager.LoadScene("MainMenu");
-        SceneManager.sceneLoaded += OnLoadMainMenu;
-    }
-
-    private void OnLoadMainMenu(Scene scene, LoadSceneMode mode)
-    {
-        newGameButton.clickable = new Clickable(e => NewGame());
-        if (!SaveSystem.CheckSaveFile())
-            continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
-        else
-            continueButton.clickable = new Clickable(e => ContinueGame());
         Destroy(gameObject);
     }
 

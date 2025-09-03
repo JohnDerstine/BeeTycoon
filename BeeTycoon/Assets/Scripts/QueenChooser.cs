@@ -206,7 +206,7 @@ public class QueenChooser : MonoBehaviour
         if (!starter)
             template.Q<Label>("Description").text = "This will be added to your shop";
 
-        rngOptions = new List<VisualTreeAsset>() { queenUI, sizeUI, sizeUI, sizeUI };
+        rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI };
         selectionActive = true;
     }
 
@@ -303,6 +303,7 @@ public class QueenChooser : MonoBehaviour
 
     private void SelectQueen(int num)
     {
+        document.GetComponent<AudioSource>().Play();
         selectionActive = false;
         for (int i = 0; i < queenOptions.Count; i++)
         {

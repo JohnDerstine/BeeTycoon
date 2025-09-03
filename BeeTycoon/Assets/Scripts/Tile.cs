@@ -20,6 +20,8 @@ public class Tile : MonoBehaviour
 
     MeshRenderer matRenderer;
 
+    public Material currentMat;
+
     public int x;
     public int y;
 
@@ -56,7 +58,7 @@ public class Tile : MonoBehaviour
         matRenderer = GetComponent<MeshRenderer>();
     }
 
-    public IEnumerator Animate(FlowerType fType, float strength, float duration, bool primary)
+    public IEnumerator Animate(FlowerType fType, float strength, float duration, bool primary, AudioSource audio)
     {
         if (flower != fType)
             yield return new WaitForEndOfFrame();
@@ -67,6 +69,19 @@ public class Tile : MonoBehaviour
                 matRenderer.material = yellowMat;
             else
                 matRenderer.material = blueMat;
+
+
+
+            if (!primary)
+            {
+                yield return new WaitForSeconds(Random.Range(0.025f, 0.049f));
+                audio.PlayOneShot(audio.clip, 0.5f);
+            }
+            else
+            {
+                yield return new WaitForSeconds(Random.Range(0.05f, 0.075f));
+                audio.PlayOneShot(audio.clip);
+            }
 
             for (int i = 0; i < 5; i++)
             {
@@ -81,7 +96,7 @@ public class Tile : MonoBehaviour
             }
 
             //revert tile color
-            matRenderer.material = greenMat;
+            matRenderer.material = currentMat;
         }
 
         completed = true;

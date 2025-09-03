@@ -37,8 +37,8 @@ public class GridRenderer : MonoBehaviour
     static GameObject createLine(GameObject lineObject, float x1, float z1, float x2, float z2, float y)
     {
         GameObject line = Instantiate(lineObject, new Vector3(0, 0, 0), Quaternion.identity);
-        line.GetComponent<LineRenderer>().SetPosition(0, new Vector3(x1, y, z1));
-        line.GetComponent<LineRenderer>().SetPosition(1, new Vector3(x2, y, z2));
+        line.GetComponent<LineRenderer>().SetPosition(0, new Vector3(x1, y + .01f, z1));
+        line.GetComponent<LineRenderer>().SetPosition(1, new Vector3(x2, y + .01f, z2));
 
         return (line);
     }

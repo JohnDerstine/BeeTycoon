@@ -18,6 +18,9 @@ public class MapLoader : MonoBehaviour
     UIDocument document;
 
     [SerializeField]
+    private AudioClip audio;
+
+    [SerializeField]
     private List<Material> leafMats = new List<Material>();
     [SerializeField]
     private List<Material> grassMats = new List<Material>();
@@ -63,10 +66,19 @@ public class MapLoader : MonoBehaviour
     private List<GameObject> tileList = new List<GameObject>();
     private List<GameObject> tufts = new List<GameObject>();
 
+    const int cloverValue = 25;
+    const int alfalfaValue = 30;
+    const int buckwheatValue = 15;
+    const int fireweedValue = 20;
+    const int goldenrodValue = 50;
+
+    AudioSource source;
+
     void Awake()
     {
         tiles = new Tile[mapWidth, mapHeight];
-        //GeneratePlot(false);
+        source = GetComponent<AudioSource>();
+        GeneratePlot(false);
     }
 
     public void GameStart(bool fromSave)
@@ -89,6 +101,11 @@ public class MapLoader : MonoBehaviour
 
     private void GeneratePlot(bool fromSave)
     {
+        trees.Clear();
+        tufts.Clear();
+        oobTiles.Clear();
+        tileList.Clear();
+
         for (int i = 0; i < mapWidth; i++)
         {
             for (int j = 0; j < mapHeight; j++)
@@ -127,7 +144,7 @@ public class MapLoader : MonoBehaviour
     private void GenerateBorder()
     {
         //spawn border tiles along edge of map for out-of-bounds area
-        for (int i = 0; i < mapWidth; i += 2) // * 2 to mapWidth results in double the amount of border tiles
+        for (int i = 0; i < mapWidth * 2; i += 2) // * 2 to mapWidth results in double the amount of border tiles
         {
             for (int x = 0; x < mapWidth + i + 2; x++)
             {
@@ -222,6 +239,7 @@ public class MapLoader : MonoBehaviour
         foreach (GameObject tile in tileList)
         {
             tile.GetComponent<MeshRenderer>().materials = tileMaterial;
+            tile.GetComponent<Tile>().currentMat = tileMats[grassIndex];
         }
 
         Material[] tuftMaterial = new Material[1];
@@ -278,6 +296,8 @@ public class MapLoader : MonoBehaviour
 
     public IEnumerator GetNectarGains()
     {
+        source.clip = audio;
+        float pitch = source.pitch;
         //Reset all values to 0
         ResetNectarGains();
 
@@ -285,26 +305,37 @@ public class MapLoader : MonoBehaviour
 
         StartCoroutine(GetCloverValue());
         yield return new WaitWhile(() => !cloverCalced);
+        yield return new WaitForSeconds(0.2f);
         cloverCalced = false;
+        source.pitch = pitch;
 
         StartCoroutine(GetAlfalfaValue());
         yield return new WaitWhile(() => !alfalfaCalced);
+        yield return new WaitForSeconds(0.2f);
         alfalfaCalced = false;
+        source.pitch = pitch;
 
         StartCoroutine(GetBuckwheatValue());
         yield return new WaitWhile(() => !buckwheatCalced);
+        yield return new WaitForSeconds(0.2f);
         buckwheatCalced = false;
+        source.pitch = pitch;
 
         StartCoroutine(GetFireweedValue());
         yield return new WaitWhile(() => !fireweedCalced);
+        yield return new WaitForSeconds(0.2f);
         fireweedCalced = false;
+        source.pitch = pitch;
 
         StartCoroutine(GetGoldenrodValue());
         yield return new WaitWhile(() => !goldenrodCalced);
+        yield return new WaitForSeconds(0.2f);
         goldenrodCalced = false;
+        source.pitch = pitch;
 
         game.nectarCollectingFinished = true;
         SetNectarVisibility(false);
+        source.pitch = pitch;
     }
 
     private void ResetNectarGains()
@@ -336,17 +367,23 @@ public class MapLoader : MonoBehaviour
                     count += diagTiles.Count;
                     //Print tempCount to the screen above tile.
                     //Animate flower
-                    StartCoroutine(tiles[i, j].Animate(FlowerType.Clover, 1, duration, true));
-                    int gain = (adjTiles.Count + diagTiles.Count) * 5;
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Clover, 1, duration, true, source));
+                    int gain = (adjTiles.Count + diagTiles.Count) * cloverValue;
                     popUp.DisplayPopup(tiles[i,j].transform.position, gain, duration);
                     totalAmountGained += gain;
                     nectarLabel.text = totalAmountGained.ToString();
 
                     //Animate related flowers
                     foreach (Tile t in adjTiles)
-                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration, false));
+                    {
+                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration, false, source));
+                        //source.Play();
+                    }
                     foreach (Tile t in diagTiles)
-                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration, false));
+                    {
+                        StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration, false, source));
+                        //source.Playo();
+                    }
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
@@ -355,11 +392,15 @@ public class MapLoader : MonoBehaviour
                     foreach (Tile t in diagTiles)
                         t.completed = false;
                     animsPlayed++;
+                    source.pitch += 0.25f;
+                    if (source.pitch >= 3)
+                        source.pitch = 3;
                 }
                 duration = DurationCalc(duration, animsPlayed);
             }
         }
-        nectarGains[FlowerType.Clover] = count * 5;
+        yield return new WaitForSeconds(duration);
+        nectarGains[FlowerType.Clover] = count * cloverValue;
         cloverCalced = true;
     }
 
@@ -377,26 +418,29 @@ public class MapLoader : MonoBehaviour
                     List<Tile> diagTiles = GetDiagonalFlowers(FlowerType.Alfalfa, i, j);
                     count += diagTiles.Count;
 
-                    StartCoroutine(tiles[i, j].Animate(FlowerType.Alfalfa, 1, duration, true));
-                    int gain = diagTiles.Count * 7;
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Alfalfa, 1, duration, true, source));
+                    int gain = diagTiles.Count * alfalfaValue;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     totalAmountGained += gain;
                     nectarLabel.text = totalAmountGained.ToString();
 
                     //Animate related flowers
                     foreach (Tile t in diagTiles)
-                        StartCoroutine(t.Animate(FlowerType.Alfalfa, 0.3f, duration, false));
+                        StartCoroutine(t.Animate(FlowerType.Alfalfa, 0.3f, duration, false, source));
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
                     foreach (Tile t in diagTiles)
                         t.completed = false;
                     animsPlayed++;
+                    source.pitch += 0.25f;
+                    if (source.pitch >= 3)
+                        source.pitch = 3;
                 }
                 duration = DurationCalc(duration, animsPlayed);
             }
         }
-        nectarGains[FlowerType.Alfalfa] = count * 7;
+        nectarGains[FlowerType.Alfalfa] = count * alfalfaValue;
         alfalfaCalced = true;
     }
 
@@ -411,9 +455,9 @@ public class MapLoader : MonoBehaviour
             {
                 if (tiles[i, j].Flower == FlowerType.Buckwheat)
                 {
-                    count += 10;
-                    StartCoroutine(tiles[i, j].Animate(FlowerType.Buckwheat, 1, duration, true));
-                    int gain = 10;
+                    count += buckwheatValue;
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Buckwheat, 1, duration, true, source));
+                    int gain = buckwheatValue;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     totalAmountGained += gain;
                     nectarLabel.text = totalAmountGained.ToString();
@@ -421,6 +465,9 @@ public class MapLoader : MonoBehaviour
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
                     animsPlayed++;
+                    source.pitch += 0.25f;
+                    if (source.pitch >= 3)
+                        source.pitch = 3;
                 }
                 duration = DurationCalc(duration, animsPlayed);
             }
@@ -440,9 +487,9 @@ public class MapLoader : MonoBehaviour
             {
                 if (tiles[i, j].Flower == FlowerType.Fireweed)
                 {
-                    count += 5;
-                    StartCoroutine(tiles[i, j].Animate(FlowerType.Fireweed, 1, duration, true));
-                    int gain = 5;
+                    count += fireweedValue;
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Fireweed, 1, duration, true, source));
+                    int gain = fireweedValue;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     totalAmountGained += gain;
                     nectarLabel.text = totalAmountGained.ToString();
@@ -450,6 +497,9 @@ public class MapLoader : MonoBehaviour
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
                     animsPlayed++;
+                    source.pitch += 0.25f;
+                    if (source.pitch >= 3)
+                        source.pitch = 3;
                 }
                 duration = DurationCalc(duration, animsPlayed);
             }
@@ -469,9 +519,9 @@ public class MapLoader : MonoBehaviour
             {
                 if (tiles[i, j].Flower == FlowerType.Goldenrod)
                 {
-                    count += 100;
-                    StartCoroutine(tiles[i, j].Animate(FlowerType.Goldenrod, 1, duration, true));
-                    int gain = 100;
+                    count += goldenrodValue;
+                    StartCoroutine(tiles[i, j].Animate(FlowerType.Goldenrod, 1, duration, true, source));
+                    int gain = goldenrodValue;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     totalAmountGained += gain;
                     nectarLabel.text = totalAmountGained.ToString();
@@ -479,6 +529,9 @@ public class MapLoader : MonoBehaviour
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
                     animsPlayed++;
+                    source.pitch += 0.25f;
+                    if (source.pitch >= 3)
+                        source.pitch = 3;
                 }
                 duration = DurationCalc(duration, animsPlayed);
             }
@@ -556,10 +609,10 @@ public class MapLoader : MonoBehaviour
     private float DurationCalc(float duration, int animsPlayed)
     {
         float newDuration = duration;
-        if (animsPlayed > 3)
+        if (animsPlayed > 2)
         {
             if (duration >= 0.01f)
-                newDuration = duration * Mathf.Pow(1 - 0.05f, 1.1f);
+                newDuration = duration * Mathf.Pow(1 - 0.55f, 1.1f);
             else
                 newDuration = 0.01f;
         }
@@ -591,7 +644,7 @@ public class MapLoader : MonoBehaviour
                 }
             }
         }
-        ConvertAdjacentFlowers(validTiles, FlowerType.Fireweed, 1);
+        ConvertAdjacentFlowers(validTiles, FlowerType.Fireweed, 3);
     }
 
     private void AdvanceBuckwheat()
@@ -601,7 +654,7 @@ public class MapLoader : MonoBehaviour
             for (int j = 0; j < mapHeight; j++)
                 if (tiles[i, j].Flower == FlowerType.Buckwheat)
                         validTiles.Add(tiles[i, j]);
-        SpreadToAdjacentTiles(validTiles, FlowerType.Buckwheat, 2);
+        SpreadToAdjacentTiles(validTiles, FlowerType.Buckwheat, 5);
     }
 
     public void IncreaseMapSize()
@@ -609,11 +662,13 @@ public class MapLoader : MonoBehaviour
         mapWidth++;
         mapHeight++;
         FlowerType[,] flowers = new FlowerType[mapWidth, mapHeight];
+        bool[,] hives = new bool[mapWidth, mapHeight];
         for (int i = 0; i < mapWidth - 1; i++)
         {
             for (int j = 0; j < mapHeight - 1; j++)
             {
                 flowers[i, j] = tiles[i, j].Flower;
+                hives[i, j] = tiles[i, j].HasHive;
             }
         }
 
@@ -630,6 +685,7 @@ public class MapLoader : MonoBehaviour
             for (int j = 0; j < mapHeight - 1; j++)
             {
                 tiles[i, j].Flower = flowers[i, j];
+                tiles[i, j].HasHive = hives[i, j];
             }
         }
     }
@@ -641,7 +697,7 @@ public class MapLoader : MonoBehaviour
             for (int j = 0; j < mapHeight - 1; j++)
             {
                 tiles[i, j].Flower = FlowerType.Empty;
-                Destroy(tiles[i, j]);
+                Destroy(tiles[i, j].gameObject);
             }
         }
 
@@ -661,11 +717,20 @@ public class MapLoader : MonoBehaviour
     public void Save(ref MapSaveData data)
     {
         List<FlowerType> flowerData = new List<FlowerType>();
+        List<bool> hiveData = new List<bool>();
+
         //loop through each tile, calling it's save function
         for (int i = 0; i < mapWidth; i++)
+        {
             for (int j = 0; j < mapHeight; j++)
+            {
                 flowerData.Add(tiles[i, j].Flower);
+                hiveData.Add(tiles[i, j].HasHive);
+            }
+        }
+
         data.flowerData = flowerData;
+        data.hiveData = hiveData;
         data.width = mapWidth;
         data.height = mapHeight;
     }
@@ -678,6 +743,7 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
+                tiles[i, j].HasHive = data.hiveData[count];
                 tiles[i, j].Flower = data.flowerData[count];
                 count++;
             }
@@ -692,6 +758,7 @@ public class MapLoader : MonoBehaviour
 public struct MapSaveData
 {
     public List<FlowerType> flowerData;
+    public List<bool> hiveData;
     public int width;
     public int height;
 }

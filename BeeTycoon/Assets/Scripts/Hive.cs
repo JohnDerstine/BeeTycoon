@@ -50,6 +50,9 @@ public class Hive : MonoBehaviour
     [SerializeField]
     private Texture2D queenSprite;
 
+    [SerializeField]
+    private AudioClip audio;
+
     private Texture2D currentIcon;
 
     public TemplateContainer template;
@@ -150,6 +153,8 @@ public class Hive : MonoBehaviour
     private Coroutine activePulse;
     public bool fromSave;
     public int repellantTurns;
+    List<TemplateContainer> globs = new List<TemplateContainer>();
+    private AudioSource source;
 
     public int Size
     {
@@ -305,6 +310,7 @@ public class Hive : MonoBehaviour
         game = GameObject.Find("GameController").GetComponent<GameController>();
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+        source = GetComponent<AudioSource>();
         queen = GetComponent<QueenBee>();
 
         var values = System.Enum.GetValues(typeof(FlowerType));
@@ -336,7 +342,9 @@ public class Hive : MonoBehaviour
                 CloseQueenSelection();
             }
             else if (isOpen && player.SelectedItem == null && !GameObject.Find("UIDocument").GetComponent<Glossary>().open)
+            {
                 player.CloseHiveUI(this);
+            }
         }
 
         if (activePopup != null)
@@ -492,22 +500,26 @@ public class Hive : MonoBehaviour
 
         UpdateMeters();
 
+        source.clip = audio;
         StartCoroutine(AnimateHarvest(amount));
     }
 
     private IEnumerator AnimateHarvest(float amount)
     {
+        source.pitch = 0.5f;
         int rounded = Mathf.RoundToInt(amount);
 
-        List<TemplateContainer> globs = new List<TemplateContainer>();
-
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < rounded; i++)
         {
+
             TemplateContainer glob = honeyGlobIcon.Instantiate();
             glob.style.position = Position.Absolute;
             glob.style.visibility = Visibility.Hidden;
-            document.rootVisualElement.Q<VisualElement>("HiveBase").Add(glob);
+            if (isOpen)
+                document.rootVisualElement.Q<VisualElement>("HiveBase").Add(glob);
             globs.Add(glob);
+
+            source.Play();
 
             yield return new WaitForEndOfFrame(); //let resolved style update
 
@@ -531,19 +543,32 @@ public class Hive : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
-
+        source.pitch = 0.25f;
         foreach (TemplateContainer glob in globs)
         {
             float top = -150;
             float left = document.rootVisualElement.Q<VisualElement>("HiveBase").resolvedStyle.width;
             StartCoroutine(ToPoint(glob, top, left, 0.5f, true));
             yield return new WaitForSeconds(0.15f);
+            source.Play();
             document.rootVisualElement.Q<VisualElement>("HiveBase").Remove(glob);
 
             if (activePulse != null)
                 StopCoroutine(activePulse);
             activePulse = StartCoroutine(Pulse());
         }
+
+        globs.Clear();
+    }
+
+    public void CheckCancelAnim()
+    {
+        Debug.Log("Cancelling anims");
+        StopAllCoroutines();
+        foreach (TemplateContainer glob in globs)
+            if (document.rootVisualElement.Q<VisualElement>("HiveBase").Contains(glob))
+            document.rootVisualElement.Q<VisualElement>("HiveBase").Remove(glob);
+        globs.Clear();
     }
 
     private IEnumerator ToPoint(TemplateContainer glob, float top, float left, float t, bool destroyOnEnd)
@@ -596,10 +621,10 @@ public class Hive : MonoBehaviour
                         flowerValues[FlowerType.Buckwheat] += 1f / distance;
                         break;
                     case FlowerType.Fireweed:
-                        flowerValues[FlowerType.Buckwheat] += 1f / distance;
+                        flowerValues[FlowerType.Fireweed] += 1f / distance;
                         break;
                     case FlowerType.Goldenrod:
-                        flowerValues[FlowerType.Buckwheat] += 1f / distance;
+                        flowerValues[FlowerType.Goldenrod] += 1f / distance;
                         break;
                     case FlowerType.Empty:
                         break;
@@ -716,6 +741,9 @@ public class Hive : MonoBehaviour
 
     private void TryAddCondition()
     {
+        if (game.Season == "spring" && game.year == 1)
+            return;
+
         if (Condition == "Healthy" || game.Season == "winter")
         {
             if (game.Season == "winter")
@@ -758,7 +786,7 @@ public class Hive : MonoBehaviour
                 {
                     if (game.Season == "spring")
                         Condition = "Glued";
-                    else if (game.Season == "summer")
+                    else if (game.Season == "summer" && !hasRepellant)
                         Condition = "Mites";
                     else if (game.Season == "fall")
                         Condition = "Aggrevated";
@@ -815,12 +843,15 @@ public class Hive : MonoBehaviour
         if (!placed)
             return;
 
+        document.GetComponent<AudioSource>().Play();
+
         player.OpenHiveUI(template, hiveUI, this);
         SetUpTemplate();
     }
 
     public void childOnMouseDown()
     {
+        document.GetComponent<AudioSource>().Play();
         player.OpenHiveUI(template, hiveUI, this);
         SetUpTemplate();
     }
@@ -896,14 +927,15 @@ public class Hive : MonoBehaviour
 
     private void SelectHarvest(VisualElement clickedElement)
     {
+        document.GetComponent<AudioSource>().Play();
         StartCoroutine(ClickResponse(clickedElement));
         float harvestPercentage = 0;
         if (clickedElement == smallHarvest)
-            harvestPercentage = 0.25f;
+            harvestPercentage = 0.33f;
         else if (clickedElement == mediumHarvest)
-            harvestPercentage = 0.50f;
+            harvestPercentage = 0.66f;
         else if (clickedElement == largeHarvest)
-            harvestPercentage = 0.75f;
+            harvestPercentage = 1f;
         Harvest(harvestPercentage);
     }
 
@@ -962,6 +994,7 @@ public class Hive : MonoBehaviour
 
     private void OpenQueenTab()
     {
+        document.GetComponent<AudioSource>().Play();
         queenClick.RemoveManipulator(assignQueen);
         selectingQueen = true;
         queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;

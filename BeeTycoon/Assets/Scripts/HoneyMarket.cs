@@ -92,13 +92,13 @@ public class HoneyMarket : MonoBehaviour
                 amountSold.Add(fType, 0);
             }
 
-            marketValues[FlowerType.Wildflower][2] = 5;
-            marketValues[FlowerType.Clover][2] = 7;
-            marketValues[FlowerType.Alfalfa][2] = 9;
+            marketValues[FlowerType.Wildflower][2] = 3;
+            marketValues[FlowerType.Clover][2] = 4;
+            marketValues[FlowerType.Alfalfa][2] = 5;
             //marketValues[FlowerType.Blossom][2] = 15;
-            marketValues[FlowerType.Buckwheat][2] = 12;
-            marketValues[FlowerType.Fireweed][2] = 10;
-            marketValues[FlowerType.Goldenrod][2] = 15;
+            marketValues[FlowerType.Buckwheat][2] = 4;
+            marketValues[FlowerType.Fireweed][2] = 5;
+            marketValues[FlowerType.Goldenrod][2] = 6;
 
             ResetToBaseValue();
             UpdateMarket();
@@ -233,6 +233,7 @@ public class HoneyMarket : MonoBehaviour
         if (controller.CurrentState == GameStates.TurnEnd || controller.CurrentState == GameStates.Paused)
             return;
 
+        document.GetComponent<AudioSource>().Play();
         marketTemplate = marketAsset.Instantiate();
         marketTemplate.style.position = Position.Absolute;
         document.rootVisualElement.Q<VisualElement>("Base").Add(marketTemplate);
@@ -328,8 +329,6 @@ public class HoneyMarket : MonoBehaviour
 
         //element.Q<Label>("Cost").text = "$" + marketValues[fType][0];
         string amount = player.inventory[fType][0].ToString();
-        Debug.Log(amount);
-        //Debug.Log(amount);
         if (amount.IndexOf('.') + 3 < amount.Length)
             element.Q<Label>("Change").text = amount.Substring(0, amount.IndexOf('.') + 3) + " lbs.";
         else
@@ -410,6 +409,7 @@ public class HoneyMarket : MonoBehaviour
 
     private void Select(PointerDownEvent e, FlowerType fType)
     {
+        document.GetComponent<AudioSource>().Play();
         SelectHoney(e.currentTarget as VisualElement, fType);
     }
 
@@ -454,6 +454,7 @@ public class HoneyMarket : MonoBehaviour
         if (selectedElement == null)
             return;
 
+        document.GetComponent<AudioSource>().Play();
         if (player.inventory[selectedType][0] < amount)
             amount = player.inventory[selectedType][0];
         player.Money = Mathf.RoundToInt(amount * price);
@@ -529,6 +530,8 @@ public class HoneyMarket : MonoBehaviour
     {
         if (selectedElement == null)
             return;
+
+        document.GetComponent<AudioSource>().Play();
         if (player.Money < amount * price)
             amount = Mathf.RoundToInt(player.Money / price);
         player.Money = -Mathf.RoundToInt(amount * price);
@@ -557,7 +560,7 @@ public class HoneyMarket : MonoBehaviour
             FlowerType fType = (FlowerType)v;
             if (marketValues[fType][1] == 0 || turn % 4 == 0)
             {
-                float randValue = Random.Range(1, 5);
+                float randValue = Random.Range(0.25f, 1);
                 if (Random.Range(0, 2) == 0)
                     randValue *= -1;
                 marketValues[fType][1] = randValue;
@@ -573,7 +576,7 @@ public class HoneyMarket : MonoBehaviour
             }
 
 
-            if (turn % 8 == 0)
+            if (turn % 14 == 0)
                 ResetToBaseValue();
             else if (marketValues[fType][0] > marketValues[fType][2] / 2f)
                 marketValues[fType][0] += marketValues[fType][1] - amountSold[fType] / 10f;
@@ -582,7 +585,7 @@ public class HoneyMarket : MonoBehaviour
                 marketValues[fType][0] = marketValues[fType][2] / 2f;
         }
         turn++;
-        //LogValues();
+        LogValues();
         if (marketTemplate != null)
             SetAllLabels();
     }

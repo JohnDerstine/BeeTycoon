@@ -140,7 +140,7 @@ public class PlayerController : MonoBehaviour
     EventCallback<PointerMoveEvent, int> queenMoveCallback;
     EventCallback<PointerLeaveEvent> queenExitCallback;
 
-    private int money = 50;
+    private int money = 60;
     public int moneyEarned = 0;
     public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
@@ -345,7 +345,12 @@ public class PlayerController : MonoBehaviour
                 if (Physics.Raycast(ray, out var hit, 1000, LayerMask.GetMask("Tile")))
                 {
                     if (hit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
-                        hoverObject.transform.position = t.gameObject.transform.position;                        
+                    {
+                        if (hoverObject.TryGetComponent<Hive>(out Hive h))
+                            hoverObject.transform.position = new Vector3(t.gameObject.transform.position.x, t.gameObject.transform.position.y + 0.5f, t.gameObject.transform.position.z);
+                        else
+                            hoverObject.transform.position = t.gameObject.transform.position;
+                    }
                 }
             }
             else
@@ -376,6 +381,7 @@ public class PlayerController : MonoBehaviour
                         hoverObject.transform.position = t.gameObject.transform.position;
                         if (hoverObject.TryGetComponent(out Hive h))
                         {
+                            hoverObject.transform.position += new Vector3(0, 0.5f, 0);
                             hives.Add(h);
                             Money = -hoverObject.GetComponent<Cost>().Price;
                             h.x = (int)t.transform.position.x;
@@ -393,20 +399,27 @@ public class PlayerController : MonoBehaviour
                             if (c.ftype != FlowerType.Empty)
                             {
                                 t.Flower = c.ftype;
-                                if (flowersOwned[c.ftype] > 0)
+                                if (flowersOwned[c.ftype] <= 0)
+                                {
+                                    Money = -c.Price;
+                                    RefreshMenuLists();
+                                    OpenTab(3, open4, false);
+                                }
+                                else
                                 {
                                     flowersOwned[c.ftype]--;
                                     RefreshMenuLists();
                                     OpenTab(3, open4, false);
                                 }
                             }
-                            Money = -c.Price;
+
                             SelectedItem = null;
                         }
                         return;
                     }
                     else if (selectedItem.tag == "Shovel" && t.Flower != FlowerType.Empty)
                     {
+                        Debug.Log(t.FlowerObject.GetComponent<Cost>().ftype);
                         objectToMove = t.FlowerObject;
                         storedPos = t.FlowerObject.transform.position;
                         storedTile = t;
@@ -570,7 +583,7 @@ public class PlayerController : MonoBehaviour
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
             case "Repellant":
-                if (!h.hasRepellant)
+                if (h.hasRepellant)
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
             case "Reducer":
@@ -617,6 +630,8 @@ public class PlayerController : MonoBehaviour
     {
         if (game.CurrentState == GameStates.TurnEnd || game.CurrentState == GameStates.Paused)
             return;
+
+        ui.GetComponent<AudioSource>().Play();
 
         //Close any open tabs
         if (activeTab != null)
@@ -801,6 +816,7 @@ public class PlayerController : MonoBehaviour
     //Close Tabs
     public void CloseTab()
     {
+        ui.GetComponent<AudioSource>().Play();
         if (activeTab == null)
             return;
         else
@@ -833,6 +849,7 @@ public class PlayerController : MonoBehaviour
         if (money < cost)
             return;
 
+        ui.GetComponent<AudioSource>().Play();
         if (selectedHex != null)
         {
             selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
@@ -862,8 +879,10 @@ public class PlayerController : MonoBehaviour
         {
             item.GetComponent<Cost>().Purchased = true;
             Label costLabel = hex.Q<Label>();
+            if (costLabel.text != "Purchased")
+                Money = -cost;
             costLabel.text = "Purchased";
-            Money = -cost;
+            item.GetComponent<Cost>().Price = 0;
         }
 
         hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 1f);
@@ -876,6 +895,7 @@ public class PlayerController : MonoBehaviour
         if (money < cost)
             return;
 
+        ui.GetComponent<AudioSource>().Play();
         Money = -cost;
         hive.Populate(item.GetComponent<QueenBee>());
         beeObjectList.Remove(item);
@@ -1011,6 +1031,8 @@ public class PlayerController : MonoBehaviour
     {
         if (activeUI == null)
             return;
+
+        hive.CheckCancelAnim();
 
         ui.rootVisualElement.Q("Right").Remove(activeUI);
         activeUI = null;
