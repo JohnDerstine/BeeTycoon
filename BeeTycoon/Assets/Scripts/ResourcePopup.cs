@@ -66,7 +66,7 @@ public class ResourcePopup : MonoBehaviour
         activePopup.style.position = Position.Absolute;
         
 
-        document.rootVisualElement.Q("Base").Add(activePopup);
+        document.rootVisualElement.Q().Add(activePopup);
         StartCoroutine(AdvancePopup(activePopup, worldPos, duration));
     }
 
@@ -106,6 +106,7 @@ public class ResourcePopup : MonoBehaviour
             cycles++;
         }
 
-        document.rootVisualElement.Q("Base").Remove(popup);
+        if (document.rootVisualElement.Q().Contains(popup))
+            document.rootVisualElement.Q().Remove(popup);
     }
 }

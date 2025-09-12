@@ -79,9 +79,7 @@ public class HoneyMarket : MonoBehaviour
     {
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         controller = GameObject.Find("GameController").GetComponent<GameController>();
-        marketButton = document.rootVisualElement.Q<CustomVisualElement>("MarketButton");
-        marketButton.AddManipulator(new Clickable(e => OpenMarket()));
-        marketButton.RegisterCallback<PointerDownEvent>(e => ReferenceGlossary(e));
+        ReloadUI();
 
         if (!fromSave)
         {
@@ -103,6 +101,13 @@ public class HoneyMarket : MonoBehaviour
             ResetToBaseValue();
             UpdateMarket();
         }
+    }
+
+    public void ReloadUI()
+    {
+        marketButton = document.rootVisualElement.Q<CustomVisualElement>("MarketButton");
+        marketButton.AddManipulator(new Clickable(e => OpenMarket()));
+        marketButton.RegisterCallback<PointerDownEvent>(e => ReferenceGlossary(e));
     }
 
     public float GetPrice(FlowerType f)

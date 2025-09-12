@@ -18,7 +18,13 @@ public class MapLoader : MonoBehaviour
     UIDocument document;
 
     [SerializeField]
+    GameObject hive;
+
+    [SerializeField]
     private AudioClip audio;
+
+    [SerializeField]
+    private GameObject trash;
 
     [SerializeField]
     private List<Material> leafMats = new List<Material>();
@@ -28,10 +34,6 @@ public class MapLoader : MonoBehaviour
     private List<Material> tileMats = new List<Material>();
     [SerializeField]
     private List<Material> tuftMats = new List<Material>();
-
-    private Label nectarLabel;
-    private Label nectarPlus;
-    private VisualElement nectarIcon;
 
     private int spawnChance = 4;
     public int mapWidth = 6;
@@ -53,8 +55,10 @@ public class MapLoader : MonoBehaviour
     private GameObject mushroom;
 
     public Dictionary<FlowerType, float> nectarGains = new Dictionary<FlowerType, float>();
+    public int populatedHives;
 
     private int totalAmountGained;
+    private int flowerAmountGained;
     private bool cloverCalced;
     private bool alfalfaCalced;
     private bool buckwheatCalced;
@@ -74,22 +78,30 @@ public class MapLoader : MonoBehaviour
 
     AudioSource source;
 
+    private GameObject trashObject;
+    private PlayerController player;
+
+    [SerializeField]
+    private VisualTreeAsset nectarItem;
+
+    [SerializeField]
+    private Texture2D honeySprite;
+
+    TemplateContainer item = null;
+    VisualElement total;
+    Label totalAmount;
+
     void Awake()
     {
         tiles = new Tile[mapWidth, mapHeight];
         source = GetComponent<AudioSource>();
-        GeneratePlot(false);
+        GeneratePlot(false, false);
     }
 
     public void GameStart(bool fromSave)
     {
-        nectarLabel = document.rootVisualElement.Q<Label>("NectarLabel");
-        nectarPlus = document.rootVisualElement.Q<Label>("NectarPlus");
-        nectarIcon = document.rootVisualElement.Q<VisualElement>("NectarIcon");
-        SetNectarVisibility(false);
-
         tiles = new Tile[mapWidth, mapHeight];
-        GeneratePlot(fromSave);
+        GeneratePlot(fromSave, false);
 
         var values = System.Enum.GetValues(typeof(FlowerType));
         foreach (var v in values)
@@ -99,7 +111,7 @@ public class MapLoader : MonoBehaviour
         }
     }
 
-    private void GeneratePlot(bool fromSave)
+    private void GeneratePlot(bool fromSave, bool reload)
     {
         trees.Clear();
         tufts.Clear();
@@ -139,6 +151,50 @@ public class MapLoader : MonoBehaviour
             GenerateFlowers();
         else
             SaveSystem.Load();
+
+        if (!fromSave && !reload && game.CurrentState != GameStates.Menu)
+        {
+            int randX = Random.Range(0, mapWidth);
+            int randY = Random.Range(0, mapHeight);
+            GameObject temp = Instantiate(hive, new Vector3(randX * 2, 0.5f, randY * 2), Quaternion.identity);
+            tiles[randX, randY].Flower = FlowerType.Empty;
+            Hive h = temp.GetComponent<Hive>();
+            player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+            player.hives.Add(h);
+            h.Placed = true;
+            h.queen = h.GetComponent<QueenBee>();
+            tiles[randX, randY].HasHive = true;
+            h.hiveTile = tiles[randX, randY];
+            h.x = (int)tiles[randX, randY].transform.position.x;
+            h.y = (int)tiles[randX, randY].transform.position.y;
+
+        }
+
+        GenerateTrash();
+    }
+
+    private void GenerateTrash()
+    {
+        trashObject = Instantiate(trash, new Vector3(3, 0, -3), Quaternion.identity);
+        ClearOverlappingTrees();
+    }
+
+    private void ClearOverlappingTrees()
+    {
+        List<GameObject> toRemove = new List<GameObject>();
+
+        foreach (GameObject tree in trees)
+        {
+            if (tree.GetComponent<Collider>().bounds.Intersects(trashObject.GetComponent<Collider>().bounds))
+                toRemove.Add(tree);
+        }
+
+        while (toRemove.Count > 0)
+        {
+            trees.Remove(toRemove[0]);
+            Destroy(toRemove[0]);
+            toRemove.RemoveAt(0);
+        }
     }
 
     private void GenerateBorder()
@@ -151,18 +207,18 @@ public class MapLoader : MonoBehaviour
                 Vector3 offset = new Vector3(Random.Range(-0.2f, 0.2f), 0, Random.Range(-0.2f, 0.2f));
                 int rotatationRand = Random.Range(0, 360);
                 oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i), Quaternion.identity));
-                trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
                 oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 - x * 2 + i, 0, mapHeight * 2 + i), Quaternion.identity));
                 trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, mapHeight * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
+                trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
             }
             for (int y = 0; y < mapHeight + i + 2; y++)
             {
                 Vector3 offset = new Vector3(Random.Range(-0.2f, 0.2f), 0, Random.Range(-0.2f, 0.2f));
                 int rotatationRand = Random.Range(0, 360);
                 oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(-2 - i, 0, mapHeight * 2 - y * 2 + i), Quaternion.identity));
-                trees.Add(Instantiate(outOfBoundsTree, new Vector3(-2 - i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
                 oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i), Quaternion.identity));
                 trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
+                trees.Add(Instantiate(outOfBoundsTree, new Vector3(-2 - i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
             }
         }
         SeasonRecolor();
@@ -287,21 +343,14 @@ public class MapLoader : MonoBehaviour
         return count;
     }
 
-    private void SetNectarVisibility(bool visible)
-    {
-        nectarIcon.visible = visible;
-        nectarLabel.visible = visible;
-        nectarPlus.visible = visible;
-    }
-
     public IEnumerator GetNectarGains()
     {
         source.clip = audio;
         float pitch = source.pitch;
         //Reset all values to 0
         ResetNectarGains();
-
-        SetNectarVisibility(true);
+        total = document.rootVisualElement.Q<VisualElement>("Total");
+        totalAmount = total.Q<Label>("Amount");
 
         StartCoroutine(GetCloverValue());
         yield return new WaitWhile(() => !cloverCalced);
@@ -334,8 +383,12 @@ public class MapLoader : MonoBehaviour
         source.pitch = pitch;
 
         game.nectarCollectingFinished = true;
-        SetNectarVisibility(false);
         source.pitch = pitch;
+
+        populatedHives = 0;
+        foreach (Hive h in player.hives)
+            if (!h.queen.nullQueen)
+                populatedHives++;
     }
 
     private void ResetNectarGains()
@@ -349,6 +402,13 @@ public class MapLoader : MonoBehaviour
         }
     }
 
+    private void UpdateNectarUI(int spriteIndex)
+    {
+        item = nectarItem.Instantiate();
+        item.Q<VisualElement>("Icon").style.backgroundImage = player.flowerSprites[spriteIndex];
+        document.rootVisualElement.Q<VisualElement>("NectarColumn").Insert(0, item);
+    }
+
     private IEnumerator GetCloverValue()
     {
         int count = 0;
@@ -360,6 +420,9 @@ public class MapLoader : MonoBehaviour
             {
                 if (tiles[i, j].Flower == FlowerType.Clover)
                 {
+                    if (item == null)
+                        UpdateNectarUI(0);
+
                     List<Tile> adjTiles = GetAdjacentFlowers(FlowerType.Clover, i, j);
                     List<Tile> diagTiles = GetDiagonalFlowers(FlowerType.Clover, i, j);
 
@@ -370,8 +433,14 @@ public class MapLoader : MonoBehaviour
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Clover, 1, duration, true, source));
                     int gain = (adjTiles.Count + diagTiles.Count) * cloverValue;
                     popUp.DisplayPopup(tiles[i,j].transform.position, gain, duration);
+                    flowerAmountGained += gain;
                     totalAmountGained += gain;
-                    nectarLabel.text = totalAmountGained.ToString();
+                    if (flowerAmountGained > 999)
+                        item.Q<Label>("Amount").style.fontSize = 48;
+                    if (totalAmountGained > 999)
+                        totalAmount.style.fontSize = 48;
+                    totalAmount.text = totalAmountGained.ToString();
+                    item.Q<Label>("Amount").text = flowerAmountGained.ToString();
 
                     //Animate related flowers
                     foreach (Tile t in adjTiles)
@@ -401,7 +470,9 @@ public class MapLoader : MonoBehaviour
         }
         yield return new WaitForSeconds(duration);
         nectarGains[FlowerType.Clover] = count * cloverValue;
+        flowerAmountGained = 0;
         cloverCalced = true;
+        item = null;
     }
 
     private IEnumerator GetAlfalfaValue()
@@ -415,14 +486,23 @@ public class MapLoader : MonoBehaviour
             {
                 if (tiles[i, j].Flower == FlowerType.Alfalfa)
                 {
+                    if (item == null)
+                        UpdateNectarUI(1);
+
                     List<Tile> diagTiles = GetDiagonalFlowers(FlowerType.Alfalfa, i, j);
                     count += diagTiles.Count;
 
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Alfalfa, 1, duration, true, source));
                     int gain = diagTiles.Count * alfalfaValue;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
+                    flowerAmountGained += gain;
                     totalAmountGained += gain;
-                    nectarLabel.text = totalAmountGained.ToString();
+                    if (flowerAmountGained > 999)
+                        item.Q<Label>("Amount").style.fontSize = 48;
+                    if (totalAmountGained > 999)
+                        totalAmount.style.fontSize = 48;
+                    totalAmount.text = totalAmountGained.ToString();
+                    item.Q<Label>("Amount").text = flowerAmountGained.ToString();
 
                     //Animate related flowers
                     foreach (Tile t in diagTiles)
@@ -441,7 +521,9 @@ public class MapLoader : MonoBehaviour
             }
         }
         nectarGains[FlowerType.Alfalfa] = count * alfalfaValue;
+        flowerAmountGained = 0;
         alfalfaCalced = true;
+        item = null;
     }
 
     private IEnumerator GetBuckwheatValue()
@@ -455,12 +537,21 @@ public class MapLoader : MonoBehaviour
             {
                 if (tiles[i, j].Flower == FlowerType.Buckwheat)
                 {
+                    if (item == null)
+                        UpdateNectarUI(2);
+
                     count += buckwheatValue;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Buckwheat, 1, duration, true, source));
                     int gain = buckwheatValue;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
+                    flowerAmountGained += gain;
                     totalAmountGained += gain;
-                    nectarLabel.text = totalAmountGained.ToString();
+                    if (flowerAmountGained > 999)
+                        item.Q<Label>("Amount").style.fontSize = 48;
+                    if (totalAmountGained > 999)
+                        totalAmount.style.fontSize = 48;
+                    totalAmount.text = totalAmountGained.ToString();
+                    item.Q<Label>("Amount").text = flowerAmountGained.ToString();
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
@@ -473,7 +564,9 @@ public class MapLoader : MonoBehaviour
             }
         }
         nectarGains[FlowerType.Buckwheat] = count;
+        flowerAmountGained = 0;
         buckwheatCalced = true;
+        item = null;
     }
 
     private IEnumerator GetFireweedValue()
@@ -487,12 +580,21 @@ public class MapLoader : MonoBehaviour
             {
                 if (tiles[i, j].Flower == FlowerType.Fireweed)
                 {
+                    if (item == null)
+                        UpdateNectarUI(4);
+
                     count += fireweedValue;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Fireweed, 1, duration, true, source));
                     int gain = fireweedValue;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
+                    flowerAmountGained += gain;
                     totalAmountGained += gain;
-                    nectarLabel.text = totalAmountGained.ToString();
+                    if (flowerAmountGained > 999)
+                        item.Q<Label>("Amount").style.fontSize = 48;
+                    if (totalAmountGained > 999)
+                        totalAmount.style.fontSize = 48;
+                    totalAmount.text = totalAmountGained.ToString();
+                    item.Q<Label>("Amount").text = flowerAmountGained.ToString();
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
@@ -505,7 +607,9 @@ public class MapLoader : MonoBehaviour
             }
         }
         nectarGains[FlowerType.Fireweed] = count;
+        flowerAmountGained = 0;
         fireweedCalced = true;
+        item = null;
     }
 
     private IEnumerator GetGoldenrodValue()
@@ -519,12 +623,21 @@ public class MapLoader : MonoBehaviour
             {
                 if (tiles[i, j].Flower == FlowerType.Goldenrod)
                 {
+                    if (item == null)
+                        UpdateNectarUI(3);
+
                     count += goldenrodValue;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Goldenrod, 1, duration, true, source));
                     int gain = goldenrodValue;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
+                    flowerAmountGained += gain;
                     totalAmountGained += gain;
-                    nectarLabel.text = totalAmountGained.ToString();
+                    if (flowerAmountGained > 999)
+                        item.Q<Label>("Amount").style.fontSize = 48;
+                    if (totalAmountGained > 999)
+                        totalAmount.style.fontSize = 48;
+                    totalAmount.text = totalAmountGained.ToString();
+                    item.Q<Label>("Amount").text = flowerAmountGained.ToString();
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
@@ -538,6 +651,7 @@ public class MapLoader : MonoBehaviour
         }
         nectarGains[FlowerType.Goldenrod] = count;
         goldenrodCalced = true;
+        item = null;
     }
 
     private void ConvertAdjacentFlowers(List<Tile> validTiles, FlowerType fType, int chance)
@@ -674,10 +788,9 @@ public class MapLoader : MonoBehaviour
 
         ClearAllTiles();
         tiles = new Tile[mapWidth, mapHeight];
-        GeneratePlot(false);
-        GenerateBorder();
+        GeneratePlot(false, true);
         GameObject.Find("GridRenderer").GetComponent<GridRenderer>().Reload();
-        GameObject.Find("PlayerController").GetComponent<PlayerController>().CenterCamera();
+        player.CenterCamera();
         ClearFlowers();
 
         for (int i = 0; i < mapWidth - 1; i++)
@@ -688,6 +801,8 @@ public class MapLoader : MonoBehaviour
                 tiles[i, j].HasHive = hives[i, j];
             }
         }
+
+        ClearOverlappingTrees();
     }
 
     private void ClearAllTiles()

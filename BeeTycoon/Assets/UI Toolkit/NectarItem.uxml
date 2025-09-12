@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="NectarContainer" style="flex-grow: 1; flex-direction: row; color: rgb(255, 255, 255); -unity-font-style: bold; max-height: 150px; max-width: 300px; min-width: 100px; margin-bottom: 20px; padding-bottom: 0;">
+        <ui:Label tabindex="-1" text="+" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Plus" style="flex-basis: 25%; -unity-text-align: middle-center; font-size: 64px; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0;" />
+        <ui:VisualElement name="Icon" style="flex-grow: 0; background-image: url(&quot;project://database/Assets/Sprites/CloverIcon2.png?fileID=2800000&amp;guid=f6536d65e190e6645befd9a9a1f699c0&amp;type=3#CloverIcon2&quot;); flex-basis: auto; width: 96px; height: 96px; align-self: center; max-height: 96px; max-width: 96px; min-height: 96px; min-width: 96px;" />
+        <ui:Label tabindex="-1" text="0" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Amount" style="flex-basis: 40%; -unity-text-align: middle-center; font-size: 64px; text-overflow: clip;" />
+    </ui:VisualElement>
+</ui:UXML>

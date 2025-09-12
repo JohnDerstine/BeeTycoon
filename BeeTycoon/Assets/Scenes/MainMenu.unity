@@ -397,7 +397,9 @@ MonoBehaviour:
   game: {fileID: 2079847517}
   popUp: {fileID: 1594075283}
   document: {fileID: 1944616203}
+  hive: {fileID: 8631668248818954614, guid: 6be2c764dfd44a34a86830c656730b1a, type: 3}
   audio: {fileID: 8300000, guid: 2bd6a21e5b1a8c9408f50d784fc68b7e, type: 3}
+  trash: {fileID: 8006043072793716413, guid: 2ef70ac9701641b409401afed594bfab, type: 3}
   leafMats:
   - {fileID: 2100000, guid: b71e6be143bd1c04d9443a50bc4543b3, type: 2}
   - {fileID: 2100000, guid: a64886cd4e0aca14badf394470d56b69, type: 2}
@@ -430,9 +432,12 @@ MonoBehaviour:
   mapHeight: 6
   grassTile: {fileID: 3245402207894986299, guid: 6f89e49dfea7b9541b8585cad3982a5d, type: 3}
   outOfBoundsTile: {fileID: 4122546693745475818, guid: 713b8a673b383e84d83c2b05b003eb7a, type: 3}
-  outOfBoundsTree: {fileID: 919132149155446097, guid: 992112074f49b6c488f04ebf6bbea763, type: 3}
+  outOfBoundsTree: {fileID: 4493155916989654783, guid: 9d4ded38eacecf94e90f9c5440eafd8d, type: 3}
   grass: {fileID: 919132149155446097, guid: 80083742448a94841bfb2d8d8fbb14d1, type: 3}
   mushroom: {fileID: 919132149155446097, guid: 18d74e496c0d7e648875b53dd53fec86, type: 3}
+  populatedHives: 0
+  nectarItem: {fileID: 9197481963319205126, guid: 5ebbc1011549af44d9a30cc9fbeaa0b6, type: 3}
+  honeySprite: {fileID: 2800000, guid: 95d9997ccce6aa046898a9e8bd880124, type: 3}
 --- !u!114 &1594075283
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -821,6 +826,7 @@ MonoBehaviour:
   document: {fileID: 1944616203}
   mainMenu: {fileID: 9197481963319205126, guid: 645eea9f8abf4f74e8d9fe66a1028f15, type: 3}
   gameUI: {fileID: 9197481963319205126, guid: de2cb53b0aae3304eaed27a3de471fc8, type: 3}
+  nectarUI: {fileID: 9197481963319205126, guid: 520111991f3a2594eb086fb8a1394a60, type: 3}
   player: {fileID: 0}
   map: {fileID: 1594075282}
   honeyMarket: {fileID: 0}

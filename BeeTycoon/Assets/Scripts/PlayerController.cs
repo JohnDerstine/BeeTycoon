@@ -83,9 +83,8 @@ public class PlayerController : MonoBehaviour
     private TemplateContainer activeUI;
     public Hive currentHive;
 
-    private List<Hive> hives = new List<Hive>();
+    public List<Hive> hives = new List<Hive>();
 
-    private VisualElement root;
     private VisualElement left;
     private CustomVisualElement tab1;
     private CustomVisualElement tab2;
@@ -195,6 +194,28 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public GameObject ObjectToMove
+    {
+        get { return objectToMove; }
+        set
+        {
+            if (value == null)
+            {
+                objectToMove.transform.position = storedPos;
+                storedTile = null;
+            }
+            else
+            {
+                storedPos = value.transform.position;
+
+                pickedUpThisFrame = true;
+                if (value.TryGetComponent<Hive>(out Hive h))
+                    h.hiveTile.HasHive = false;
+            }
+            objectToMove = value;
+        }
+    }
+
     public int Money
     {
         get { return money; }
@@ -225,35 +246,14 @@ public class PlayerController : MonoBehaviour
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
         ui = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         glossary = ui.gameObject.GetComponent<Glossary>();
-        root = ui.rootVisualElement;
-        left = root.Q<VisualElement>("Left");
-        moneyLabel = root.Q<Label>("Money");
-        moneyLabel.text = "$" + money;
 
         close = new Clickable(close => CloseTab());
         open1 = new Clickable(open => OpenTab(0, open1, false));
         open2 = new Clickable(open => OpenTab(1, open2, false));
         open3 = new Clickable(open => OpenTab(2, open3, false));
         open4 = new Clickable(open => OpenTab(3, open4, false));
-        endSelectionCallback = new EventCallback<PointerUpEvent>(EndQueenSelection);
 
-        tab1 = root.Q<CustomVisualElement>("tab1");
-        tab1.AddManipulator(open1);
-        tabs.Add(tab1);
-        tab2 = root.Q<CustomVisualElement>("tab2");
-        tab2.AddManipulator(open2);
-        tabs.Add(tab2);
-        tab3 = root.Q<CustomVisualElement>("tab3");
-        tab3.AddManipulator(open3);
-        tabs.Add(tab3);
-        tab4 = root.Q<CustomVisualElement>("tab4");
-        tab4.AddManipulator(open4);
-        tabs.Add(tab4);
-
-        tab1.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "BeeStats"));
-        tab2.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Tools"));
-        tab3.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Hive"));
-        tab4.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Flowers"));
+        ReloadUI();
 
         RefreshMenuLists();
 
@@ -277,6 +277,36 @@ public class PlayerController : MonoBehaviour
 
         CenterCamera();
 
+    }
+
+    public void ReloadUI()
+    {
+        tabs.Clear();
+
+        left = ui.rootVisualElement.Q<VisualElement>("Left");
+        moneyLabel = ui.rootVisualElement.Q<Label>("Money");
+        moneyLabel.text = "$" + money;
+        endSelectionCallback = new EventCallback<PointerUpEvent>(EndQueenSelection);
+
+        tab1 = ui.rootVisualElement.Q<CustomVisualElement>("tab1");
+        tab1.AddManipulator(open1);
+        tabs.Add(tab1);
+        tab2 = ui.rootVisualElement.Q<CustomVisualElement>("tab2");
+        tab2.AddManipulator(open2);
+        tabs.Add(tab2);
+        tab3 = ui.rootVisualElement.Q<CustomVisualElement>("tab3");
+        tab3.AddManipulator(open3);
+        tabs.Add(tab3);
+        tab4 = ui.rootVisualElement.Q<CustomVisualElement>("tab4");
+        tab4.AddManipulator(open4);
+        tabs.Add(tab4);
+
+        tab1.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "BeeStats"));
+        tab2.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Tools"));
+        tab3.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Hive"));
+        tab4.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Flowers"));
+
+        RefreshMenuLists();
     }
 
     private void ReferToGlossary(PointerDownEvent e, string keyword)
@@ -314,6 +344,14 @@ public class PlayerController : MonoBehaviour
             }
             else
                 CloseTab();
+        }
+
+        if (Input.GetMouseButtonDown(1))
+        {
+            SelectedItem = null;
+            
+            if (ObjectToMove != null)
+                ObjectToMove = null;
         }
 
         if (Input.GetKeyDown(KeyCode.G))
@@ -420,11 +458,8 @@ public class PlayerController : MonoBehaviour
                     else if (selectedItem.tag == "Shovel" && t.Flower != FlowerType.Empty)
                     {
                         Debug.Log(t.FlowerObject.GetComponent<Cost>().ftype);
-                        objectToMove = t.FlowerObject;
-                        storedPos = t.FlowerObject.transform.position;
                         storedTile = t;
-                        pickedUpThisFrame = true;
-                        Debug.Log("Picked up object");
+                        ObjectToMove = t.FlowerObject;
                     }
                 }
             }
@@ -514,11 +549,7 @@ public class PlayerController : MonoBehaviour
 
                     if (SelectedItem != null && selectedItem.tag == "Dolly" && h.hiveTile.HasHive == true)
                     {
-                        objectToMove = h.gameObject;
-                        storedPos = h.gameObject.transform.position;
-                        h.hiveTile.HasHive = false;
-                        pickedUpThisFrame = true;
-                        Debug.Log("Picked up object");
+                        ObjectToMove = h.gameObject;
                     }
                     else if (SelectedItem != null && selectedItem.tag == "HiveTool" && h.Condition == "Glued")
                     {
@@ -539,6 +570,16 @@ public class PlayerController : MonoBehaviour
         {
             var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
+            //If trash is clicked, delete flower
+            if (Physics.Raycast(ray, out var trashHit, 1000, LayerMask.GetMask("Trash")))
+            {
+                Destroy(objectToMove);
+                objectToMove = null;
+                storedTile.Flower = FlowerType.Empty;
+                Debug.Log("Trashed object");
+                return;
+            }
+
             //If a tile is clicked while holding a placeable object, place the object
             if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
             {
@@ -550,6 +591,8 @@ public class PlayerController : MonoBehaviour
                         {
                             h.hiveTile = t;
                             t.HasHive = true;
+                            h.x = (int)t.transform.position.x;
+                            h.y = (int)t.transform.position.y;
                             Debug.Log("Put down object");
                         }
                         else
@@ -558,8 +601,7 @@ public class PlayerController : MonoBehaviour
                             storedTile.Flower = FlowerType.Empty;
                             Debug.Log("Put down object");
                         }
-                        objectToMove.transform.position = t.transform.position;
-                        objectToMove = null;
+                        ObjectToMove = null;
                     }
                 }
             }
@@ -635,9 +677,7 @@ public class PlayerController : MonoBehaviour
 
         //Close any open tabs
         if (activeTab != null)
-        {
             CloseTab();
-        }
 
         if (fromHive)
         {
@@ -762,7 +802,7 @@ public class PlayerController : MonoBehaviour
         int price = cost.Price;
         if (num == 2 && objectList[num][index].GetComponent<Cost>().Purchased)
         {
-            costLabel.text = "Purchased";
+            costLabel.text = "Owned";
             return 0;
         }
         else if (cost.ftype != FlowerType.Empty && flowersOwned[(FlowerType)(index + 2)] > 0)
@@ -770,7 +810,7 @@ public class PlayerController : MonoBehaviour
             costLabel.text = flowersOwned[(FlowerType)(index + 2)] + " free";
             return 0;
         }
-        costLabel.text = (price == 0) ? "Purchased" : "$" + price; 
+        costLabel.text = (price == 0) ? "Owned" : "$" + price; 
         return price;
     }
 
@@ -827,7 +867,6 @@ public class PlayerController : MonoBehaviour
                 left.Remove(hex);
 
             activeTab.RemoveManipulator(close);
-
             //Must check each case because the corresponding manipulator to open the tab must be readded
             if (activeTab == tab1)
                 activeTab.AddManipulator(open1);
@@ -879,9 +918,9 @@ public class PlayerController : MonoBehaviour
         {
             item.GetComponent<Cost>().Purchased = true;
             Label costLabel = hex.Q<Label>();
-            if (costLabel.text != "Purchased")
+            if (costLabel.text != "Owned")
                 Money = -cost;
-            costLabel.text = "Purchased";
+            costLabel.text = "Owned";
             item.GetComponent<Cost>().Price = 0;
         }
 

@@ -101,6 +101,7 @@ public class QueenChooser : MonoBehaviour
         template = null;
         container = null;
         isChoosing = false;
+        GameObject.Find("GameController").GetComponent<GameController>().CurrentState = GameStates.Running;
     }
 
     public IEnumerator GiveChoice(List<int> choices, bool starter = false)
@@ -125,6 +126,7 @@ public class QueenChooser : MonoBehaviour
         template = null;
         container = null;
         isChoosing = false;
+        GameObject.Find("GameController").GetComponent<GameController>().CurrentState = GameStates.Running;
     }
 
     //Creates Queen Bee choices for the user to select from
@@ -141,13 +143,12 @@ public class QueenChooser : MonoBehaviour
         }
         else
         {
-            rngChoices.Add(queenUI);
+            //rngChoices.Add(queenUI);
             for (int i = 0; rngChoices.Count < numChoices; i++)
             {
                 int rand = Random.Range(0, rngOptions.Count);
                 rngChoices.Add(rngOptions[rand]);
-                if (rngOptions[rand] == sizeUI)
-                    rngOptions.RemoveAt(rand);
+                rngOptions.RemoveAt(rand);
             }
         }
 

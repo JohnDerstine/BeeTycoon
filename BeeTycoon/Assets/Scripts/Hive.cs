@@ -51,6 +51,9 @@ public class Hive : MonoBehaviour
     private Texture2D queenSprite;
 
     [SerializeField]
+    private Texture2D deadSprite;
+
+    [SerializeField]
     private AudioClip audio;
 
     private Texture2D currentIcon;
@@ -188,7 +191,8 @@ public class Hive : MonoBehaviour
             {
                 if (queen.nullQueen)
                     Condition = "Dead";
-                player.OpenHiveUI(template, hiveUI, this);
+                if (game.CurrentState == GameStates.Running)
+                    player.OpenHiveUI(template, hiveUI, this);
             }
         }
     }
@@ -303,7 +307,7 @@ public class Hive : MonoBehaviour
         }
     }
 
-    void Start()
+    void Awake()
     {
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
@@ -350,6 +354,14 @@ public class Hive : MonoBehaviour
         if (activePopup != null)
         {
             AdjustPopupTransform();
+        }
+
+        if (activePopup != null)
+        {
+            if (game.CurrentState != GameStates.Running && activePopup.visible)
+                activePopup.visible = false;
+            else if (game.CurrentState == GameStates.Running && !activePopup.visible)
+                activePopup.visible = true;
         }
     }
 
@@ -438,7 +450,7 @@ public class Hive : MonoBehaviour
         honey += possibleHoney;
         nectar -= possibleHoney;
 
-        nectarGain = addedNectar + map.nectarGains.Values.Sum() * conversionRate; //scale it down to lbs
+        nectarGain = addedNectar + (map.nectarGains.Values.Sum() / map.populatedHives) * conversionRate; //scale it down to lbs
 
         possibleNectar = nectarGain * queen.collectionMult * hiveEfficency * russianEff * summer * agile * hiveStandBonus; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
         if (possibleNectar + nectar + honey > storage)
@@ -649,12 +661,16 @@ public class Hive : MonoBehaviour
         if (honey > 0)
         {
             honeyType = nectarValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
-            honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();
-            honeyTypeLabel.text = "Type:\n" + honeyType.ToString();
+            honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();         
+
             float roundedPurity = Mathf.Round(honeyPurity * 1000) / 10.0f;
+            if (roundedPurity <= 50)
+            {
+                roundedPurity = 100 - roundedPurity;
+                honeyType = FlowerType.Wildflower;
+            }
+            honeyTypeLabel.text = "Type:\n" + honeyType.ToString();
             honeyPurityLabel.text = "Purity:\n" + roundedPurity + "%";
-            //Debug.Log(honeyType);
-            //Debug.Log(honeyPurity);
         }
     }
 
@@ -695,6 +711,11 @@ public class Hive : MonoBehaviour
         if (q == null)
         {
             Condition = "Dead";
+            if (queenHex != null)
+            {
+                queenHex.style.backgroundImage = deadSprite;
+                queenClick.UnregisterCallback<PointerMoveEvent>(OnQueenMove);
+            }
             return;
         }
 

@@ -26,8 +26,12 @@ public class GameController : MonoBehaviour
 
     [SerializeField]
     private VisualTreeAsset mainMenu;
+
     [SerializeField]
     private VisualTreeAsset gameUI;
+
+    [SerializeField]
+    private VisualTreeAsset nectarUI;
 
     [SerializeField]
     private PlayerController player;
@@ -46,7 +50,6 @@ public class GameController : MonoBehaviour
 
     private int turn = 1;
     public int year = 1;
-    private VisualElement root;
     private CustomVisualElement turnButton;
     private string season = "spring";
 
@@ -97,9 +100,8 @@ public class GameController : MonoBehaviour
 
     void Awake()
     {
-        root = document.rootVisualElement;
-        newGameButton = root.Q<Button>("NewGame");
-        continueButton = root.Q<Button>("Continue");
+        newGameButton = document.rootVisualElement.Q<Button>("NewGame");
+        continueButton = document.rootVisualElement.Q<Button>("Continue");
         newGameButton.clickable = new Clickable(e => NewGame());
         if (!SaveSystem.CheckSaveFile())
             continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
@@ -137,9 +139,7 @@ public class GameController : MonoBehaviour
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
         CurrentState = GameStates.Start;
-        root = document.rootVisualElement;
-        turnButton = root.Q<CustomVisualElement>("TurnButton");
-        turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
+        ReloadUI();
         Quota = 25;
 
         map.GameStart(false);
@@ -154,22 +154,27 @@ public class GameController : MonoBehaviour
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
         CurrentState = GameStates.Running;
-        root = document.rootVisualElement;
-        turnButton = root.Q<CustomVisualElement>("TurnButton");
-        turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
+        ReloadUI();
 
         map.GameStart(true);
         SceneManager.sceneLoaded -= OnSceneLoadContinue;
     }
 
+    private void ReloadUI()
+    {
+        turnButton = document.rootVisualElement.Q<CustomVisualElement>("TurnButton");
+        turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
+    }
+
     private void UpdateLabels()
     {
+        Debug.Log("Updating");
         string adjustedSeason = Season.ToString();
         adjustedSeason = adjustedSeason.Substring(0, 1).ToUpper() + adjustedSeason.Substring(1);
-        root.Q<Label>("TurnCount").text = adjustedSeason + " " + year + " Turn " + turn;
-        root.Q<Label>("Quota").text = "Quota: $" + quota;
+        document.rootVisualElement.Q<Label>("TurnCount").text = adjustedSeason + " " + year + " Turn " + turn;
+        document.rootVisualElement.Q<Label>("Quota").text = "Quota: $" + quota;
         int turns = (season == "winter") ? (2 - ((turn - 1) % 4)) : (4 - ((turn - 1) % 4));
-        root.Q<Label>("Turns").text = "Due in " + turns + " turns";
+        document.rootVisualElement.Q<Label>("Turns").text = "Due in " + turns + " turns";
     }
 
     private IEnumerator NextTurn()
@@ -190,11 +195,20 @@ public class GameController : MonoBehaviour
         if (turn == 5)
             turn = 1;
 
+        document.visualTreeAsset = nectarUI;
+
         StartCoroutine(map.GetNectarGains());
 
         yield return new WaitWhile(() => !nectarCollectingFinished);
         nectarCollectingFinished = false;
         player.OnTurnIncrement();
+
+        document.visualTreeAsset = gameUI;
+        ReloadUI();
+        player.ReloadUI();
+        document.GetComponent<Glossary>().GameLoaded();
+        honeyMarket.ReloadUI();
+        UpdateLabels();
 
         previousQuota = quota;
         map.AdvanceFlowerStates(); //This should be done after all the animations for GetNectarGains is done.
@@ -224,6 +238,16 @@ public class GameController : MonoBehaviour
                     quotaScaling += 0.5f;
                     break;
             }
+
+            foreach (Hive h in player.hives)
+            {
+                h.queen.age += 3;
+                if (h.queen.age >= 56)
+                {
+                    h.Populate(null);
+                }
+            }
+
             map.SeasonRecolor();
             previousMoney = player.Money;
             player.Money = -Quota;
@@ -262,7 +286,6 @@ public class GameController : MonoBehaviour
             Quota = (int)(quotaScaling * Quota);
         }
 
-
         CurrentState = GameStates.Running;
     }
 
@@ -284,7 +307,7 @@ public class GameController : MonoBehaviour
         quotaContainer.Q<Button>().text = nextText;
         Color color = (CurrentState == GameStates.End) ? new Color(0.68f, 0.31f, 0.13f) : new Color(0.37f, 0.68f, 0.13f);
         quotaContainer.Q<Button>().style.backgroundColor = color;
-        root.Q<VisualElement>("Base").Add(quotaContainer);
+        document.rootVisualElement.Q<VisualElement>("Base").Add(quotaContainer);
         player.moneyEarned = 0;
         player.moneySpent = 0;
         yield return null;
@@ -300,7 +323,7 @@ public class GameController : MonoBehaviour
         }
 
         quotaScreenFinished = true;
-        root.Q<VisualElement>("Base").Remove(quotaContainer);
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(quotaContainer);
     }
 
     private IEnumerator NewTurnAnimation()
@@ -314,7 +337,7 @@ public class GameController : MonoBehaviour
         string adjustedSeason = Season.ToString();
         adjustedSeason = adjustedSeason.Substring(0, 1).ToUpper() + adjustedSeason.Substring(1);
         label.text = "<color=white><gradient=TurnText>" + adjustedSeason + " " + year + " Turn " + turn + "</gradient></color>";
-        root.Q<VisualElement>("Base").Add(temp);
+        document.rootVisualElement.Q<VisualElement>("Base").Add(temp);
         yield return new WaitForEndOfFrame();
         while (label.resolvedStyle.fontSize < 172)
         {
@@ -329,7 +352,7 @@ public class GameController : MonoBehaviour
             label.style.fontSize = label.resolvedStyle.fontSize - 12;
             yield return new WaitForSeconds(0.01f);
         }
-        root.Q<VisualElement>("Base").Remove(temp);
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(temp);
         UpdateLabels();
 
         turnAnimationFinished = true;

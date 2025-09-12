@@ -51,7 +51,7 @@ public class QueenBee : MonoBehaviour
         }
         species = possibilites[Random.Range(0, possibilites.Count)];
 
-        age = Random.Range(0, 37);
+        age = Random.Range(1, 36);
         grade = Mathf.Round((productionMult + constructionMult + collectionMult + resilienceMult + aggressivnessMult) * 10) / 10.0f;
 
         int quirkNum;
@@ -79,7 +79,7 @@ public class QueenBee : MonoBehaviour
             possibilites.RemoveAt(index);
         }
 
-        GetComponent<Cost>().Price = (int)grade;
+        //GetComponent<Cost>().Price = (int)grade;
         finishedGenerating = true;
     }
 

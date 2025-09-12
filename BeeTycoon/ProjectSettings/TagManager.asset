@@ -19,6 +19,8 @@ TagManager:
   - Reducer
   - Repellant
   - Emergency
+  - Tile
+  - Trash
   layers:
   - Default
   - TransparentFX
@@ -28,7 +30,7 @@ TagManager:
   - UI
   - Tile
   - Hive
-  - 
+  - Trash
   - 
   - 
   - 
