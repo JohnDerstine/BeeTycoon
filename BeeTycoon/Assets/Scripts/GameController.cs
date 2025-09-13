@@ -33,8 +33,8 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset nectarUI;
 
-    [SerializeField]
     private PlayerController player;
+    private HexMenu hexMenu;
 
     [SerializeField]
     private MapLoader map;
@@ -135,9 +135,11 @@ public class GameController : MonoBehaviour
     {
         gameObject.GetComponent<QueenChooser>().OnSceneLoaded();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+        hexMenu = document.gameObject.GetComponent<HexMenu>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
+        hexMenu.GameLoaded();
         CurrentState = GameStates.Start;
         ReloadUI();
         Quota = 25;
@@ -150,9 +152,11 @@ public class GameController : MonoBehaviour
     {
         gameObject.GetComponent<QueenChooser>().OnSceneLoaded();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+        hexMenu = document.gameObject.GetComponent<HexMenu>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
+        hexMenu.GameLoaded();
         CurrentState = GameStates.Running;
         ReloadUI();
 
@@ -187,7 +191,7 @@ public class GameController : MonoBehaviour
         player.CenterCamera();
 
         player.CloseHiveUI(player.currentHive);
-        player.CloseTab();
+        hexMenu.CloseTab();
         honeyMarket.CloseMarket();
 
         CurrentState = GameStates.TurnEnd;

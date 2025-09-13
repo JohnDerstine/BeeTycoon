@@ -22,6 +22,7 @@ public class Hive : MonoBehaviour
     private PlayerController player;
     private GameController game;
     private UnlockTracker tracker;
+    private HexMenu hexMenu;
 
     [SerializeField]
     private VisualTreeAsset hiveUI;
@@ -314,6 +315,7 @@ public class Hive : MonoBehaviour
         game = GameObject.Find("GameController").GetComponent<GameController>();
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+        hexMenu = document.gameObject.GetComponent<HexMenu>();
         source = GetComponent<AudioSource>();
         queen = GetComponent<QueenBee>();
 
@@ -386,7 +388,7 @@ public class Hive : MonoBehaviour
             selectingQueen = false;
             queenClick.AddManipulator(assignQueen);
             queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
-            player.CloseTab();
+            hexMenu.CloseTab();
         }
     }
 
@@ -1019,7 +1021,7 @@ public class Hive : MonoBehaviour
         queenClick.RemoveManipulator(assignQueen);
         selectingQueen = true;
         queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
-        player.OpenTab(0, player.open1, true, this);
+        hexMenu.OpenTab(0, hexMenu.open1, true, this);
     }
 
     private void OnMove(PointerMoveEvent e)

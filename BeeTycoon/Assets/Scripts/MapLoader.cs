@@ -80,6 +80,7 @@ public class MapLoader : MonoBehaviour
 
     private GameObject trashObject;
     private PlayerController player;
+    private HexMenu hexMenu;
 
     [SerializeField]
     private VisualTreeAsset nectarItem;
@@ -160,6 +161,7 @@ public class MapLoader : MonoBehaviour
             tiles[randX, randY].Flower = FlowerType.Empty;
             Hive h = temp.GetComponent<Hive>();
             player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+            hexMenu = GameObject.Find("UIDocument").GetComponent<HexMenu>();
             player.hives.Add(h);
             h.Placed = true;
             h.queen = h.GetComponent<QueenBee>();
@@ -405,7 +407,7 @@ public class MapLoader : MonoBehaviour
     private void UpdateNectarUI(int spriteIndex)
     {
         item = nectarItem.Instantiate();
-        item.Q<VisualElement>("Icon").style.backgroundImage = player.flowerSprites[spriteIndex];
+        item.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.flowerSprites[spriteIndex];
         document.rootVisualElement.Q<VisualElement>("NectarColumn").Insert(0, item);
     }
 

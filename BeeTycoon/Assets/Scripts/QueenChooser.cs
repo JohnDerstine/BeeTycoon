@@ -27,13 +27,12 @@ public class QueenChooser : MonoBehaviour
     [SerializeField]
     private UIDocument document;
 
-    [SerializeField] 
     private PlayerController player;
+    private HexMenu hexMenu;
 
     [SerializeField]
     private GameObject queenPrefab;
 
-    [SerializeField]
     private UnlockTracker tracker;
 
     [SerializeField]
@@ -73,6 +72,7 @@ public class QueenChooser : MonoBehaviour
     {
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+        hexMenu = document.gameObject.GetComponent<HexMenu>();
 
         root = document.rootVisualElement;
         queenExitCallback = new EventCallback<PointerLeaveEvent, MyCustomData>(OnQueenExit);
@@ -184,7 +184,7 @@ public class QueenChooser : MonoBehaviour
                     var values = System.Enum.GetValues(typeof(FlowerType));
                     FlowerType rand = (FlowerType)Random.Range(2, values.Length);
                     popup.Q<Label>("Type").text = rand.ToString();
-                    popup.Q<VisualElement>("Icon").style.backgroundImage = player.flowerSprites[(int)rand - 2];
+                    popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.flowerSprites[(int)rand - 2];
 
                     popup.AddManipulator(new Clickable(e => SelectFlower(rand)));
                 }
@@ -280,7 +280,7 @@ public class QueenChooser : MonoBehaviour
     private void SelectFlower(FlowerType f)
     {
         selectionActive = false;
-        player.flowersOwned[f] += 5;
+        hexMenu.flowersOwned[f] += 5;
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }
@@ -311,7 +311,7 @@ public class QueenChooser : MonoBehaviour
             if (i != num)
                 Destroy(queenOptions[i].gameObject);
             else
-                StartCoroutine(player.AddQueen(queenOptions[i]));
+                StartCoroutine(hexMenu.AddQueen(queenOptions[i]));
         }
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();

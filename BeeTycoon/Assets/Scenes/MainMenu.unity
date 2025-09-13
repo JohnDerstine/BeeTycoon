@@ -588,6 +588,7 @@ GameObject:
   - component: {fileID: 1944616205}
   - component: {fileID: 1944616206}
   - component: {fileID: 1944616207}
+  - component: {fileID: 1944616208}
   m_Layer: 5
   m_Name: UIDocument
   m_TagString: Untagged
@@ -790,6 +791,71 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &1944616208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1944616202}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 24c1885b469b50644a985246d9bfc7e5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ui: {fileID: 1944616203}
+  game: {fileID: 2079847517}
+  glossary: {fileID: 1944616206}
+  queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
+  flowerSprites:
+  - {fileID: 2800000, guid: f6536d65e190e6645befd9a9a1f699c0, type: 3}
+  - {fileID: 2800000, guid: b491d685800400e449919c2fe034e79c, type: 3}
+  - {fileID: 2800000, guid: 5916f479f74b5074fb8e62ddd8cc6cd1, type: 3}
+  - {fileID: 2800000, guid: 2d1305930efa4824f9839164ecec76f2, type: 3}
+  - {fileID: 2800000, guid: 0a26b522cea6ebb468a15ad04bcd1294, type: 3}
+  flowerObjectList:
+  - {fileID: 5001097289351631279, guid: 407c446b3416b60479e542c5882e7183, type: 3}
+  - {fileID: 5460235229074903264, guid: fed9beafd2c9a004691a9871a632f695, type: 3}
+  - {fileID: 822866801568241527, guid: 1b206d71e2a5c6f4f81c30c4a0fd9f57, type: 3}
+  - {fileID: 5966440394908554401, guid: a258a8b5ac488bb45bbec9eba50d0b92, type: 3}
+  - {fileID: 3628555952956922509, guid: f77ec4dde0553804c9714014218a1e88, type: 3}
+  beeSprites: []
+  beeObjectList: []
+  toolSprites:
+  - {fileID: 2800000, guid: 69483ea25a437774b9d4053ceedaf9ba, type: 3}
+  - {fileID: 2800000, guid: 48d80eb79db0bcf4bad3ff954131b5f0, type: 3}
+  - {fileID: 2800000, guid: 09229c9f1b01bf24fa31dc874d612666, type: 3}
+  - {fileID: 2800000, guid: 35ef3489b5f21434dba1d5a89f79a9ba, type: 3}
+  - {fileID: 2800000, guid: 45e28b1e881dce14e8af892e696fdcd9, type: 3}
+  - {fileID: 2800000, guid: c3eb6e95650e5d34bba34e8c24e709f3, type: 3}
+  toolObjectList: []
+  hiveSprites:
+  - {fileID: 2800000, guid: 0fdacaa9d1051044f8431d7f4eca5167, type: 3}
+  - {fileID: 2800000, guid: cb13e1e9a6d215a4689f4740db577159, type: 3}
+  - {fileID: 2800000, guid: 62032097f8651f9499521cb2b4dffaa0, type: 3}
+  - {fileID: 2800000, guid: 3b4d8149e58230240af6ccaf09f9f689, type: 3}
+  - {fileID: 2800000, guid: 4a564affbebe6cf4b91ed31d0532442e, type: 3}
+  - {fileID: 2800000, guid: b5792b787771c404aac6d024dd7b9964, type: 3}
+  - {fileID: 2800000, guid: b20c04d6f30dbf9458a83cb68dea9cd1, type: 3}
+  - {fileID: 2800000, guid: 01a694a57347d864280c8accd09161d7, type: 3}
+  - {fileID: 2800000, guid: a2d0eec620e7af44a8a353b71b57dd0d, type: 3}
+  hiveObjectList:
+  - {fileID: 8631668248818954614, guid: 6be2c764dfd44a34a86830c656730b1a, type: 3}
+  - {fileID: 6282203683457028224, guid: 98c9dee141456cf41adf92ac16ba22cc, type: 3}
+  - {fileID: 1826703634230087101, guid: 112841a63d627e74cbceda868f630609, type: 3}
+  - {fileID: 6697024670040299877, guid: f2fc76a289fb7bf448a3d8f1a520149e, type: 3}
+  - {fileID: 2605333161088125862, guid: 88ec760728f7c864fb7ac98f00fc6dd1, type: 3}
+  - {fileID: 5928400487421320775, guid: 0bb782064efaea2498b5c32afaa9ca73, type: 3}
+  - {fileID: 1439812673210890876, guid: f48f801561edab94499f7332fedec349, type: 3}
+  - {fileID: 1306624215040400114, guid: f0351031dab54614d84326f54827b98a, type: 3}
+  - {fileID: 2874875940577435135, guid: 8111dbda643228c488889a1201cb3ac4, type: 3}
+  testQueen: {fileID: 6447290488066576997, guid: e59ceae1d5e160344a08b67d62f9d88e, type: 3}
+  testQueenSprite: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
+  tab1ItemCount: 0
+  hex: {fileID: 2800000, guid: 38522a5f81ab10a4392ffed8ef29445d, type: 3}
+  tabStyle: {fileID: 7433441132597879392, guid: db82af968aa77354d90ac85bca8ba754, type: 3}
+  itemStyle: {fileID: 7433441132597879392, guid: bdf693ba0f0048f4583b9bb0b085768b, type: 3}
+  costStyle: {fileID: 7433441132597879392, guid: 24b5367f1a29d884cbfe6b7a485461d5, type: 3}
 --- !u!1 &2079847516
 GameObject:
   m_ObjectHideFlags: 0
@@ -827,7 +893,6 @@ MonoBehaviour:
   mainMenu: {fileID: 9197481963319205126, guid: 645eea9f8abf4f74e8d9fe66a1028f15, type: 3}
   gameUI: {fileID: 9197481963319205126, guid: de2cb53b0aae3304eaed27a3de471fc8, type: 3}
   nectarUI: {fileID: 9197481963319205126, guid: 520111991f3a2594eb086fb8a1394a60, type: 3}
-  player: {fileID: 0}
   map: {fileID: 1594075282}
   honeyMarket: {fileID: 0}
   newTurnUI: {fileID: 9197481963319205126, guid: 49f28a6cb8817ca40855ba553a8a6a49, type: 3}
@@ -854,9 +919,7 @@ MonoBehaviour:
   sizeUI: {fileID: 9197481963319205126, guid: edcd16dad186d5e48a2de415661125fc, type: 3}
   choicesContainer: {fileID: 9197481963319205126, guid: 4824afd6568b8da419faf5736df0e8a6, type: 3}
   document: {fileID: 1944616203}
-  player: {fileID: 0}
   queenPrefab: {fileID: 6447290488066576997, guid: e59ceae1d5e160344a08b67d62f9d88e, type: 3}
-  tracker: {fileID: 0}
   queenSprite: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
   descriptionStyle: {fileID: 7433441132597879392, guid: 51ae43b9b9d4e6c498da1a30964f90a9, type: 3}
   isChoosing: 0
