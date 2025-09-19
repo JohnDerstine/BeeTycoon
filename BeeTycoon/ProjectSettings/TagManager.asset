@@ -21,6 +21,7 @@ TagManager:
   - Emergency
   - Tile
   - Trash
+  - Stage
   layers:
   - Default
   - TransparentFX
@@ -31,7 +32,7 @@ TagManager:
   - Tile
   - Hive
   - Trash
-  - 
+  - OOB
   - 
   - 
   - 

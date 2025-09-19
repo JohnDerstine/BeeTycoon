@@ -895,6 +895,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hivePrefab: {fileID: 8631668248818954614, guid: 6be2c764dfd44a34a86830c656730b1a, type: 3}
+  holo: {fileID: 2085591973050882581, guid: 2dff1a0aa35e1924abf9fbd8652ec70a, type: 3}
+  redHolo: {fileID: 2100000, guid: c2fe6ec33656bf24ea8fd6493d4807fe, type: 2}
+  greenHolo: {fileID: 2100000, guid: dfaad3ab82e289348929b3458ad7212a, type: 2}
   honeyMarket: {fileID: 2020842569}
   honey: {fileID: 21300000, guid: 878be5b2dbe6ff241a20eab578abc40d, type: 3}
   standObject: {fileID: 6697024670040299877, guid: f2fc76a289fb7bf448a3d8f1a520149e, type: 3}

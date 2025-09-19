@@ -12,6 +12,26 @@ public class UnlockTracker : MonoBehaviour
         {"Carniolan", false}
     };
 
+    public Dictionary<FlowerType, bool> Stage12Flowers = new Dictionary<FlowerType, bool>()
+    {
+        {FlowerType.Clover, false},
+        {FlowerType.Buckwheat, false},
+        {FlowerType.Alfalfa, false},
+        {FlowerType.Dandelion, false},
+        {FlowerType.Sunflower, false},
+        {FlowerType.Orange, false},
+    };
+
+    public Dictionary<FlowerType, bool> Stage34Flowers = new Dictionary<FlowerType, bool>()
+    {
+        {FlowerType.Fireweed, false},
+        {FlowerType.Goldenrod, false},
+        {FlowerType.Daisy, false},
+        {FlowerType.Thistle, false},
+        {FlowerType.Blueberry, false},
+        {FlowerType.Tupelo, false},
+    };
+
     //Add negative quirks that are opposite of 5 base
     public Dictionary<string, bool> quirks = new Dictionary<string, bool>()
     {
@@ -39,4 +59,52 @@ public class UnlockTracker : MonoBehaviour
         {"Rugged", 1.5f},
         {"Agile", 1.5f}
     };
+
+    private int stage = 0;
+
+    public List<int> GetNextFlowers()
+    {
+        if (stage == 4)
+            return null;
+
+        stage++;
+
+        List<int> availableFlowers = new List<int>();
+        if (stage <= 2)
+        {
+            List<FlowerType> randFlowerOptions = new List<FlowerType>();
+            foreach (KeyValuePair<FlowerType, bool> kvp in Stage12Flowers)
+                if (!kvp.Value)
+                    randFlowerOptions.Add(kvp.Key - 2);
+
+            for (int i = 0; i < 3; i++)
+            {
+                int rand = Random.Range(0, randFlowerOptions.Count);
+                availableFlowers.Add((int)randFlowerOptions[rand]);
+                randFlowerOptions.RemoveAt(rand);
+            }
+
+            foreach (int i in availableFlowers)
+                Stage12Flowers[(FlowerType)i] = true;
+        }
+        else
+        {
+            List<FlowerType> randFlowerOptions = new List<FlowerType>();
+            foreach (KeyValuePair<FlowerType, bool> kvp in Stage34Flowers)
+                if (!kvp.Value)
+                    randFlowerOptions.Add(kvp.Key - 2);
+
+            for (int i = 0; i < 3; i++)
+            {
+                int rand = Random.Range(0, randFlowerOptions.Count);
+                availableFlowers.Add((int)randFlowerOptions[rand]);
+                randFlowerOptions.RemoveAt(rand);
+            }
+
+            foreach (int i in availableFlowers)
+                Stage34Flowers[(FlowerType)i] = true;
+        }
+        
+        return availableFlowers;
+    }
 }

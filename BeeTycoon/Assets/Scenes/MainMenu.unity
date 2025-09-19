@@ -394,6 +394,13 @@ MonoBehaviour:
   - {fileID: 822866801568241527, guid: 1b206d71e2a5c6f4f81c30c4a0fd9f57, type: 3}
   - {fileID: 3628555952956922509, guid: f77ec4dde0553804c9714014218a1e88, type: 3}
   - {fileID: 5966440394908554401, guid: a258a8b5ac488bb45bbec9eba50d0b92, type: 3}
+  - {fileID: 1587246011406451378, guid: 0d99c39867132e54293b4230b29ccc43, type: 3}
+  - {fileID: 3590226965088670462, guid: c8a32874c7f1e854f8ffe1be1f925cd9, type: 3}
+  - {fileID: 829943951400369715, guid: 833ffbb82cf26f94ab4496ca564b2282, type: 3}
+  - {fileID: 8930039315758396281, guid: ed616d1894526b34aae663b0c80168f5, type: 3}
+  - {fileID: 8871483576634703786, guid: 2e048d65849e18b4f9a66c52762d9b5a, type: 3}
+  - {fileID: 2475174566886137573, guid: 6b30ffde024d12c489e2849c9f1b3fc2, type: 3}
+  - {fileID: 6942034762535838934, guid: cf38f405eeec21345a0aaf75cc4a76f4, type: 3}
   game: {fileID: 2079847517}
   popUp: {fileID: 1594075283}
   document: {fileID: 1944616203}
@@ -807,18 +814,32 @@ MonoBehaviour:
   game: {fileID: 2079847517}
   glossary: {fileID: 1944616206}
   queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
-  flowerSprites:
+  allFlowerSprites:
   - {fileID: 2800000, guid: f6536d65e190e6645befd9a9a1f699c0, type: 3}
   - {fileID: 2800000, guid: b491d685800400e449919c2fe034e79c, type: 3}
   - {fileID: 2800000, guid: 5916f479f74b5074fb8e62ddd8cc6cd1, type: 3}
-  - {fileID: 2800000, guid: 2d1305930efa4824f9839164ecec76f2, type: 3}
   - {fileID: 2800000, guid: 0a26b522cea6ebb468a15ad04bcd1294, type: 3}
-  flowerObjectList:
+  - {fileID: 2800000, guid: 2d1305930efa4824f9839164ecec76f2, type: 3}
+  - {fileID: 2800000, guid: 903a3b4c041862d46a8ae49aaac2e554, type: 3}
+  - {fileID: 2800000, guid: 477adb8651d3e624fb998bfcd8fb2fa8, type: 3}
+  - {fileID: 2800000, guid: e38c4d711d3b1f54085519d6fd989415, type: 3}
+  - {fileID: 2800000, guid: e7128ff6ecc720f4496f71145f9b4e38, type: 3}
+  - {fileID: 2800000, guid: 7c8f90c06a17fa741b616963527f9848, type: 3}
+  - {fileID: 2800000, guid: 878f8d0ee7015874bbacff3462c0e84a, type: 3}
+  - {fileID: 2800000, guid: e2f0b3b2ce3435d479b677e9378324aa, type: 3}
+  allFlowerObjects:
   - {fileID: 5001097289351631279, guid: 407c446b3416b60479e542c5882e7183, type: 3}
   - {fileID: 5460235229074903264, guid: fed9beafd2c9a004691a9871a632f695, type: 3}
   - {fileID: 822866801568241527, guid: 1b206d71e2a5c6f4f81c30c4a0fd9f57, type: 3}
-  - {fileID: 5966440394908554401, guid: a258a8b5ac488bb45bbec9eba50d0b92, type: 3}
   - {fileID: 3628555952956922509, guid: f77ec4dde0553804c9714014218a1e88, type: 3}
+  - {fileID: 5966440394908554401, guid: a258a8b5ac488bb45bbec9eba50d0b92, type: 3}
+  - {fileID: 1587246011406451378, guid: 0d99c39867132e54293b4230b29ccc43, type: 3}
+  - {fileID: 3590226965088670462, guid: c8a32874c7f1e854f8ffe1be1f925cd9, type: 3}
+  - {fileID: 829943951400369715, guid: 833ffbb82cf26f94ab4496ca564b2282, type: 3}
+  - {fileID: 8930039315758396281, guid: ed616d1894526b34aae663b0c80168f5, type: 3}
+  - {fileID: 8871483576634703786, guid: 2e048d65849e18b4f9a66c52762d9b5a, type: 3}
+  - {fileID: 2475174566886137573, guid: 6b30ffde024d12c489e2849c9f1b3fc2, type: 3}
+  - {fileID: 6942034762535838934, guid: cf38f405eeec21345a0aaf75cc4a76f4, type: 3}
   beeSprites: []
   beeObjectList: []
   toolSprites:
@@ -851,6 +872,8 @@ MonoBehaviour:
   - {fileID: 2874875940577435135, guid: 8111dbda643228c488889a1201cb3ac4, type: 3}
   testQueen: {fileID: 6447290488066576997, guid: e59ceae1d5e160344a08b67d62f9d88e, type: 3}
   testQueenSprite: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
+  nextStage: {fileID: 1381741657326285398, guid: 93e69a5550f98b74ab5d7e0646b3d5ef, type: 3}
+  nextStageSprite: {fileID: 2800000, guid: cb13e1e9a6d215a4689f4740db577159, type: 3}
   tab1ItemCount: 0
   hex: {fileID: 2800000, guid: 38522a5f81ab10a4392ffed8ef29445d, type: 3}
   tabStyle: {fileID: 7433441132597879392, guid: db82af968aa77354d90ac85bca8ba754, type: 3}

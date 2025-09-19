@@ -407,7 +407,7 @@ public class MapLoader : MonoBehaviour
     private void UpdateNectarUI(int spriteIndex)
     {
         item = nectarItem.Instantiate();
-        item.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.flowerSprites[spriteIndex];
+        item.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[spriteIndex];
         document.rootVisualElement.Q<VisualElement>("NectarColumn").Insert(0, item);
     }
 

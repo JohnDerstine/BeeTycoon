@@ -13,6 +13,13 @@ public enum FlowerType
     Buckwheat = 4,
     Goldenrod = 5,
     Fireweed = 6,
+    Dandelion = 7,
+    Sunflower = 8,
+    Daisy = 9,
+    Thistle = 10,
+    Blueberry = 11,
+    Orange = 12,
+    Tupelo = 13
 }
 
 public class Hive : MonoBehaviour

@@ -13,6 +13,8 @@ public class Cost : MonoBehaviour
 
     public bool OneTime;
 
+    public bool tree;
+
     public bool Purchased
     {
         get { return purchased; }

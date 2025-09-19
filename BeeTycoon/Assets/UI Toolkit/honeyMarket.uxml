@@ -49,7 +49,7 @@
                         <ui:VisualElement name="Icon" class="Icon" style="flex-grow: 0;" />
                         <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Change" class="Price" />
                     </ui:VisualElement>
-                    <ui:VisualElement name="Item" class="Item" style="flex-grow: 0;">
+                    <ui:VisualElement name="Dandelion" class="Item" style="flex-grow: 0;">
                         <ui:Label tabindex="-1" text="?" parse-escape-sequences="true" display-tooltip-when-elided="true" class="HoneyName" />
                     </ui:VisualElement>
                     <ui:VisualElement name="Item" class="Item" style="flex-grow: 0;">
@@ -69,14 +69,6 @@
                     <ui:VisualElement name="Medium" style="flex-grow: 1; background-color: rgb(233, 246, 113); height: 30px; border-left-color: rgb(55, 55, 55); border-right-color: rgb(55, 55, 55); border-top-color: rgb(55, 55, 55); border-bottom-color: rgb(55, 55, 55); border-top-width: 4px; border-right-width: 0; border-bottom-width: 4px; border-left-width: 0;" />
                     <ui:VisualElement name="High" style="flex-grow: 1; background-color: rgb(100, 195, 82); height: 30px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-left-color: rgb(55, 55, 55); border-right-color: rgb(55, 55, 55); border-top-color: rgb(55, 55, 55); border-bottom-color: rgb(55, 55, 55); border-top-width: 4px; border-right-width: 4px; border-bottom-width: 4px; border-left-width: 4px;" />
                 </ui:VisualElement>
-                <ui:VisualElement name="Bar" style="flex-grow: 0; position: absolute; width: 900px; align-self: center; align-items: center; justify-content: center; flex-direction: row;">
-                    <ui:VisualElement name="StartBracket" style="flex-grow: 0; left: -50%; width: 50px; height: 60px; align-self: auto; flex-direction: row; justify-content: center; margin-bottom: 5px;">
-                        <ui:VisualElement name="bracket" picking-mode="Ignore" style="flex-grow: 0; position: relative; left: auto; height: 60px; width: 10px; background-color: rgb(32, 170, 255); align-self: center; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px;" />
-                    </ui:VisualElement>
-                    <ui:VisualElement name="EndBracket" style="flex-grow: 0; width: 50px; height: 60px; left: 50%; flex-direction: row; justify-content: center; margin-bottom: 5px;">
-                        <ui:VisualElement name="bracket" picking-mode="Ignore" style="flex-grow: 0; position: relative; left: auto; height: 60px; width: 10px; background-color: rgb(32, 170, 255); align-self: center; border-top-left-radius: 5px; border-top-right-radius: 5px; border-bottom-right-radius: 5px; border-bottom-left-radius: 5px; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 2px; border-right-width: 2px; border-bottom-width: 2px; border-left-width: 2px;" />
-                    </ui:VisualElement>
-                </ui:VisualElement>
             </ui:VisualElement>
             <ui:VisualElement name="Buttons" style="flex-grow: 1; flex-basis: 5%; flex-direction: row; justify-content: center; align-items: center; padding-top: 0; border-right-width: 6px; border-left-width: 6px; border-left-color: rgba(0, 0, 0, 0.58); border-right-color: rgba(0, 0, 0, 0.58); border-top-color: rgba(0, 0, 0, 0.58); border-bottom-color: rgba(0, 0, 0, 0.58); border-bottom-width: 6px; border-bottom-right-radius: 10px; border-bottom-left-radius: 10px;">
                 <ui:Button text="Sell&#10;1 lb." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Sell1" class="Button" />
@@ -87,7 +79,6 @@
                 <ui:Button text="Buy&#10;10 lbs." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Buy10" class="Button" />
                 <ui:Button text="Buy&#10;50 lbs." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Buy50" class="Button" />
             </ui:VisualElement>
-            <ui:Label tabindex="-1" text="Drag the brackets to adjust the selected honey" parse-escape-sequences="true" display-tooltip-when-elided="true" style="color: rgb(115, 255, 115); -unity-text-align: middle-center; padding-top: 0; padding-right: 0; padding-bottom: 0; padding-left: 0; margin-top: 0; margin-right: 0; margin-bottom: 0; margin-left: 0; position: absolute; height: auto; top: 850px; align-self: center; font-size: 16px;" />
         </ui:VisualElement>
     </ui:VisualElement>
 </ui:UXML>

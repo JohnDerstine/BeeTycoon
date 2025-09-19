@@ -9,6 +9,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     GameObject hivePrefab;
 
+    [SerializeField]
+    GameObject holo;
+
+    [SerializeField]
+    Material redHolo;
+
+    [SerializeField]
+    Material greenHolo;
+
     GameController game;
 
     MapLoader map;
@@ -64,6 +73,8 @@ public class PlayerController : MonoBehaviour
 
     public bool fromSave;
 
+    private GameObject activeHolo;
+
     public GameObject SelectedItem
     {
         get { return selectedItem; }
@@ -78,7 +89,11 @@ public class PlayerController : MonoBehaviour
                 hoverObject = null;
                 UnityEngine.Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
                 
-
+                if (activeHolo != null) //Destroy holo for placeables
+                {
+                    Destroy(activeHolo);
+                    activeHolo = null;
+                }
 
                 if (objectToMove != null)
                 {
@@ -94,7 +109,12 @@ public class PlayerController : MonoBehaviour
                 foreach (Hive h in hives)
                     HighlightHives(selectedItem, h);
                 if (selectedItem.tag == "Placeable" || selectedItem.tag == "Super")
+                {
                     hoverObject = Instantiate(selectedItem, new Vector3(-100, -100, -100), Quaternion.identity);
+                    activeHolo = Instantiate(holo, hoverObject.transform, true); //holo hover for placeables
+                    if (hoverObject.GetComponent<Cost>().tree)
+                        activeHolo.transform.localScale *= 2;
+                }
                 else
                 {
 
@@ -174,6 +194,7 @@ public class PlayerController : MonoBehaviour
         }
 
         CenterCamera();
+        ReloadUI();
     }
 
     // Update is called once per frame
@@ -236,7 +257,19 @@ public class PlayerController : MonoBehaviour
                             hoverObject.transform.position = new Vector3(t.gameObject.transform.position.x, t.gameObject.transform.position.y + 0.5f, t.gameObject.transform.position.z);
                         else
                             hoverObject.transform.position = t.gameObject.transform.position;
+                        activeHolo.transform.position = hoverObject.transform.position;
+
+                        if ((hoverObject.GetComponent<Cost>().tree && (t.y == map.mapHeight || t.x == map.mapWidth)) || t.HasHive || t.Flower != FlowerType.Empty)
+                            activeHolo.GetComponent<MeshRenderer>().material = redHolo;
+                        else
+                            activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
                     }
+                }
+                else if (Physics.Raycast(ray, out var hit2, 1000, LayerMask.GetMask("OOB")))
+                {
+                    activeHolo.GetComponent<MeshRenderer>().material = redHolo;
+                    hoverObject.transform.position = hit2.point;
+                    activeHolo.transform.position = hoverObject.transform.position;
                 }
             }
             else
@@ -267,22 +300,23 @@ public class PlayerController : MonoBehaviour
                         hoverObject.transform.position = t.gameObject.transform.position;
                         if (hoverObject.TryGetComponent(out Hive h))
                         {
-                            hoverObject.transform.position += new Vector3(0, 0.5f, 0);
-                            hives.Add(h);
-                            Money = -hoverObject.GetComponent<Cost>().Price;
-                            h.x = (int)t.transform.position.x;
-                            h.y = (int)t.transform.position.z;
-                            SelectedItem = null;
-                            h.Placed = true;
-                            h.SetUpTemplate();
-                            t.HasHive = true;
-                            h.hiveTile = t;
+                            if (t.Flower == FlowerType.Empty && !t.HasHive)
+                            {
+                                hoverObject.transform.position += new Vector3(0, 0.5f, 0);
+                                hives.Add(h);
+                                Money = -hoverObject.GetComponent<Cost>().Price;
+                                h.x = (int)t.transform.position.x;
+                                h.y = (int)t.transform.position.z;
+                                SelectedItem = null;
+                                h.Placed = true;
+                                h.SetUpTemplate();
+                                t.HasHive = true;
+                                h.hiveTile = t;
+                            }
                         }
                         else if (hoverObject.TryGetComponent<Cost>(out Cost c))
                         {
-                            Destroy(hoverObject);
-                            hoverObject = null;
-                            if (c.ftype != FlowerType.Empty)
+                            if (c.ftype != FlowerType.Empty && t.Flower == FlowerType.Empty && !t.HasHive)
                             {
                                 t.Flower = c.ftype;
                                 if (hexMenu.flowersOwned[c.ftype] <= 0)
@@ -299,7 +333,13 @@ public class PlayerController : MonoBehaviour
                                 }
                             }
 
-                            SelectedItem = null;
+                            if (c.ftype == FlowerType.Empty)
+                            {
+                                Destroy(hoverObject);
+                                SelectedItem = null;
+                                Destroy(activeHolo);
+                                activeHolo = null;
+                            }
                         }
                         return;
                     }

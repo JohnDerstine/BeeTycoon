@@ -55,20 +55,6 @@ public class HoneyMarket : MonoBehaviour
     private float lowWidth;
     private float mediumWidth;
     private float highWidth;
-    private bool lowSelected = true;
-    private bool mediumSelected = true;
-    private bool highSelected = true;
-
-
-    private VisualElement bar;
-    private EventCallback<PointerDownEvent> dragBracketCallback;
-    private bool draggingStart;
-    private bool draggingeEnd;
-
-    private VisualElement startBracket;
-    private VisualElement endBracket;
-    private float startBracketPos = -385;
-    private float endBracketPos = 385;
 
     private VisualElement exit;
 
@@ -121,118 +107,6 @@ public class HoneyMarket : MonoBehaviour
             document.GetComponent<Glossary>().OpenGlossary("HoneyMarket");
     }
 
-    private void Update()
-    {
-        if (Input.GetMouseButtonUp(0))
-        {
-            draggingeEnd = false;
-            draggingStart = false;
-        }
-
-        if (draggingStart)
-        {
-            Vector2 pos = bar.WorldToLocal(Input.mousePosition);
-            if (pos.x <= lowBar.resolvedStyle.width / 2)
-                startBracketPos = (lowBar.resolvedStyle.left - totalBarWidth / 2) + 40;
-            else if (pos.x > lowBar.resolvedStyle.width / 2 && pos.x <= mediumBar.resolvedStyle.left + mediumBar.resolvedStyle.width / 2)
-                startBracketPos = lowBar.resolvedStyle.left + lowBar.resolvedStyle.width - totalBarWidth / 2;
-            else if (pos.x > mediumBar.resolvedStyle.left + mediumBar.resolvedStyle.width / 2 && pos.x <= highBar.resolvedStyle.left)
-                startBracketPos = highBar.resolvedStyle.left - totalBarWidth / 2;
-
-            if (endBracketPos > startBracketPos)
-            {
-                startBracket.style.left = startBracketPos + startBracket.resolvedStyle.width / 2;
-                SelectPurities();
-            }
-        }
-        else if (draggingeEnd)
-        {
-            Vector2 pos = bar.WorldToLocal(Input.mousePosition);
-            if (pos.x >= highBar.resolvedStyle.left + highBar.resolvedStyle.width / 2)
-                endBracketPos = totalBarWidth / 2 - 40;
-            else if (pos.x >= mediumBar.resolvedStyle.left + mediumBar.resolvedStyle.width / 2 && pos.x < highBar.resolvedStyle.left + highBar.resolvedStyle.width / 2)
-                endBracketPos = highBar.resolvedStyle.left - totalBarWidth / 2;
-            else if (pos.x >= lowBar.resolvedStyle.width / 2 && pos.x < mediumBar.resolvedStyle.left + mediumBar.resolvedStyle.width / 2)
-                endBracketPos = lowBar.resolvedStyle.left + lowBar.resolvedStyle.width - totalBarWidth / 2;
-
-            if (startBracketPos < endBracketPos)
-            {
-                endBracket.style.left = endBracketPos - endBracket.resolvedStyle.width / 2;
-                SelectPurities();
-            }
-        }
-    }
-
-    private IEnumerator AdjustBrackets()
-    {
-        yield return new WaitForFixedUpdate();
-        if (!lowSelected || !highSelected)
-        {
-            if (!lowSelected && !highSelected)
-            {
-                startBracketPos = lowBar.resolvedStyle.width - (totalBarWidth / 2);
-                endBracketPos = lowBar.resolvedStyle.width + mediumBar.resolvedStyle.width - (totalBarWidth / 2);
-                startBracket.style.left = startBracketPos + (startBracket.resolvedStyle.width / 2);
-                endBracket.style.left = endBracketPos - (endBracket.resolvedStyle.width / 2);
-            }
-            else if (!lowSelected)
-            {
-                startBracketPos = lowBar.resolvedStyle.width - (totalBarWidth / 2);
-                startBracket.style.left = startBracketPos + (startBracket.resolvedStyle.width / 2);
-            }
-            else if (!highSelected)
-            {
-                endBracketPos = lowBar.resolvedStyle.width + mediumBar.resolvedStyle.width - (totalBarWidth / 2);
-                endBracket.style.left = endBracketPos - (endBracket.resolvedStyle.width / 2);
-            }
-        }
-    }
-
-    private void SelectPurities()
-    {
-        if (startBracketPos < lowWidth - (totalBarWidth / 2) - startBracket.resolvedStyle.width / 2)
-        {
-            lowSelected = true;
-
-            if (endBracketPos > lowWidth + mediumWidth + highWidth - (totalBarWidth / 2) - endBracket.resolvedStyle.width - 16) //16 is for buffer zone
-            {
-                mediumSelected = true;
-                highSelected = true;
-            }
-            else if (endBracketPos > lowWidth + mediumWidth - (totalBarWidth / 2) - endBracket.resolvedStyle.width)
-            {
-                mediumSelected = true;
-                highSelected = false;
-            }
-            else
-            {
-                mediumSelected = false;
-                highSelected = false;
-            }
-        }
-        else if (startBracketPos >= lowWidth - (totalBarWidth / 2) && startBracketPos <= lowWidth + mediumWidth - (totalBarWidth / 2) - startBracket.resolvedStyle.width / 2)
-        {
-            lowSelected = false;
-
-            if (endBracketPos > lowWidth + mediumWidth + highWidth - (totalBarWidth / 2) - endBracket.resolvedStyle.width - 16)
-            {
-                mediumSelected = true;
-                highSelected = true;
-            }
-            else
-            {
-                mediumSelected = true;
-                highSelected = false;
-            }
-        }
-        else if (startBracketPos > lowWidth + mediumWidth - (totalBarWidth / 2) - startBracket.resolvedStyle.width / 2)
-        {
-            highSelected = true;
-            mediumSelected = false;
-            lowSelected = false;
-        }
-    }
-
     private void OpenMarket()
     {
         if (controller.CurrentState == GameStates.TurnEnd || controller.CurrentState == GameStates.Paused)
@@ -274,14 +148,6 @@ public class HoneyMarket : MonoBehaviour
         mediumBar = marketTemplate.Q<VisualElement>("Medium");
         highBar = marketTemplate.Q<VisualElement>("High");
 
-        startBracket = marketTemplate.Q<VisualElement>("StartBracket");
-        endBracket = marketTemplate.Q<VisualElement>("EndBracket");
-        bar = marketTemplate.Q<VisualElement>("Bar");
-        startBracket.style.left = -385;
-        endBracket.style.left = 385;
-        startBracket.RegisterCallback<PointerDownEvent>(DragBracket);
-        endBracket.RegisterCallback<PointerDownEvent>(DragBracket);
-
         exit = marketTemplate.Q<VisualElement>("Close");
         exit.AddManipulator(new Clickable(() => CloseMarket()));
 
@@ -306,8 +172,6 @@ public class HoneyMarket : MonoBehaviour
         buy1.clickable = new Clickable(e => Buy(1));
         buy10.clickable = new Clickable(e => Buy(10));
         buy50.clickable = new Clickable(e => Buy(50));
-
-        SelectPurities();
 
         marketTemplate.Q<Label>("MoneyLabel").text = "$" + player.Money;
     }
@@ -351,21 +215,14 @@ public class HoneyMarket : MonoBehaviour
     {
         if (selectedElement != null)
         {
-            Debug.Log("setting amount label");
             amountLabel.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
             float amount = 0;
-            if (lowSelected)
-                amount += player.inventory[selectedType][1];
-            if (mediumSelected)
-                amount += player.inventory[selectedType][2];
-            if (highSelected)
-                amount += player.inventory[selectedType][3];
+            amount += player.inventory[selectedType][0];
             string amountString = amount.ToString();
             if (amountString.IndexOf('.') + 3 < amountString.Length)
                 amountLabel.text = "You have \n" + amountString.Substring(0, amountString.IndexOf('.') + 3) + " lbs. selected";
             else
                 amountLabel.text = "You have \n" + amountString + " lbs. selected";
-            Debug.Log("Selected:" + amount);
         }
     }
 
@@ -402,14 +259,6 @@ public class HoneyMarket : MonoBehaviour
         highBar.style.width = highWidth;
 
         SetAmountLabel();
-    }
-
-    private void DragBracket(PointerDownEvent e)
-    {
-        if (e.currentTarget as VisualElement == startBracket)
-            draggingStart = true;
-        else
-            draggingeEnd = true;
     }
 
     private void Select(PointerDownEvent e, FlowerType fType)
@@ -465,11 +314,10 @@ public class HoneyMarket : MonoBehaviour
         player.Money = Mathf.RoundToInt(amount * price);
         float toBePaid = amount;
 
-        if (lowSelected)
-            toBePaid = SellLow(toBePaid);
-        if (mediumSelected && toBePaid > 0)
+        toBePaid = SellLow(toBePaid);
+        if (toBePaid > 0)
             toBePaid = SellMedium(toBePaid);
-        if (highSelected && toBePaid > 0)
+        if (toBePaid > 0)
             toBePaid = SellHigh(toBePaid);
 
         Debug.Log("Amount: " + amount + " toBePaid: " + toBePaid);
@@ -481,7 +329,6 @@ public class HoneyMarket : MonoBehaviour
 
         SetAllLabels();
         UpdateBarRatio();
-        StartCoroutine(AdjustBrackets());
     }
 
     private float SellLow(float amount)
@@ -508,7 +355,7 @@ public class HoneyMarket : MonoBehaviour
         }
         else
         {
-            player.inventory[selectedType][1] -= amount;
+            player.inventory[selectedType][2] -= amount;
             amount = 0;
         }
 
@@ -524,7 +371,7 @@ public class HoneyMarket : MonoBehaviour
         }
         else
         {
-            player.inventory[selectedType][1] -= amount;
+            player.inventory[selectedType][3] -= amount;
             amount = 0;
         }
 
@@ -544,7 +391,6 @@ public class HoneyMarket : MonoBehaviour
         player.inventory[selectedType][2] += amount;
         SetAllLabels();
         UpdateBarRatio();
-        StartCoroutine(AdjustBrackets());
     }
 
     public void CloseMarket()

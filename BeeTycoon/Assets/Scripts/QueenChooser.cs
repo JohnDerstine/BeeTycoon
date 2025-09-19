@@ -184,7 +184,7 @@ public class QueenChooser : MonoBehaviour
                     var values = System.Enum.GetValues(typeof(FlowerType));
                     FlowerType rand = (FlowerType)Random.Range(2, values.Length);
                     popup.Q<Label>("Type").text = rand.ToString();
-                    popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.flowerSprites[(int)rand - 2];
+                    popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[(int)rand - 2];
 
                     popup.AddManipulator(new Clickable(e => SelectFlower(rand)));
                 }

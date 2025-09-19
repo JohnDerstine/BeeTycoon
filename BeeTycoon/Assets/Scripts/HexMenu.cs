@@ -11,6 +11,8 @@ public class HexMenu : MonoBehaviour
     [SerializeField]
     private GameController game;
 
+    private UnlockTracker unlocks;
+
     private PlayerController player;
 
     [SerializeField]
@@ -24,10 +26,14 @@ public class HexMenu : MonoBehaviour
     private List<List<GameObject>> objectList = new List<List<GameObject>>();
 
     [SerializeField]
-    public List<Texture2D> flowerSprites = new List<Texture2D>();
+    public List<Texture2D> allFlowerSprites = new List<Texture2D>();
 
     [SerializeField]
-    private List<GameObject> flowerObjectList = new List<GameObject>();
+    private List<GameObject> allFlowerObjects = new List<GameObject>();
+
+    private List<Texture2D> flowerSprites = new List<Texture2D>(); //Random flower stages added to this list
+
+    private List<GameObject> flowerObjectList = new List<GameObject>(); //Random flower stages added to this list
 
     [SerializeField]
     public List<Texture2D> beeSprites = new List<Texture2D>();
@@ -53,6 +59,12 @@ public class HexMenu : MonoBehaviour
     [SerializeField]
     private Texture2D testQueenSprite;
 
+    [SerializeField]
+    private GameObject nextStage;
+
+    [SerializeField]
+    private Texture2D nextStageSprite;
+
     private TemplateContainer hoverTemplate;
 
     private Manipulator close;
@@ -73,7 +85,7 @@ public class HexMenu : MonoBehaviour
     public int tab1ItemCount = 0;
     private int tab2ItemCount = 6;
     private int tab3ItemCount = 9;
-    private int tab4ItemCount = 5;
+    private int tab4ItemCount = 1;
 
     [SerializeField]
     private Texture2D hex;
@@ -115,6 +127,7 @@ public class HexMenu : MonoBehaviour
     public void GameLoaded()
     {
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+        unlocks = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
 
         toolObjectList.Add(GameObject.Find("HiveTool"));
         toolObjectList.Add(GameObject.Find("Smoker"));
@@ -123,6 +136,9 @@ public class HexMenu : MonoBehaviour
         toolObjectList.Add(GameObject.Find("Suit"));
         toolObjectList.Add(GameObject.Find("Extractor"));
 
+        flowerObjectList.Add(nextStage);
+        flowerSprites.Add(nextStageSprite);
+
         close = new Clickable(close => CloseTab());
         open1 = new Clickable(open => OpenTab(0, open1, false));
         open2 = new Clickable(open => OpenTab(1, open2, false));
@@ -130,8 +146,6 @@ public class HexMenu : MonoBehaviour
         open4 = new Clickable(open => OpenTab(3, open4, false));
 
         ReloadUI();
-
-        RefreshMenuLists();
 
         queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
         queenMoveCallback = new EventCallback<PointerMoveEvent, int>(OnQueenMove);
@@ -146,8 +160,16 @@ public class HexMenu : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < flowerObjectList.Count; i++)
-            flowerObjectList[i].GetComponent<Cost>().ftype = (FlowerType)(i + 2);
+        List<int> flowers = unlocks.GetNextFlowers();
+        foreach (int i in flowers)
+        {
+            flowerObjectList.Insert(0, allFlowerObjects[i]);
+            flowerObjectList[0].GetComponent<Cost>().ftype = (FlowerType)(i + 2);
+            flowerSprites.Insert(0, allFlowerSprites[i]);
+            tab4ItemCount++;
+        }
+
+        RefreshMenuLists();
     }
 
     public void OpenTab(int num, Manipulator open, bool fromHive, Hive hive = null)
@@ -383,7 +405,22 @@ public class HexMenu : MonoBehaviour
             }
         }
 
+        if (item.tag == "Stage")
+        {
+            if (player.Money < cost)
+                return;
 
+            player.Money = -cost;
+            List<int> flowers = unlocks.GetNextFlowers();
+            foreach (int i in flowers)
+            {
+                flowerObjectList.Insert(0, allFlowerObjects[i]);
+                flowerSprites.Insert(0, allFlowerSprites[i]);
+                tab4ItemCount++;
+            }
+            return;
+        }
+        
         if (item.tag != "Placeable")
         {
             UnityEngine.Cursor.SetCursor(sprite, new Vector2(sprite.width / 2, sprite.height / 2), CursorMode.Auto);
