@@ -24,6 +24,8 @@ public class Tile : MonoBehaviour
 
     public int x;
     public int y;
+    public int lastGain;
+    Tile original;
 
     public bool HasHive
     {
@@ -40,9 +42,43 @@ public class Tile : MonoBehaviour
         get { return flower; }
         set
         {
+            if ((flower == FlowerType.Orange || flower == FlowerType.Tupelo) && this != original)
+            {
+                original.Flower = value;
+                return;
+            }
+
             Destroy(flowerObject);
-            if (value != FlowerType.Empty) //&& value != flower
+            if (value != FlowerType.Empty && value != FlowerType.Orange && value != FlowerType.Tupelo) //&& value != flower
                 flowerObject = Instantiate(map.flowerList[(int)value], transform.position, Quaternion.identity);
+            else if (value != FlowerType.Empty)
+            {
+                original = this;
+                flowerObject = Instantiate(map.flowerList[(int)value], new Vector3(transform.position.x + 1, transform.position.y, transform.position.z + 1), Quaternion.identity);
+                map.tiles[x + 1, y].original = this;
+                map.tiles[x, y + 1].original = this;
+                map.tiles[x + 1, y + 1].original = this;
+                map.tiles[x + 1, y].flower = value;
+                map.tiles[x, y + 1].flower = value;
+                map.tiles[x + 1, y + 1].flower = value;
+                map.tiles[x + 1, y].flowerObject = flowerObject;
+                map.tiles[x, y + 1].flowerObject = flowerObject;
+                map.tiles[x + 1, y + 1].flowerObject = flowerObject;
+            }
+
+            if ((flower == FlowerType.Orange || flower == FlowerType.Tupelo) && value == FlowerType.Empty)
+            {
+                original = null;
+                map.tiles[x + 1, y].original = null;
+                map.tiles[x, y + 1].original = null;
+                map.tiles[x + 1, y + 1].original = null;
+                map.tiles[x + 1, y].flower = value;
+                map.tiles[x, y + 1].flower = value;
+                map.tiles[x + 1, y + 1].flower = value;
+                map.tiles[x + 1, y].flowerObject = null;
+                map.tiles[x, y + 1].flowerObject = null;
+                map.tiles[x + 1, y + 1].flowerObject = null;
+            }
 
             flower = value;
         }

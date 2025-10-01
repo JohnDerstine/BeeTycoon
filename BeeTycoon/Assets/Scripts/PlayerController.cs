@@ -141,6 +141,7 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
+                activeHolo = Instantiate(holo, value.transform, true); //holo hover for placeables
                 storedPos = value.transform.position;
 
                 pickedUpThisFrame = true;
@@ -237,7 +238,26 @@ public class PlayerController : MonoBehaviour
 
             //If a tile is clicked while holding a placeable object, place the object
             if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
+            {
                 objectToMove.transform.position = tileHit.point;
+
+                activeHolo.transform.position = objectToMove.transform.position; 
+
+                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
+                {
+                    if ((objectToMove.GetComponent<Cost>().tree && (t.y == map.mapHeight || t.x == map.mapWidth)) || t.HasHive || t.Flower != FlowerType.Empty)
+                        activeHolo.GetComponent<MeshRenderer>().material = redHolo;
+                    else
+                        activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
+                }
+            }
+            else if (Physics.Raycast(ray, out var hit2, 1000, LayerMask.GetMask("OOB")))
+            {
+                activeHolo.GetComponent<MeshRenderer>().material = redHolo;
+                objectToMove.transform.position = hit2.point;
+                activeHolo.transform.position = objectToMove.transform.position;
+            }
+
             CheckForPlacement();
         }
 

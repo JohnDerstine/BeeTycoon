@@ -113,6 +113,8 @@ public class HexMenu : MonoBehaviour
 
     private bool fromSave;
 
+    public List<FlowerType> availableFTypes = new List<FlowerType>();
+
     public VisualElement SelectedHex
     {
         get { return selectedHex; }
@@ -163,6 +165,7 @@ public class HexMenu : MonoBehaviour
         List<int> flowers = unlocks.GetNextFlowers();
         foreach (int i in flowers)
         {
+            availableFTypes.Add((FlowerType)(i + 2));
             flowerObjectList.Insert(0, allFlowerObjects[i]);
             flowerObjectList[0].GetComponent<Cost>().ftype = (FlowerType)(i + 2);
             flowerSprites.Insert(0, allFlowerSprites[i]);

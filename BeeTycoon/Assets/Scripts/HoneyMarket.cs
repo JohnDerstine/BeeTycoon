@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,6 +17,9 @@ public class HoneyMarket : MonoBehaviour
 
     [SerializeField]
     GameController controller;
+
+    [SerializeField]
+    VisualTreeAsset marketCard;
 
     private CustomVisualElement marketButton;
     public TemplateContainer marketTemplate;
@@ -60,8 +64,9 @@ public class HoneyMarket : MonoBehaviour
 
     public bool fromSave;
 
-    // Start is called before the first frame update
-    void Start()
+    private List<FlowerType> addedFlowers = new List<FlowerType>();
+
+    public void GameLoaded()
     {
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         controller = GameObject.Find("GameController").GetComponent<GameController>();
@@ -69,6 +74,7 @@ public class HoneyMarket : MonoBehaviour
 
         if (!fromSave)
         {
+
             foreach (var v in values)
             {
                 FlowerType fType = (FlowerType)v;
@@ -79,13 +85,57 @@ public class HoneyMarket : MonoBehaviour
             marketValues[FlowerType.Wildflower][2] = 3;
             marketValues[FlowerType.Clover][2] = 4;
             marketValues[FlowerType.Alfalfa][2] = 5;
-            //marketValues[FlowerType.Blossom][2] = 15;
             marketValues[FlowerType.Buckwheat][2] = 4;
             marketValues[FlowerType.Fireweed][2] = 5;
-            marketValues[FlowerType.Goldenrod][2] = 6;
+            marketValues[FlowerType.Dandelion][2] = 6;
+            marketValues[FlowerType.Sunflower][2] = 6;
+            marketValues[FlowerType.Daisy][2] = 6;
+            marketValues[FlowerType.Thistle][2] = 6;
+            marketValues[FlowerType.Blueberry][2] = 6;
+            marketValues[FlowerType.Orange][2] = 6;
+            marketValues[FlowerType.Tupelo][2] = 6;
 
             ResetToBaseValue();
             UpdateMarket();
+        }
+
+        OpenMarket();
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (i != 0)
+            {
+                if (i < 6)
+                    marketTemplate.Q<VisualElement>("Row1").Add(marketCard.Instantiate());
+                else if (i < 11)
+                    marketTemplate.Q<VisualElement>("Row2").Add(marketCard.Instantiate());
+                else
+                    marketTemplate.Q<VisualElement>("Row3").Add(marketCard.Instantiate());
+            }
+        }
+
+        //Add Wildflower card
+        VisualElement elem = marketTemplate.Q<VisualElement>("EmptyCard");
+        elem.name = FlowerType.Wildflower.ToString();
+        elem.Q<Label>("Label").text = FlowerType.Wildflower.ToString();
+        addedFlowers.Add(FlowerType.Wildflower);
+        elem.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Wildflower);
+
+        SetAllLabels();
+
+        SelectHoney(elem, FlowerType.Wildflower);
+
+        CloseMarket();
+    }
+
+    public void AddHoneyCards(List<int> flowers)
+    {
+        foreach (int f in flowers)
+        {
+            VisualElement elem = marketTemplate.Q<VisualElement>("EmptyCard");
+            elem.name = ((FlowerType)(f + 2)).ToString();
+            elem.Q<Label>("Label").text = ((FlowerType)(f + 2)).ToString();
+            addedFlowers.Add((FlowerType)(f + 2));
+            elem.RegisterCallback<PointerDownEvent, FlowerType>(Select, (FlowerType)(f + 2));
         }
     }
 
@@ -113,27 +163,23 @@ public class HoneyMarket : MonoBehaviour
             return;
 
         document.GetComponent<AudioSource>().Play();
-        marketTemplate = marketAsset.Instantiate();
+        if (marketTemplate == null)
+            marketTemplate = marketAsset.Instantiate();
+
         marketTemplate.style.position = Position.Absolute;
         document.rootVisualElement.Q<VisualElement>("Base").Add(marketTemplate);
 
+        
         SetUpMarket();
 
         document.rootVisualElement.Q<Label>("Money").visible = false;
 
         marketOpen = true;
+        SetAllLabels();
     }
 
     private void SetUpMarket()
     {
-        //Get Items
-        Wildflower = marketTemplate.Q<VisualElement>("Wildflower");
-        Clover = marketTemplate.Q<VisualElement>("Clover");
-        Alfalfa = marketTemplate.Q<VisualElement>("Alfalfa");
-        Buckwheat = marketTemplate.Q<VisualElement>("Buckwheat");
-        Fireweed = marketTemplate.Q<VisualElement>("Fireweed");
-        Goldenrod = marketTemplate.Q<VisualElement>("Goldenrod");
-
         //Get Buttons
         sell1 = marketTemplate.Q<Button>("Sell1");
         sell10 = marketTemplate.Q<Button>("Sell10");
@@ -156,14 +202,7 @@ public class HoneyMarket : MonoBehaviour
         SetAllLabels();
         UpdateBarRatio();
 
-        Wildflower.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Wildflower);
-        Clover.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Clover);
-        Alfalfa.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Alfalfa);
-        Buckwheat.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Buckwheat);
-        Fireweed.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Fireweed);
-        Goldenrod.RegisterCallback<PointerDownEvent, FlowerType>(Select, FlowerType.Goldenrod);
-
-        SelectHoney(Wildflower, FlowerType.Wildflower);
+        //SelectHoney(Wildflower, FlowerType.Wildflower);
 
         //Assign button callbacks
         sell1.clickable = new Clickable( e => Sell(1));
@@ -178,13 +217,10 @@ public class HoneyMarket : MonoBehaviour
 
     private void SetAllLabels()
     {
-        Debug.Log("setting labels");
-        SetLabel(Wildflower, FlowerType.Wildflower);
-        SetLabel(Clover, FlowerType.Clover);
-        SetLabel(Alfalfa, FlowerType.Alfalfa);
-        SetLabel(Buckwheat, FlowerType.Buckwheat);
-        SetLabel(Fireweed, FlowerType.Fireweed);
-        SetLabel(Goldenrod, FlowerType.Goldenrod);
+        foreach (FlowerType f in addedFlowers)
+        {
+            SetLabel(marketTemplate.Q<VisualElement>(f.ToString()), f);
+        }
         SetAmountLabel();
     }
 
@@ -195,6 +231,9 @@ public class HoneyMarket : MonoBehaviour
             element.Q<Label>("Cost").text = "$" + cost.Substring(0, cost.IndexOf('.') + 3);
         else
             element.Q<Label>("Cost").text = "$" + cost;
+
+        if (player.inventory.Count == 0)
+            return;
 
         //element.Q<Label>("Cost").text = "$" + marketValues[fType][0];
         string amount = player.inventory[fType][0].ToString();
@@ -213,7 +252,7 @@ public class HoneyMarket : MonoBehaviour
 
     private void SetAmountLabel()
     {
-        if (selectedElement != null)
+        if (selectedElement != null && player.inventory.Count != 0)
         {
             amountLabel.style.backgroundColor = new Color(0.26f, 0.26f, 0.26f);
             float amount = 0;
@@ -228,6 +267,9 @@ public class HoneyMarket : MonoBehaviour
 
     private void UpdateBarRatio()
     {
+        if (player.inventory.Count == 0)
+            return;
+
         float total = 0;
         float lowRatio = 0;
         float mediumRatio = 0;
@@ -399,7 +441,7 @@ public class HoneyMarket : MonoBehaviour
             return;
 
         document.rootVisualElement.Q<VisualElement>("Base").Remove(marketTemplate);
-        marketTemplate = null;
+        //marketTemplate = null;
         marketOpen = false;
         document.rootVisualElement.Q<Label>("Money").visible = true;
     }

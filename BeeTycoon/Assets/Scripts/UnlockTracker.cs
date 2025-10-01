@@ -104,7 +104,8 @@ public class UnlockTracker : MonoBehaviour
             foreach (int i in availableFlowers)
                 Stage34Flowers[(FlowerType)i] = true;
         }
-        
+
+        GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().AddHoneyCards(availableFlowers);
         return availableFlowers;
     }
 }

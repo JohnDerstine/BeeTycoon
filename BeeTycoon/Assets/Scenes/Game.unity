@@ -958,6 +958,7 @@ MonoBehaviour:
   marketAsset: {fileID: 9197481963319205126, guid: 9a5f77d0f0e19784686a57a4f08d8518, type: 3}
   player: {fileID: 1759206122}
   controller: {fileID: 0}
+  marketCard: {fileID: 9197481963319205126, guid: d2f8a8f459e0b9943ab5871b46cef378, type: 3}
   marketOpen: 0
   fromSave: 0
 --- !u!4 &2020842570
@@ -1117,6 +1118,7 @@ MonoBehaviour:
   purchased: 0
   ftype: 0
   OneTime: 1
+  tree: 0
 --- !u!1001 &4978123142478959165
 PrefabInstance:
   m_ObjectHideFlags: 0

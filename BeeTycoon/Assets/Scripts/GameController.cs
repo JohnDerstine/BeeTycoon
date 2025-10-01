@@ -139,6 +139,7 @@ public class GameController : MonoBehaviour
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
+        honeyMarket.GameLoaded();
         hexMenu.GameLoaded();
         CurrentState = GameStates.Start;
         ReloadUI();
@@ -156,6 +157,7 @@ public class GameController : MonoBehaviour
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
+        honeyMarket.GameLoaded();
         hexMenu.GameLoaded();
         CurrentState = GameStates.Running;
         ReloadUI();
@@ -210,6 +212,7 @@ public class GameController : MonoBehaviour
         document.visualTreeAsset = gameUI;
         ReloadUI();
         player.ReloadUI();
+        hexMenu.ReloadUI();
         document.GetComponent<Glossary>().GameLoaded();
         honeyMarket.ReloadUI();
         UpdateLabels();
@@ -238,7 +241,7 @@ public class GameController : MonoBehaviour
                     year++;
                     season = "spring";
                     newYear = true;
-                    map.GenerateFlowers();
+                    StartCoroutine(map.GenerateFlowers());
                     quotaScaling += 0.5f;
                     break;
             }

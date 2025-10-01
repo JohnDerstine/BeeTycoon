@@ -1,0 +1,9 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/marketItem.uss?fileID=7433441132597879392&amp;guid=8d314e77deb5ecb43909adf9c24dd5e0&amp;type=3#marketItem" />
+    <ui:VisualElement name="EmptyCard" class="Item" style="flex-grow: 0; justify-content: space-around; margin-left: 24px; margin-right: 24px;">
+        <ui:Label tabindex="-1" text="?" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Label" class="HoneyName" style="height: 20px;" />
+        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Cost" class="Price" />
+        <ui:VisualElement name="Icon" class="Icon" style="flex-grow: 0;" />
+        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Change" class="Price" style="color: rgb(27, 27, 27);" />
+    </ui:VisualElement>
+</ui:UXML>
