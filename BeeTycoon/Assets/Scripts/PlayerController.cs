@@ -357,7 +357,9 @@ public class PlayerController : MonoBehaviour
                                 Money = -hoverObject.GetComponent<Cost>().Price;
                                 h.x = (int)t.transform.position.x;
                                 h.y = (int)t.transform.position.z;
-                                SelectedItem = null;
+                                selectedItem = null;
+                                hoverObject = null;
+                                Destroy(activeHolo);
                                 h.Placed = true;
                                 h.SetUpTemplate();
                                 t.HasHive = true;

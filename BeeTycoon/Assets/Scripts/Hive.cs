@@ -166,6 +166,7 @@ public class Hive : MonoBehaviour
     public int repellantTurns;
     List<TemplateContainer> globs = new List<TemplateContainer>();
     private AudioSource source;
+    private bool animsRunning;
 
     public int Size
     {
@@ -527,6 +528,7 @@ public class Hive : MonoBehaviour
 
     private IEnumerator AnimateHarvest(float amount)
     {
+        animsRunning = true;
         source.pitch = 0.5f;
         int rounded = Mathf.RoundToInt(amount);
 
@@ -580,11 +582,14 @@ public class Hive : MonoBehaviour
         }
 
         globs.Clear();
+        animsRunning = false;
     }
 
     public void CheckCancelAnim()
     {
-        Debug.Log("Cancelling anims");
+        if (!animsRunning)
+            return;
+
         StopAllCoroutines();
         foreach (TemplateContainer glob in globs)
             if (document.rootVisualElement.Q<VisualElement>("HiveBase").Contains(glob))
@@ -647,6 +652,27 @@ public class Hive : MonoBehaviour
                     case FlowerType.Goldenrod:
                         flowerValues[FlowerType.Goldenrod] += 1f / distance;
                         break;
+                    case FlowerType.Dandelion:
+                        flowerValues[FlowerType.Dandelion] += 1f / distance;
+                        break;
+                    case FlowerType.Sunflower:
+                        flowerValues[FlowerType.Sunflower] += 1f / distance;
+                        break;
+                    case FlowerType.Daisy:
+                        flowerValues[FlowerType.Daisy] += 1f / distance;
+                        break;
+                    case FlowerType.Orange:
+                        flowerValues[FlowerType.Orange] += 1f / distance;
+                        break;
+                    case FlowerType.Thistle:
+                        flowerValues[FlowerType.Thistle] += 1f / distance;
+                        break;
+                    case FlowerType.Blueberry:
+                        flowerValues[FlowerType.Blueberry] += 1f / distance;
+                        break;
+                    case FlowerType.Tupelo:
+                        flowerValues[FlowerType.Tupelo] += 1f / distance;
+                        break;
                     case FlowerType.Empty:
                         break;
                     default:
@@ -673,7 +699,7 @@ public class Hive : MonoBehaviour
             honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();         
 
             float roundedPurity = Mathf.Round(honeyPurity * 1000) / 10.0f;
-            if (roundedPurity <= 50)
+            if (roundedPurity <= 60)
             {
                 roundedPurity = 100 - roundedPurity;
                 honeyType = FlowerType.Wildflower;
@@ -853,7 +879,7 @@ public class Hive : MonoBehaviour
     public void AddSugarWater()
     {
         //collection *= 1.5f;
-        addedNectar += 500;
+        addedNectar += 250;
         hasSugar = true;
     }
 

@@ -206,7 +206,7 @@ public class Glossary : MonoBehaviour
         {"Frame", "Each <color=yellow>super</color> has a default amount of 6 frames. Using this upgrade will <color=green>increase the frame count of every <color=yellow>super</color> in the hive by 1</color>, up to 4 additional frames."},
         {"Hive Stand", "The hive stand raises the hive off the ground, making it more accessible. <color=green>Increases hive efficieny by 10%</color>. It also just looks nice."},
         {"Enterance Reducer", "An enterenace reducer reduces the enterance to a smaller hole. This is used to <color=green>cure</color> the <color=yellow>mice affliction</color> and is a <color=yellow>permanent</color> fix."},
-        {"Sugar Water", "Sugar water mimics nectar from flowers, which allows the bees to have better nectar collection. <color=green>Increases nectar collection by 500</color>. <color=yellow>Only lasts 1 turn</color>."},
+        {"Sugar Water", "Sugar water mimics nectar from flowers, which allows the bees to have better nectar collection. <color=green>Increases nectar collection by 250</color>."},
         {"Mite Repellant", "Mite repellant cures the <color=yellow>mites affliction</color>. This <color=red>does not prevent</color> the hive of getting mites again in the future. It will last for <color=green>4 turns</color>."},
         {"Insulation", "Helps insulate the hive in <color=yellow>winter</color>. This <color=green>lowers the chance</color> of a hive to start <color=yellow>freezing</color>."},
         {"Emergency Kit", "Can be used during winter to prevent a hive from <color=red>freezing</color> or <color=red>starving</color>."},

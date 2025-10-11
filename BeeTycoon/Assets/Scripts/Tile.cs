@@ -113,7 +113,12 @@ public class Tile : MonoBehaviour
 
     public GameObject FlowerObject
     {
-        get { return flowerObject; }
+        get 
+        {
+            if (this != original && original != null)
+                return original.flowerObject;
+            return flowerObject; 
+        }
     }
 
     void Start()

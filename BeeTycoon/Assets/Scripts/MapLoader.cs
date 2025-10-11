@@ -171,7 +171,6 @@ public class MapLoader : MonoBehaviour
             int randX = Random.Range(0, mapWidth);
             int randY = Random.Range(0, mapHeight);
             GameObject temp = Instantiate(hive, new Vector3(randX * 2, 0.5f, randY * 2), Quaternion.identity);
-            tiles[randX, randY].Flower = FlowerType.Empty;
             Hive h = temp.GetComponent<Hive>();
             player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
             player.hives.Add(h);
@@ -355,6 +354,17 @@ public class MapLoader : MonoBehaviour
                 }
             }
         }
+
+        ClearHiveFlowers();
+    }
+
+    private void ClearHiveFlowers()
+    {
+        if (player == null)
+            return;
+
+        foreach (Hive h in player.hives)
+            h.hiveTile.Flower = FlowerType.Empty;
     }
 
     public void ClearFlowers()
