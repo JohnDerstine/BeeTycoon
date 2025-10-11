@@ -47,6 +47,13 @@ public class Glossary : MonoBehaviour
         "Buckwheat",
         "Fireweed",
         "Goldenrod",
+        "Dandelion",
+        "Sunflower",
+        "Orange Blossom",
+        "Daisy",
+        "Thistle",
+        "Blueberry Blossom",
+        "Tupelo",
 
         "TOOLS",
         "Hive Tool",
@@ -103,7 +110,14 @@ public class Glossary : MonoBehaviour
         "Alfalfa",
         "Buckwheat",
         "Fireweed",
-        "Goldenrod"
+        "Goldenrod",
+        "Dandelion",
+        "Sunflower",
+        "Orange Blossom",
+        "Daisy",
+        "Thistle",
+        "Blueberry Blossom",
+        "Tupelo",
     };
 
     List<string> tools = new List<string>()
@@ -163,13 +177,20 @@ public class Glossary : MonoBehaviour
         {"Russian", "The cold winters and abundance of predators have led Russian honey bees to be more aggressive than other species, but also more efficient. <br><br>Unqiue species effect: <color=red> Increased chance of becoming aggrevated</color>, but <color=green>10% increased hive efficiency</color>"},
         {"Japanese", "Japanese honey bees have had to adapt to unique predators and circumstances. This has led Japanese honey bees to become adept at creating their own solutions to problems. <br><br>Unique species effect: <color=green>33% chance to resolve afflictions themselves.</color><br>NOTE: This does not include freezing or starving."},
 
-        {"FLOWERS", "<b><size=36px><color=white>Flowers</size><br><br>    Bees need nectar to create honey, which is collected from flower nearby.</color></b> The type of flowers that the bees collect honey from determine the type of honey that is produced.<br><br>Ex. Clover flowers produce clover honey.<br><br><b><color=white>The closer a flower is to a hive, the more influence it has on that hive's produced honey type.</color></b> <br><br>Each type of flower produce <b><color=white>different amounts of nectar</color></b> that vary depending on their position relative to other flowers. Some flowers spread or take over other flowers too!"},
+        {"FLOWERS", "<b><size=36px><color=white>Flowers</size><br><br>    Bees need nectar to create honey, which is collected from flower nearby.</color></b> The type of flowers that the bees collect honey from determine the type of honey that is produced.<br><br>Ex. Clover flowers produce clover honey.<br><br><b><color=white>The closer a flower is to a hive and the more honey it produces, the more influence it has on that hive's produced honey type.</color></b> <br><br>Each type of flower produce <b><color=white>different amounts of nectar</color></b> that vary depending on their position relative to other flowers. Some flowers spread or take over other flowers too!"},
         {"'Wildflower'", "'Wildflower' isn't actually a flower, but just a term to describe honey that is produced from a wide variety of flowers combined."},
-        {"Clover", "Clover flowers produce <color=green>0 nectar</color> by themselves. However, they gain <color=green>5 nectar</color> per clover flower <color=yellow>adjacent</color> or <color=yellow>diagonal</color> to themselves."},
-        {"Alfalfa", "Alfalfa flowers produce <color=green>0 nectar</color> by themselves. However, they gain <color=green>7 nectar</color> per alfalfa flower <color=yellow>diagonal</color> to themselves."},
-        {"Buckwheat", "Buckwheat flowers produce <color=green>10 nectar</color>.<br><br>Buckwheat flowers also posess a <color=green>33% chance to spread</color> to <color=yellow>empty</color> tiles <color=yellow>adjacent</color> to themselves."},
-        {"Fireweed", "Fireweed flowers produce <color=green>10 nectar</color>.<br><br>Fireweed flowers also posess a <color=green>50% chance to convert</color> to <color=yellow>non-empty</color> tiles <color=yellow>adjacent</color> to themselves."},
-        {"Goldenrod", "Goldenrod flowers produce <color=green>15 nectar</color>."},
+        {"Clover", "Clover flowers produce <color=green>0 nectar</color> by themselves. However, they gain <color=green>10 nectar</color> per clover flower <color=yellow>adjacent</color> or <color=yellow>diagonal</color> to themselves."},
+        {"Alfalfa", "Alfalfa flowers produce <color=green>0 nectar</color> by themselves. However, they gain <color=green>20 nectar</color> per alfalfa flower <color=yellow>diagonal</color> to themselves."},
+        {"Buckwheat", "Buckwheat flowers produce <color=green>15 nectar</color>.<br><br>Buckwheat flowers also posess a <color=green>33% chance to spread</color> to <color=yellow>empty</color> tiles <color=yellow>adjacent</color> to themselves."},
+        {"Fireweed", "Fireweed flowers produce <color=green>30 nectar</color>.<br><br>Fireweed flowers also posess a <color=green>50% chance to convert</color> to <color=yellow>non-empty</color> tiles <color=yellow>adjacent</color> to themselves."},
+        {"Goldenrod", "Goldenrod flowers produce <color=green>50 nectar</color>."},
+        {"Dandelion", "Dadenlions produce <color=green>20 nectar</color>. At the end of the turn, dandelions die and respawn in a new empty tile, with a <color=yellow>10% chance</color> to create a second new dandelion"},
+        {"Sunflower", "Sunflowers produce <color=green>30 nectar</color> for each <color=yellow> empty tile</color> adjacent or diagonal to it."},
+        {"Orange Blossom", "Orange blossoms produce <color=green>50 nectar</color>. Since these are trees, they take up a 2x2, each tile counting as its own flower."},
+        {"Daisy", "Daisies produce <color=green>50 nectar</color> for each <color=yellow>unique flower</color> adjacent or diagonal to it."},
+        {"Thistle", "Thistles produce <color=green>0 nectar</color> on their own, however, each turn they will <color=red>kill</color> an adjacent or diagonal flower and produce nectar equal to 3x the amount that flower produced. This flower always scores last."},
+        {"Blueberry Blossom", "Blueberry blossoms produce <color=green>180 nectar</color>, but only in <color=yellow>Summer</color>."},
+        {"Tupelo", "Tupelo flowers produce <color=green>75 nectar</color>. Since these are trees, they take up a 2x2, each tile counting as its own flower."},
 
         {"TOOLS", "<b><size=36px><color=white>Tools</color></size></b><br><br>    As a beekeeper, a variety of tools are needed to be successful. <b><color=white>Once a tool is bought from the shop, you will never have to buy it again in that run.</color></b> Not all tools are necessary from the start, but you will most likely need to use each one at somepoint in order to be succesful. <br><br><b><color=white>To use or purchase a tool, go to the tools tab on the right and click on the tool. You can then click on the target to use it.</color></b>"},
         {"Hive Tool", "The hivetool is a simple prybar-like tool that is used to seperate and open a <color=yellow>hive</color> that has the <color=yellow>glued affliction</color>. It can also be used to remove a <color=yellow>super</color> from a hive.<br><br>Tip: Removing a super will decrease the amount of space in a hive, encouraging a the hive to <color=yellow>swarm</color>."},
@@ -182,7 +203,7 @@ public class Glossary : MonoBehaviour
         {"HIVE", "<b><size=36px><color=white>Hive</color></size></b><br><br>    Knowing how to prepare, manage, and care for your hives is your biggest task. <b><color=white>Buying new hives and upgrading old hives will be your primary tool for progressing through the game</color></b>. Below is a list of hive upgrades and remedies for afflictions. <br><br><b><color=white>Note: For information regarding hive mechanics, refer to the mechanics tab.</color></b>"},
         {"Beehive", "This is the <color=yellow>hive</color>. Clicking on a placed hive brings up the hive menu, for that specific hive. This is where you assign your queen bee, track honey production, and harvest."},
         {"Super", "Each hive 'box' is called a <color=yellow>super</color>. Each super holds <color=yellow>frames</color> that the bees will fill out with comb and store honey in. Using this upgrade will add another super, <color=green>increasing the maximum honey storage and population</color> of the hive. A hive can have a max of <color=green>5</color> supers."},
-        {"Frame", "Each <color=yellow>super</color> has a default amount of 6 frames. Using this upgrade will <color=green>increase the frame count of every <color=yellow>super</color> in the hive by 1</color>."},
+        {"Frame", "Each <color=yellow>super</color> has a default amount of 6 frames. Using this upgrade will <color=green>increase the frame count of every <color=yellow>super</color> in the hive by 1</color>, up to 4 additional frames."},
         {"Hive Stand", "The hive stand raises the hive off the ground, making it more accessible. <color=green>Increases hive efficieny by 10%</color>. It also just looks nice."},
         {"Enterance Reducer", "An enterenace reducer reduces the enterance to a smaller hole. This is used to <color=green>cure</color> the <color=yellow>mice affliction</color> and is a <color=yellow>permanent</color> fix."},
         {"Sugar Water", "Sugar water mimics nectar from flowers, which allows the bees to have better nectar collection. <color=green>Increases nectar collection by 500</color>. <color=yellow>Only lasts 1 turn</color>."},
@@ -190,20 +211,20 @@ public class Glossary : MonoBehaviour
         {"Insulation", "Helps insulate the hive in <color=yellow>winter</color>. This <color=green>lowers the chance</color> of a hive to start <color=yellow>freezing</color>."},
         {"Emergency Kit", "Can be used during winter to prevent a hive from <color=red>freezing</color> or <color=red>starving</color>."},
 
-        {"HONEYCYCLE", "<b><size=36px><color=white>Honey Cycle</color></size></b><br><br>    The <color=yellow>Honey Cycle</color> describes the process of constructing comb, collecting nectar, and producing honey. In order to produce honey, the hive must first have comb construct to store it, and nectar collected. <b><color=white>If a hive has no comb with nectar stored it cannot produce honey yet</color></b>. This means that hives will <color=red>not be able to produce honey</color> for their first 2 turns." +
-            "<br><br><b>To construct comb</b>, nothing is required other than the hive having a <colore=yellow>queen</color> assigned to it. <br><br><b><color=white>Collecting nectar</color></b> requires there to be flowers on the plot of land. The more flowers, the more nectar is collected per turn. See the <coloryellow>Flowers tab</color> for more information on how to increase nectar gains."},
+        {"HONEYCYCLE", "<b><size=36px><color=white>Honey Cycle</color></size></b><br><br>    The <color=yellow>Honey Cycle</color> describes the process of constructing comb, collecting nectar, and producing honey. In order to produce honey, the hive must first have comb constructed to store it, and nectar collected. <b><color=white>If a hive has no comb with nectar stored it cannot produce honey yet</color></b>. This means that hives will <color=red>not be able to produce honey</color> for their first turn." +
+            "<br><br><b>To construct comb</b>, nothing is required other than the hive having a <color=yellow>queen</color> assigned to it. <br><br><b><color=white>Collecting nectar</color></b> requires there to be flowers on the plot of land. The more flowers, the more nectar is collected per turn. See the <color=yellow>Flowers tab</color> for more information on how to increase nectar gains."},
 
         {"SEASONS", "<b><size=36px><color=white>Seasons</color></size></b><br><br>    <b><color=white>Different seasons can increase or decrease the likeliness of something to happen, or how productive a hive is.</color></b> <color=green>At the end of each season, a reward is given.</color> <br><br><br>" +
             "<b><color=green>Spring</color></b>: <color=white><br><br>The <color=red>glued affliction</color> is more likely to occur. <br><br>The <color=red>mice affliction</color> is less likely to occur.<br><br> <color=green>Hives build comb at a higher rate</color>.</color>" +
             "<br><br><br><b><color=yellow>Summer</color></b>: <color=white><br><br>The <color=red>mites affliction</color> is more likely to occur. <br><br>The <color=red>aggrevated affliction</color> is less likely to occur.<br><br> <color=green>Hives collect nectar at a higher rate</color>.</color>" +
             "<br><br><br><b><color=orange>Fall</color></b>: <color=white><br><br>The <color=red>aggrevated affliction</color> is more likely to occur. <br><br>The <color=red>glued affliction</color> is less likely to occur.<br><br> <color=green>Hives produce honey at a higher rate</color>.</color>" +
-            "<br><br><br><b><color=blue>Winter</color></b>: <color=white><br><br>The <color=red>mice affliction</color> is <b>much</b> more likely to occur. <br><br>The <color=red>starving</color> and <color=red>freezing afflictions</color> can occur. These afflictions are particularly deadly. Hives are not guranteed to survive the winter if they have <b><color=white>either</color></b> of the afflictions. If a hive has <b><color=white>both</color></b> it will die. Hives can be supplemented once per winter, to try and remedy these afflictions, but at a hefty cost.<br><br> <color=green>Completeing the winter gives you access to one of 3 bonus rewards.</color>.</color>"},
+            "<br><br><br><b><color=blue>Winter</color></b>: <color=white><br><br>The <color=red>mice affliction</color> is <b>much</b> more likely to occur. <br><br>The <color=red>starving</color> and <color=red>freezing afflictions</color> can occur. These afflictions are particularly deadly. Hives are not guranteed to survive the winter if they have <b><color=white>either</color></b> of the afflictions. If a hive has <b><color=white>both</color></b> it will die. Hives can be supplemented once per winter, to try and remedy these afflictions, but at a hefty cost.<br><br> <color=green>Completeing the winter gives you access to one of 3 bonus rewards and one of 3 run modifiers</color>.</color>"},
 
         {"HONEYMARKET", "<b><size=36px><color=white>Honey Market</color></size></b><br><br>    The honey market is where you go to sell your hard-earned honey. <color=white><b>Different types of honey have different price-points they sell for, which change over time as supply and demand changes.</color></b> <br><br>" +
             "You can tell if the price of a honey is trending upwards if it's banner is green, and downwards if it is red. The number at the top of the banner represents the price 1lb of that honey is selling for, and the number at the bottom of the banner represents how many lbs you havel." +
             "After a certain amount of time, the prices for each honey will reset back to their original price. <br><br>" +
             "<color=white><b>You can also choose to buy honey in the honey market</color></b>. This is useful if you need to supplement a hive with honey over the winter, or if you want to invest in a certain type of honey while it's price is low. <br><br>" +
-            "Lastly, at the bottom of the honey market there is a bar with 2 sliding brackets. <color=white><b>This is used to select what <color=yellow>quality</color> of honey you want to sell</color></b>. Higher quality honey sells for more, so it might be smart to hold on to it for when the market value is at its highest." +
+            "Lastly, at the bottom of the honey market there is a multi-colored bar. This represents honey quality. The higher quality your honey is, the more it sells for." +
             "The red portion of the bar represents low quality honey, the yellow represents average quality, and the green represents high quality. A honey's quality is determined by the purity of the honey. <br><br><color=white>For example</color>, if you only have 1 type of flower on your plot, the purity will be 100%."},
 
         {"BEESTATS", "<b><size=36px><color=white>Bee Stats</color></size></b><br><br>    Each queen bee comes with an array of stats that are randomly generated, as well as some quirks. <color=white><b>To see what a quirk does, hover over the quirk on the queen bee info panel</b></color>. <br><br>" +

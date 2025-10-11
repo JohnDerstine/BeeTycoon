@@ -92,7 +92,7 @@ public class GameController : MonoBehaviour
             if (value == GameStates.Start)
             {
                 List<int> choiceList = new List<int>() { 3, 3, 3};
-                StartCoroutine(choices.GiveChoice(choiceList, true));
+                StartCoroutine(choices.GiveChoice(choiceList, true, false));
             }
             currentState = value;
         }
@@ -271,12 +271,15 @@ public class GameController : MonoBehaviour
 
             if (newYear)
             {
-                StartCoroutine(choices.GiveChoice(3, false));
+                StartCoroutine(choices.GiveChoice(3, false, false)); //Normal choices
+                yield return new WaitWhile(() => choices.isChoosing);
+
+                StartCoroutine(choices.GiveChoice(3, false, true)); //modifier choices
                 yield return new WaitWhile(() => choices.isChoosing);
             }
             else
             {
-                StartCoroutine(choices.GiveChoice(2, false));
+                StartCoroutine(choices.GiveChoice(2, false, false));
                 yield return new WaitWhile(() => choices.isChoosing);
             }
         }

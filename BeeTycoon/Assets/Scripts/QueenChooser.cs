@@ -7,6 +7,9 @@ using UnityEngine.UIElements;
 public class QueenChooser : MonoBehaviour
 {
     [SerializeField]
+    private RunModifiers mods;
+
+    [SerializeField]
     private Texture2D testQueenSprite;
 
     [SerializeField]
@@ -20,6 +23,9 @@ public class QueenChooser : MonoBehaviour
 
     [SerializeField]
     private VisualTreeAsset sizeUI;
+
+    [SerializeField]
+    private VisualTreeAsset modifierUI;
 
     [SerializeField]
     private VisualTreeAsset choicesContainer;
@@ -64,6 +70,8 @@ public class QueenChooser : MonoBehaviour
     Color flowerLight = new Color(0.44f, 1, 0.91f);
     Color sizeDark = new Color(0, 0.4f, 1);
     Color sizeLight = new Color(0, 0.6f, 1);
+    Color modifierDark = new Color(0.88f, 0, 1);
+    Color modifierLight = new Color(1, 0f, .43f);
 
     private List<QueenBee> queenOptions = new List<QueenBee>();
     private List<VisualTreeAsset> rngOptions;
@@ -82,7 +90,7 @@ public class QueenChooser : MonoBehaviour
         rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI};
     }
 
-    public IEnumerator GiveChoice(int choice, bool starter = false)
+    public IEnumerator GiveChoice(int choice, bool starter = false, bool modifier = false)
     {
         isChoosing = true;
         template = choicesContainer.Instantiate();
@@ -93,7 +101,7 @@ public class QueenChooser : MonoBehaviour
         container.style.justifyContent = Justify.SpaceAround;
         document.rootVisualElement.Q<VisualElement>("Base").Add(template);
 
-        StartCoroutine(SpawnChoices(choice, starter));
+        StartCoroutine(SpawnChoices(choice, starter, modifier));
         yield return new WaitForFixedUpdate(); //Wait for selectionActive to be updated
         yield return new WaitUntil(() => !selectionActive); //Wait for selectionActive to be false until spawning more choices
 
@@ -104,8 +112,9 @@ public class QueenChooser : MonoBehaviour
         GameObject.Find("GameController").GetComponent<GameController>().CurrentState = GameStates.Running;
     }
 
-    public IEnumerator GiveChoice(List<int> choices, bool starter = false)
+    public IEnumerator GiveChoice(List<int> choices, bool starter = false, bool modifier = false)
     {
+        bool wasTrue = starter;
         isChoosing = true;
         template = choicesContainer.Instantiate();
         container = template.Q<VisualElement>("Container");
@@ -116,7 +125,9 @@ public class QueenChooser : MonoBehaviour
         document.rootVisualElement.Q<VisualElement>("Base").Add(template);
         for (int i = 0; i < choices.Count; i++)
         {
-            StartCoroutine(SpawnChoices(choices[i], starter));
+            if (wasTrue && i == 2)
+                modifier = true;
+            StartCoroutine(SpawnChoices(choices[i], starter, modifier));
             yield return new WaitForFixedUpdate(); //Wait for selectionActive to be updated
             yield return new WaitUntil(() => !selectionActive); //Wait for selectionActive to be false until spawning more choices
             starter = false;
@@ -131,7 +142,7 @@ public class QueenChooser : MonoBehaviour
 
     //Creates Queen Bee choices for the user to select from
     //Takes an input for the number of choices and whether or not this will be the player's starter Queen
-    private IEnumerator SpawnChoices(int numChoices, bool starter)
+    private IEnumerator SpawnChoices(int numChoices, bool starter, bool modifier)
     {
 
         //Get the options that user will have to choose from
@@ -140,6 +151,11 @@ public class QueenChooser : MonoBehaviour
         {
             for (int i = 0; rngChoices.Count < numChoices; i++)
                 rngChoices.Add(queenUI);
+        }
+        else if (modifier)
+        {
+            for (int i = 0; rngChoices.Count < numChoices; i++)
+                rngChoices.Add(modifierUI);
         }
         else
         {
@@ -196,8 +212,20 @@ public class QueenChooser : MonoBehaviour
 
                     popup.AddManipulator(new Clickable(e => SelectSize()));
                 }
+                else if (rngChoices[i] == modifierUI)
+                {
+                    MyCustomData colors = new MyCustomData(modifierDark, modifierLight);
+                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
+                    popup.RegisterCallback(queenExitCallback, colors);
 
-                container.Add(temp);
+                    int randID = Random.Range(0, mods.allMods.Count());
+                    popup.Q<VisualElement>("Icon").style.backgroundImage = mods.allMods[randID].Sprite;
+                    popup.Q<Label>("Title").text = mods.allMods[randID].Name;
+                    popup.Q<Label>("Description").text = mods.allMods[randID].Description;
+
+                    popup.AddManipulator(new Clickable(e => SelectModifier(randID)));
+                }
+                    container.Add(temp);
             }
         }
 
@@ -298,6 +326,14 @@ public class QueenChooser : MonoBehaviour
     {
         selectionActive = false;
         GameObject.Find("MapLoader").GetComponent<MapLoader>().IncreaseMapSize();
+        queenOptions.Clear();
+        document.rootVisualElement.Q<VisualElement>("Container").Clear();
+    }
+
+    private void SelectModifier(int id)
+    {
+        selectionActive = false;
+        mods.AddMod(id);
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }

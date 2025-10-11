@@ -478,7 +478,7 @@ public class HoneyMarket : MonoBehaviour
                 marketValues[fType][0] = marketValues[fType][2] / 2f;
         }
         turn++;
-        LogValues();
+        //LogValues();
         if (marketTemplate != null)
             SetAllLabels();
     }

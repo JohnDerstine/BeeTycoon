@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
@@ -74,6 +75,7 @@ public class PlayerController : MonoBehaviour
     public bool fromSave;
 
     private GameObject activeHolo;
+    private FlowerType storedFType;
 
     public GameObject SelectedItem
     {
@@ -86,6 +88,7 @@ public class PlayerController : MonoBehaviour
             if (value == null)// && selectedItem != null)
             {
                 hovering = false;
+                Destroy(hoverObject);
                 hoverObject = null;
                 UnityEngine.Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
                 
@@ -137,11 +140,21 @@ public class PlayerController : MonoBehaviour
             if (value == null)
             {
                 objectToMove.transform.position = storedPos;
+                storedTile.Flower = storedFType;
                 storedTile = null;
+                storedFType = FlowerType.Empty;
+                Destroy(ObjectToMove);
             }
             else
             {
+                Destroy(activeHolo);
                 activeHolo = Instantiate(holo, value.transform, true); //holo hover for placeables
+                value.TryGetComponent<Cost>(out Cost c);
+                if (c != null && c.tree)
+                {
+                    activeHolo.transform.localScale = new Vector3(3, 3, 3);
+                    activeHolo.transform.position = new Vector3(value.transform.position.x, 2f, value.transform.position.z);
+                }
                 storedPos = value.transform.position;
 
                 pickedUpThisFrame = true;
@@ -211,6 +224,7 @@ public class PlayerController : MonoBehaviour
             {
                 Destroy(hoverObject);
                 SelectedItem = null;
+                hexMenu.UnhighlightHex();
             }
             else
                 hexMenu.CloseTab();
@@ -219,6 +233,7 @@ public class PlayerController : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             SelectedItem = null;
+            hexMenu.UnhighlightHex();
             
             if (ObjectToMove != null)
                 ObjectToMove = null;
@@ -239,13 +254,21 @@ public class PlayerController : MonoBehaviour
             //If a tile is clicked while holding a placeable object, place the object
             if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
             {
-                objectToMove.transform.position = tileHit.point;
-
-                activeHolo.transform.position = objectToMove.transform.position; 
+                if (objectToMove.GetComponent<Cost>().tree)
+                    activeHolo.transform.position = new Vector3(objectToMove.transform.position.x, 2f, objectToMove.transform.position.z);
+                else
+                    activeHolo.transform.position = objectToMove.transform.position;
 
                 if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
                 {
-                    if ((objectToMove.GetComponent<Cost>().tree && (t.y == map.mapHeight || t.x == map.mapWidth)) || t.HasHive || t.Flower != FlowerType.Empty)
+                    if (objectToMove.GetComponent<Cost>().tree)
+                        objectToMove.transform.position = new Vector3(t.gameObject.transform.position.x + 1, t.gameObject.transform.position.y, t.gameObject.transform.position.z + 1);
+                    else
+                        objectToMove.transform.position = t.gameObject.transform.position;
+
+                    if (objectToMove.GetComponent<Cost>().tree && (t.y == map.mapHeight - 1 || t.x == map.mapWidth - 1 || !t.Check234() || t.HasHive || t.Flower != FlowerType.Empty))
+                        activeHolo.GetComponent<MeshRenderer>().material = redHolo;
+                    else if (t.HasHive || t.Flower != FlowerType.Empty)
                         activeHolo.GetComponent<MeshRenderer>().material = redHolo;
                     else
                         activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
@@ -255,10 +278,13 @@ public class PlayerController : MonoBehaviour
             {
                 activeHolo.GetComponent<MeshRenderer>().material = redHolo;
                 objectToMove.transform.position = hit2.point;
-                activeHolo.transform.position = objectToMove.transform.position;
+                if (objectToMove.GetComponent<Cost>().tree)
+                    activeHolo.transform.position = new Vector3(objectToMove.transform.position.x, objectToMove.transform.position.y + 2f, objectToMove.transform.position.z);
+                else
+                    activeHolo.transform.position = objectToMove.transform.position;
             }
 
-            CheckForPlacement();
+            CheckForPlacement(); 
         }
 
 
@@ -275,11 +301,15 @@ public class PlayerController : MonoBehaviour
                     {
                         if (hoverObject.TryGetComponent<Hive>(out Hive h))
                             hoverObject.transform.position = new Vector3(t.gameObject.transform.position.x, t.gameObject.transform.position.y + 0.5f, t.gameObject.transform.position.z);
+                        else if (hoverObject.GetComponent<Cost>().tree)
+                            hoverObject.transform.position = new Vector3(t.gameObject.transform.position.x + 1, t.gameObject.transform.position.y, t.gameObject.transform.position.z + 1);
                         else
                             hoverObject.transform.position = t.gameObject.transform.position;
                         activeHolo.transform.position = hoverObject.transform.position;
 
-                        if ((hoverObject.GetComponent<Cost>().tree && (t.y == map.mapHeight || t.x == map.mapWidth)) || t.HasHive || t.Flower != FlowerType.Empty)
+                        if (hoverObject.GetComponent<Cost>().tree && (t.y == map.mapHeight - 1 || t.x == map.mapWidth - 1 ||  !t.Check234() || t.HasHive || t.Flower != FlowerType.Empty))
+                            activeHolo.GetComponent<MeshRenderer>().material = redHolo;
+                        else if (t.HasHive || t.Flower != FlowerType.Empty)
                             activeHolo.GetComponent<MeshRenderer>().material = redHolo;
                         else
                             activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
@@ -336,7 +366,7 @@ public class PlayerController : MonoBehaviour
                         }
                         else if (hoverObject.TryGetComponent<Cost>(out Cost c))
                         {
-                            if (c.ftype != FlowerType.Empty && t.Flower == FlowerType.Empty && !t.HasHive)
+                            if (c.ftype != FlowerType.Empty && (t.Flower == FlowerType.Empty || t.Flower == FlowerType.Orange || t.Flower == FlowerType.Tupelo) && !t.HasHive)
                             {
                                 t.Flower = c.ftype;
                                 if (hexMenu.flowersOwned[c.ftype] <= 0)
@@ -352,6 +382,26 @@ public class PlayerController : MonoBehaviour
                                     hexMenu.OpenTab(3, hexMenu.open4, false);
                                 }
                             }
+                            else if (c.ftype != FlowerType.Empty && t.Flower == FlowerType.Empty && !t.HasHive) //tree check
+                            {
+                                if (t.y != map.mapHeight && t.x != map.mapWidth)
+                                {
+                                    t.Flower = c.ftype;
+                                    if (hexMenu.flowersOwned[c.ftype] <= 0)
+                                    {
+                                        Money = -c.Price;
+                                        hexMenu.RefreshMenuLists();
+                                        hexMenu.OpenTab(3, hexMenu.open4, false);
+                                    }
+                                    else
+                                    {
+                                        hexMenu.flowersOwned[c.ftype]--;
+                                        hexMenu.RefreshMenuLists();
+                                        hexMenu.OpenTab(3, hexMenu.open4, false);
+                                    }
+                                }
+
+                            }
 
                             if (c.ftype == FlowerType.Empty)
                             {
@@ -363,10 +413,12 @@ public class PlayerController : MonoBehaviour
                         }
                         return;
                     }
-                    else if (selectedItem.tag == "Shovel" && t.Flower != FlowerType.Empty)
+                    else if (selectedItem.tag == "Shovel" && t.Flower != FlowerType.Empty && objectToMove == null)
                     {
                         Debug.Log(t.FlowerObject.GetComponent<Cost>().ftype);
                         storedTile = t;
+                        storedFType = t.Flower;
+                        t.FlowerFixed = FlowerType.Empty;
                         ObjectToMove = t.FlowerObject;
                     }
                 }
@@ -489,7 +541,7 @@ public class PlayerController : MonoBehaviour
             }
 
             //If a tile is clicked while holding a placeable object, place the object
-            if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
+            if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")) && activeHolo.GetComponent<MeshRenderer>().material.color == greenHolo.color)
             {
                 if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
                 {
@@ -505,11 +557,14 @@ public class PlayerController : MonoBehaviour
                         }
                         else
                         {
-                            t.Flower = objectToMove.GetComponent<Cost>().ftype;
-                            storedTile.Flower = FlowerType.Empty;
+                            t.Flower = storedFType;
                             Debug.Log("Put down object");
                         }
-                        ObjectToMove = null;
+                        objectToMove = null;
+                        if (storedTile != t)
+                            storedTile.Flower = FlowerType.Empty;
+                        storedTile = null;
+                        storedFType = FlowerType.Empty;
                     }
                 }
             }
@@ -636,6 +691,9 @@ public class PlayerController : MonoBehaviour
     #region Camera Control
     private void CheckZoom()
     {
+        if (honeyMarket.marketOpen || glossary.open)
+            return;
+
         Vector3 cameraPos = Camera.main.transform.position;
         Vector3 scrollY = new Vector3(0, Input.mouseScrollDelta.y * Time.deltaTime * 75f, 0);
         if (cameraPos.y - scrollY.y > 2.25f * map.mapWidth)

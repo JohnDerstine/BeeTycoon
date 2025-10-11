@@ -450,6 +450,12 @@ public class HexMenu : MonoBehaviour
         selectedHex = hex;
     }
 
+    public void UnhighlightHex()
+    {
+        if (selectedHex != null)
+            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
+    }
+
     //Check to see if a Queen was selected from the shop, after clicking on the HiveUI queen button
     private void SelectHive(GameObject item, Texture2D sprite, int cost, Hive hive)
     {

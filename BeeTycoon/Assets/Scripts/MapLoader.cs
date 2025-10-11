@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Linq;
+using Unity.PlasticSCM.Editor.WebApi;
 
 public class MapLoader : MonoBehaviour
 {
@@ -14,6 +15,9 @@ public class MapLoader : MonoBehaviour
 
     [SerializeField]
     private ResourcePopup popUp;
+
+    [SerializeField]
+    private RunModifiers mods;
 
     [SerializeField]
     UIDocument document;
@@ -101,14 +105,14 @@ public class MapLoader : MonoBehaviour
     {
         tiles = new Tile[mapWidth, mapHeight];
         source = GetComponent<AudioSource>();
-        GeneratePlot(false, false);
+        GeneratePlot(false, false, true);
     }
 
     public void GameStart(bool fromSave)
     {
         tiles = new Tile[mapWidth, mapHeight];
         hexMenu = GameObject.Find("UIDocument").GetComponent<HexMenu>();
-        GeneratePlot(fromSave, false);
+        GeneratePlot(fromSave, false, true);
 
         var values = System.Enum.GetValues(typeof(FlowerType));
         foreach (var v in values)
@@ -118,7 +122,7 @@ public class MapLoader : MonoBehaviour
         }
     }
 
-    private void GeneratePlot(bool fromSave, bool reload)
+    private void GeneratePlot(bool fromSave, bool reload, bool generateFlowers)
     {
         trees.Clear();
         tufts.Clear();
@@ -155,7 +159,10 @@ public class MapLoader : MonoBehaviour
         GenerateFoliage();
         GenerateBorder();
         if (!fromSave)
+        {
+            if (generateFlowers)
             StartCoroutine(GenerateFlowers());
+        }
         else
             SaveSystem.Load();
 
@@ -339,7 +346,7 @@ public class MapLoader : MonoBehaviour
                         while (!possible)
                         {
                             rand = hexMenu.availableFTypes[Random.Range(0, hexMenu.availableFTypes.Count)];
-                            if ((i != mapWidth - 1 && j != mapHeight - 1) || (rand != FlowerType.Orange && rand != FlowerType.Tupelo))
+                            if ((i != mapWidth - 1 && j != mapHeight - 1 && tiles[i,j].Check234()) || (rand != FlowerType.Orange && rand != FlowerType.Tupelo))
                                 possible = true;
                         }
                         tiles[i, j].Flower = rand;
@@ -370,6 +377,8 @@ public class MapLoader : MonoBehaviour
                     count++;
         return count;
     }
+
+    #region GetNectarGains
 
     public IEnumerator GetNectarGains()
     {
@@ -491,6 +500,37 @@ public class MapLoader : MonoBehaviour
         document.rootVisualElement.Q<VisualElement>("NectarColumn").Insert(0, item);
     }
 
+    private int ApplyModifierValues(FlowerType flower, List<Tile> adjTiles, List<Tile>diagTiles, int currentGain)
+    {
+        int newGain = currentGain;
+        float mult = 1f;
+        foreach (FlowerModifier m in mods.GetArchetype<FlowerModifier>()) //Clover modifiers
+        {
+            if (m.Flowers[0] != FlowerType.Clover)
+                break;
+
+            int amountCheck = 0;
+            if (m.Direction.Contains("adjacent"))
+                foreach (Tile t in adjTiles)
+                    if (t.Flower == m.Flowers[1])
+                        amountCheck++;
+
+            if (m.Direction.Contains("diagonal"))
+                foreach (Tile t in diagTiles)
+                    if (t.Flower == m.Flowers[1])
+                        amountCheck++;
+
+            if (amountCheck >= m.Amount)
+            {
+                if (m.BaseMod != 0)
+                    newGain += m.BaseMod;
+                else
+                    mult = m.MultMod;
+            }
+        }
+        return (int)(newGain * mult);
+    }
+
     private IEnumerator GetCloverValue()
     {
         int count = 0;
@@ -505,15 +545,20 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(0);
 
-                    List<Tile> adjTiles = GetAdjacentFlowers(FlowerType.Clover, i, j);
-                    List<Tile> diagTiles = GetDiagonalFlowers(FlowerType.Clover, i, j);
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
 
-                    count += adjTiles.Count;
-                    count += diagTiles.Count;
+                    List<Tile> adjClover = GetAdjacentFlowers(FlowerType.Clover, i, j);
+                    List<Tile> diagClover = GetDiagonalFlowers(FlowerType.Clover, i, j);
+
+                    count += adjClover.Count;
+                    count += diagClover.Count;
                     //Print tempCount to the screen above tile.
                     //Animate flower
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Clover, 1, duration, true, source));
-                    int gain = (adjTiles.Count + diagTiles.Count) * cloverValue;
+                    int gain = (adjClover.Count + diagClover.Count) * cloverValue;
+                    gain = ApplyModifierValues(FlowerType.Clover, adjTiles, diagTiles, gain);
+
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i,j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -526,22 +571,22 @@ public class MapLoader : MonoBehaviour
                     item.Q<Label>("Amount").text = flowerAmountGained.ToString();
 
                     //Animate related flowers
-                    foreach (Tile t in adjTiles)
+                    foreach (Tile t in adjClover)
                     {
                         StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration, false, source));
                         //source.Play();
                     }
-                    foreach (Tile t in diagTiles)
+                    foreach (Tile t in diagClover)
                     {
                         StartCoroutine(t.Animate(FlowerType.Clover, 0.3f, duration, false, source));
-                        //source.Playo();
+                        //source.Play();
                     }
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
-                    foreach (Tile t in adjTiles)
+                    foreach (Tile t in adjClover)
                         t.completed = false;
-                    foreach (Tile t in diagTiles)
+                    foreach (Tile t in diagClover)
                         t.completed = false;
                     animsPlayed++;
                     source.pitch += 0.25f;
@@ -572,11 +617,15 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(1);
 
-                    List<Tile> diagTiles = GetDiagonalFlowers(FlowerType.Alfalfa, i, j);
-                    count += diagTiles.Count;
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
+
+                    List<Tile> diagAlfalfa = GetDiagonalFlowers(FlowerType.Alfalfa, i, j);
+                    count += diagAlfalfa.Count;
 
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Alfalfa, 1, duration, true, source));
-                    int gain = diagTiles.Count * alfalfaValue;
+                    int gain = diagAlfalfa.Count * alfalfaValue;
+                    gain = ApplyModifierValues(FlowerType.Alfalfa, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -589,12 +638,12 @@ public class MapLoader : MonoBehaviour
                     item.Q<Label>("Amount").text = flowerAmountGained.ToString();
 
                     //Animate related flowers
-                    foreach (Tile t in diagTiles)
+                    foreach (Tile t in diagAlfalfa)
                         StartCoroutine(t.Animate(FlowerType.Alfalfa, 0.3f, duration, false, source));
 
                     yield return new WaitWhile(() => !tiles[i, j].completed);
                     tiles[i, j].completed = false;
-                    foreach (Tile t in diagTiles)
+                    foreach (Tile t in diagAlfalfa)
                         t.completed = false;
                     animsPlayed++;
                     source.pitch += 0.25f;
@@ -624,9 +673,13 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(2);
 
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
+
                     count += buckwheatValue;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Buckwheat, 1, duration, true, source));
                     int gain = buckwheatValue;
+                    gain = ApplyModifierValues(FlowerType.Buckwheat, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -668,9 +721,13 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(4);
 
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
+
                     count += fireweedValue;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Fireweed, 1, duration, true, source));
                     int gain = fireweedValue;
+                    gain = ApplyModifierValues(FlowerType.Fireweed, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -712,9 +769,13 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(3);
 
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
+
                     count += goldenrodValue;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Goldenrod, 1, duration, true, source));
                     int gain = goldenrodValue;
+                    gain = ApplyModifierValues(FlowerType.Goldenrod, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -755,9 +816,13 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(2);
 
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
+
                     count += dandelionValue;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Dandelion, 1, duration, true, source));
                     int gain = dandelionValue;
+                    gain = ApplyModifierValues(FlowerType.Dandelion, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -799,13 +864,17 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(2);
 
-                    List<Tile> adjTiles = GetAdjacentFlowers(FlowerType.Empty, i, j);
-                    List<Tile> diagTiles = GetDiagonalFlowers(FlowerType.Empty, i, j);
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
 
-                    count += adjTiles.Count;
-                    count += diagTiles.Count;
+                    List<Tile> adjEmpty = GetAdjacentFlowers(FlowerType.Empty, i, j);
+                    List<Tile> diagEmpty = GetDiagonalFlowers(FlowerType.Empty, i, j);
+
+                    count += adjEmpty.Count;
+                    count += diagEmpty.Count;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Sunflower, 1, duration, true, source));
-                    int gain = (adjTiles.Count + diagTiles.Count) * sunflowerValue;
+                    int gain = (adjEmpty.Count + diagEmpty.Count) * sunflowerValue;
+                    gain = ApplyModifierValues(FlowerType.Sunflower, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -847,9 +916,13 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(2);
 
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
+
                     count += orangeValue;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Orange, 1, duration, true, source));
                     int gain = orangeValue;
+                    gain = ApplyModifierValues(FlowerType.Orange, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -891,6 +964,9 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(2);
 
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
+
                     var fValues = System.Enum.GetValues(typeof(FlowerType));
                     List<FlowerType> valueList = ((FlowerType[])fValues).ToList();
                     List<Tile> validTiles = GetAdjacentTiles(i, j);
@@ -910,6 +986,7 @@ public class MapLoader : MonoBehaviour
                     count += daisyValue * uniqueFlowers;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Daisy, 1, duration, true, source));
                     int gain = daisyValue * uniqueFlowers;
+                    gain = ApplyModifierValues(FlowerType.Daisy, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -935,7 +1012,7 @@ public class MapLoader : MonoBehaviour
         flowerAmountGained = 0;
         calced = true;
         item = null;
-    } // NOT IMPLEMENTED
+    }
 
     private IEnumerator GetThistleValue()
     {
@@ -950,6 +1027,9 @@ public class MapLoader : MonoBehaviour
                 {
                     if (item == null)
                         UpdateNectarUI(2);
+
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
 
                     List<Tile> validTiles = GetAdjacentTiles(i , j);
                     foreach (Tile t in GetDiagonalTiles(i, j))
@@ -969,6 +1049,7 @@ public class MapLoader : MonoBehaviour
                     count += randTile.lastGain * 3;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Thistle, 1, duration, true, source));
                     int gain = randTile.lastGain * 3;
+                    gain = ApplyModifierValues(FlowerType.Thistle, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -1014,12 +1095,16 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(2);
 
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
+
                     int gain = 0;
                     if (game.Season == "summer")
                     {
                         count += blueberryValue;
                         gain = blueberryValue;
                     }
+                    gain = ApplyModifierValues(FlowerType.Blueberry, adjTiles, diagTiles, gain);
 
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Blueberry, 1, duration, true, source));
                     tiles[i, j].lastGain = gain;
@@ -1063,9 +1148,13 @@ public class MapLoader : MonoBehaviour
                     if (item == null)
                         UpdateNectarUI(2);
 
+                    List<Tile> adjTiles = GetAdjacentTiles(i, j);
+                    List<Tile> diagTiles = GetDiagonalTiles(i, j);
+
                     count += tupeloValue;
                     StartCoroutine(tiles[i, j].Animate(FlowerType.Tupelo, 1, duration, true, source));
                     int gain = tupeloValue;
+                    gain = ApplyModifierValues(FlowerType.Tupelo, adjTiles, diagTiles, gain);
                     tiles[i, j].lastGain = gain;
                     popUp.DisplayPopup(tiles[i, j].transform.position, gain, duration);
                     flowerAmountGained += gain;
@@ -1093,20 +1182,23 @@ public class MapLoader : MonoBehaviour
         item = null;
     }
 
+    #endregion
+
+    #region GetTileHelpers
     private void ConvertAdjacentFlowers(List<Tile> validTiles, FlowerType fType, int chance)
     {
         foreach (Tile t in validTiles)
         {
-            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Fireweed && !tiles[t.x + 1, t.y].HasHive) //Fired weed exception
+            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Tupelo && tiles[t.x + 1, t.y].Flower != FlowerType.Orange && tiles[t.x + 1, t.y].Flower != FlowerType.Fireweed && !tiles[t.x + 1, t.y].HasHive) //Fired weed exception
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x + 1, t.y].Flower = fType;
-            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower != FlowerType.Empty && tiles[t.x - 1, t.y].Flower != FlowerType.Fireweed && !tiles[t.x - 1, t.y].HasHive)
+            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Tupelo && tiles[t.x + 1, t.y].Flower != FlowerType.Orange && tiles[t.x - 1, t.y].Flower != FlowerType.Fireweed && !tiles[t.x - 1, t.y].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x - 1, t.y].Flower = fType;
-            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower != FlowerType.Empty && tiles[t.x, t.y + 1].Flower != FlowerType.Fireweed && !tiles[t.x, t.y + 1].HasHive)
+            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Tupelo && tiles[t.x + 1, t.y].Flower != FlowerType.Orange && tiles[t.x, t.y + 1].Flower != FlowerType.Fireweed && !tiles[t.x, t.y + 1].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y + 1].Flower = fType;
-            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower != FlowerType.Empty && tiles[t.x, t.y - 1].Flower != FlowerType.Fireweed && !tiles[t.x, t.y - 1].HasHive)
+            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Tupelo && tiles[t.x + 1, t.y].Flower != FlowerType.Orange && tiles[t.x, t.y - 1].Flower != FlowerType.Fireweed && !tiles[t.x, t.y - 1].HasHive)
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y - 1].Flower = fType;
         }
@@ -1198,6 +1290,8 @@ public class MapLoader : MonoBehaviour
         return emptyTiles;
     }
 
+    #endregion
+
     private float DurationCalc(float duration, int animsPlayed)
     {
         float newDuration = duration;
@@ -1212,6 +1306,7 @@ public class MapLoader : MonoBehaviour
         return newDuration;
     }
 
+    #region AdvanceFlowers
     public void AdvanceFlowerStates()
     {
         AdvanceFireweed();
@@ -1269,6 +1364,8 @@ public class MapLoader : MonoBehaviour
         }
     }
 
+    #endregion
+
     public void IncreaseMapSize()
     {
         mapWidth++;
@@ -1279,6 +1376,8 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight - 1; j++)
             {
+                if ((tiles[i, j].Flower == FlowerType.Orange || tiles[i, j].Flower == FlowerType.Orange) && tiles[i, j] != tiles[i, j].Original)
+                    flowers[i, j] = FlowerType.Empty;
                 flowers[i, j] = tiles[i, j].Flower;
                 hives[i, j] = tiles[i, j].HasHive;
             }
@@ -1286,7 +1385,7 @@ public class MapLoader : MonoBehaviour
 
         ClearAllTiles();
         tiles = new Tile[mapWidth, mapHeight];
-        GeneratePlot(false, true);
+        GeneratePlot(false, true, false);
         GameObject.Find("GridRenderer").GetComponent<GridRenderer>().Reload();
         player.CenterCamera();
         ClearFlowers();
