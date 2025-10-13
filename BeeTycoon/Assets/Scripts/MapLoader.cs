@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using System.Linq;
-using Unity.PlasticSCM.Editor.WebApi;
 
 public class MapLoader : MonoBehaviour
 {
@@ -77,12 +76,12 @@ public class MapLoader : MonoBehaviour
     const int fireweedValue = 30;
     const int goldenrodValue = 50;
     const int dandelionValue = 20;
-    const int sunflowerValue = 30;
+    const int sunflowerValue = 22;
     const int orangeValue = 50;
     const int daisyValue = 50;
     const int thistleValue = 0;
     const int blueberryValue = 180;
-    const int tupeloValue = 75;
+    const int tupeloValue = 80;
 
 
     AudioSource source;
@@ -166,13 +165,18 @@ public class MapLoader : MonoBehaviour
         else
             SaveSystem.Load();
 
+        if (game.CurrentState != GameStates.Menu && !reload)
+        {
+            player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+            player.Setup();
+        }
+
         if (!fromSave && !reload && game.CurrentState != GameStates.Menu)
         {
             int randX = Random.Range(0, mapWidth);
             int randY = Random.Range(0, mapHeight);
             GameObject temp = Instantiate(hive, new Vector3(randX * 2, 0.5f, randY * 2), Quaternion.identity);
             Hive h = temp.GetComponent<Hive>();
-            player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
             player.hives.Add(h);
             h.Placed = true;
             h.queen = h.GetComponent<QueenBee>();
@@ -514,7 +518,7 @@ public class MapLoader : MonoBehaviour
     {
         int newGain = currentGain;
         float mult = 1f;
-        foreach (FlowerModifier m in mods.GetArchetype<FlowerModifier>()) //Clover modifiers
+        foreach (FlowerModifier m in mods.GetArchetypeAccquired<FlowerModifier>()) //Clover modifiers
         {
             if (m.Flowers[0] != FlowerType.Clover)
                 break;
@@ -1294,7 +1298,7 @@ public class MapLoader : MonoBehaviour
         List<Tile> emptyTiles = new List<Tile>();
 
         foreach (Tile t in tiles)
-            if (t.Flower == FlowerType.Empty)
+            if (t.Flower == FlowerType.Empty && !t.HasHive)
                 emptyTiles.Add(t);
 
         return emptyTiles;

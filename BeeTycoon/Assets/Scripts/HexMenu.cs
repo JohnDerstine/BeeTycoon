@@ -312,9 +312,9 @@ public class HexMenu : MonoBehaviour
             costLabel.text = "Owned";
             return 0;
         }
-        else if (cost.ftype != FlowerType.Empty && flowersOwned[(FlowerType)(index + 2)] > 0)
+        else if (cost.ftype != FlowerType.Empty && flowersOwned[cost.ftype] > 0)
         {
-            costLabel.text = flowersOwned[(FlowerType)(index + 2)] + " free";
+            costLabel.text = flowersOwned[cost.ftype] + " free";
             return 0;
         }
         costLabel.text = (price == 0) ? "Owned" : "$" + price;

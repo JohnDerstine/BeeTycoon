@@ -82,18 +82,18 @@ public class HoneyMarket : MonoBehaviour
                 amountSold.Add(fType, 0);
             }
 
-            marketValues[FlowerType.Wildflower][2] = 3;
-            marketValues[FlowerType.Clover][2] = 4;
-            marketValues[FlowerType.Alfalfa][2] = 5;
-            marketValues[FlowerType.Buckwheat][2] = 4;
-            marketValues[FlowerType.Fireweed][2] = 5;
+            marketValues[FlowerType.Wildflower][2] = 5;
+            marketValues[FlowerType.Clover][2] = 6;
+            marketValues[FlowerType.Alfalfa][2] = 6;
+            marketValues[FlowerType.Buckwheat][2] = 6;
+            marketValues[FlowerType.Fireweed][2] = 8;
             marketValues[FlowerType.Dandelion][2] = 6;
             marketValues[FlowerType.Sunflower][2] = 6;
-            marketValues[FlowerType.Daisy][2] = 6;
-            marketValues[FlowerType.Thistle][2] = 6;
-            marketValues[FlowerType.Blueberry][2] = 6;
+            marketValues[FlowerType.Daisy][2] = 8;
+            marketValues[FlowerType.Thistle][2] = 8;
+            marketValues[FlowerType.Blueberry][2] = 8;
             marketValues[FlowerType.Orange][2] = 6;
-            marketValues[FlowerType.Tupelo][2] = 6;
+            marketValues[FlowerType.Tupelo][2] = 8;
 
             ResetToBaseValue();
             UpdateMarket();

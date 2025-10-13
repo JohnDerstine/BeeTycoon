@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class UnlockTracker : MonoBehaviour
@@ -60,6 +61,8 @@ public class UnlockTracker : MonoBehaviour
         {"Agile", 1.5f}
     };
 
+    public List<FlowerType> ownedFlowers = new List<FlowerType>();
+
     private int stage = 0;
 
     public List<int> GetNextFlowers()
@@ -74,13 +77,21 @@ public class UnlockTracker : MonoBehaviour
         {
             List<FlowerType> randFlowerOptions = new List<FlowerType>();
             foreach (KeyValuePair<FlowerType, bool> kvp in Stage12Flowers)
+            {
                 if (!kvp.Value)
-                    randFlowerOptions.Add(kvp.Key - 2);
+                {
+                    if (stage == 2 || (stage == 1 && kvp.Key != FlowerType.Orange))
+                        randFlowerOptions.Add(kvp.Key);
+                }
+            }
 
             for (int i = 0; i < 3; i++)
             {
                 int rand = Random.Range(0, randFlowerOptions.Count);
-                availableFlowers.Add((int)randFlowerOptions[rand]);
+                Debug.Log(rand);
+                Debug.Log(randFlowerOptions.Count);
+                availableFlowers.Add((int)randFlowerOptions[rand] - 2);
+                ownedFlowers.Add(randFlowerOptions[rand]);
                 randFlowerOptions.RemoveAt(rand);
             }
 
@@ -92,12 +103,13 @@ public class UnlockTracker : MonoBehaviour
             List<FlowerType> randFlowerOptions = new List<FlowerType>();
             foreach (KeyValuePair<FlowerType, bool> kvp in Stage34Flowers)
                 if (!kvp.Value)
-                    randFlowerOptions.Add(kvp.Key - 2);
+                    randFlowerOptions.Add(kvp.Key);
 
             for (int i = 0; i < 3; i++)
             {
                 int rand = Random.Range(0, randFlowerOptions.Count);
-                availableFlowers.Add((int)randFlowerOptions[rand]);
+                availableFlowers.Add((int)randFlowerOptions[rand] - 2);
+                ownedFlowers.Add(randFlowerOptions[rand]);
                 randFlowerOptions.RemoveAt(rand);
             }
 

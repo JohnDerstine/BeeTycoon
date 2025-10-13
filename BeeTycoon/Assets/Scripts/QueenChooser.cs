@@ -184,8 +184,7 @@ public class QueenChooser : MonoBehaviour
                     popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
                     popup.RegisterCallback(queenExitCallback, colors);
 
-                    var values = System.Enum.GetValues(typeof(FlowerType));
-                    FlowerType rand = (FlowerType)Random.Range(2, values.Length);
+                    FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
                     popup.Q<Label>("Type").text = rand.ToString();
                     popup.Q<Label>("Price").text = "$" + GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().GetPrice(rand) + " / lb.";
                     popup.AddManipulator(new Clickable(e => SelectHoney(rand)));
@@ -197,8 +196,7 @@ public class QueenChooser : MonoBehaviour
                     popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
                     popup.RegisterCallback(queenExitCallback, colors);
 
-                    var values = System.Enum.GetValues(typeof(FlowerType));
-                    FlowerType rand = (FlowerType)Random.Range(2, values.Length);
+                    FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
                     popup.Q<Label>("Type").text = rand.ToString();
                     popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[(int)rand - 2];
 
@@ -218,10 +216,28 @@ public class QueenChooser : MonoBehaviour
                     popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
                     popup.RegisterCallback(queenExitCallback, colors);
 
-                    int randID = Random.Range(0, mods.allMods.Count());
-                    popup.Q<VisualElement>("Icon").style.backgroundImage = mods.allMods[randID].Sprite;
-                    popup.Q<Label>("Title").text = mods.allMods[randID].Name;
-                    popup.Q<Label>("Description").text = mods.allMods[randID].Description;
+                    List<Modifier> applicableMods = new List<Modifier>();
+                    foreach (FlowerModifier mod in mods.GetArchetypeAll<FlowerModifier>())
+                    {
+                        foreach (FlowerType f in tracker.ownedFlowers)
+                        {
+                            if (mod.Flowers.Contains(f))
+                                applicableMods.Add(mod);
+                        }
+                    }
+                    foreach (HoneyModifier mod in mods.GetArchetypeAll<HoneyModifier>())
+                    {
+                        foreach (FlowerType f in tracker.ownedFlowers)
+                        {
+                            if (mod.Flower == f)
+                                applicableMods.Add(mod);
+                        }
+                    }
+
+                    int randID = Random.Range(0, applicableMods.Count());
+                    popup.Q<VisualElement>("Icon").style.backgroundImage = applicableMods[randID].Sprite;
+                    popup.Q<Label>("Title").text = applicableMods[randID].Name;
+                    popup.Q<Label>("Description").text = applicableMods[randID].Description;
 
                     popup.AddManipulator(new Clickable(e => SelectModifier(randID)));
                 }

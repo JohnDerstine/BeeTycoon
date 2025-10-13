@@ -58,9 +58,9 @@ public class GameController : MonoBehaviour
     private Button newGameButton;
     private Button continueButton;
 
-    private int quota = 0;
-    private float quotaScaling = 1.5f;
-    private int previousQuota = 0;
+    private int quota = 10;
+    //private float quotaScaling = 1.5f;
+    private int previousQuota = 10;
 
     public bool nectarCollectingFinished;
     public bool flowerAdvanceFinished;
@@ -143,7 +143,7 @@ public class GameController : MonoBehaviour
         hexMenu.GameLoaded();
         CurrentState = GameStates.Start;
         ReloadUI();
-        Quota = 25;
+        Quota = 10;
 
         map.GameStart(false);
         SceneManager.sceneLoaded -= OnSceneLoadNew;
@@ -242,7 +242,7 @@ public class GameController : MonoBehaviour
                     season = "spring";
                     newYear = true;
                     StartCoroutine(map.GenerateFlowers());
-                    quotaScaling += 0.5f;
+                    //quotaScaling += 0.5f;
                     break;
             }
 
@@ -292,9 +292,14 @@ public class GameController : MonoBehaviour
 
         if ((turn - 1) % 4 == 0)
         {
-
-            Quota = (int)(quotaScaling * Quota);
+            previousQuota = quota;
+            Quota = Quota * 2;
+            //Quota = (int)(quotaScaling * Quota);
         }
+        if (season == "winter")
+            Quota = 0;
+        if (season == "spring")
+            Quota = previousQuota;
 
         CurrentState = GameStates.Running;
     }

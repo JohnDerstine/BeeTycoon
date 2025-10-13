@@ -189,7 +189,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // Start is called before the first frame update
-    void Start()
+    public void Setup()
     {
         game = GameObject.Find("GameController").GetComponent<GameController>();
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
@@ -437,6 +437,7 @@ public class PlayerController : MonoBehaviour
                         Money = -cost;
                         if (selectedItem.TryGetComponent(out QueenBee queen))
                         {
+                            Debug.Log("Trying to assign queen");
                             h.Populate(queen);
                             //Money = -hoverObject.GetComponent<Cost>().Price;
                             hexMenu.beeObjectList.Remove(SelectedItem);
@@ -512,6 +513,7 @@ public class PlayerController : MonoBehaviour
                     if (SelectedItem != null && selectedItem.tag == "Dolly" && h.hiveTile.HasHive == true)
                     {
                         ObjectToMove = h.gameObject;
+                        storedTile = h.hiveTile;
                     }
                     else if (SelectedItem != null && selectedItem.tag == "HiveTool" && h.Condition == "Glued")
                     {
@@ -562,6 +564,8 @@ public class PlayerController : MonoBehaviour
                             t.Flower = storedFType;
                             Debug.Log("Put down object");
                         }
+                        if (activeHolo != null)
+                            Destroy(activeHolo);
                         objectToMove = null;
                         if (storedTile != t)
                             storedTile.Flower = FlowerType.Empty;

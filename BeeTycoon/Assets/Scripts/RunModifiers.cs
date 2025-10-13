@@ -68,7 +68,7 @@ public class RunModifiers : MonoBehaviour
 
         //test
         //Debug.Log(allMods[0].GetType().ToString());
-        AddMod(0);
+        //AddMod(0);
         //AddMod(1);
         //Debug.Log(GetArchetype<HoneyModifier>()[0].Name);
         //Debug.Log(GetArchetype<HoneyModifier>()[0].Description);
@@ -79,13 +79,24 @@ public class RunModifiers : MonoBehaviour
         accquiredMods.Add(allMods[id]);
     }
 
-    public List<T> GetArchetype<T>() where T : struct
+    public List<T> GetArchetypeAccquired<T>() where T : struct
     {
         List<T> modsOfType = new List<T>();
         foreach (Modifier mod in accquiredMods)
         {
             if (mod.GetType() == typeof(T))
                 modsOfType.Add((T)mod);
+        }
+        return modsOfType;
+    }
+
+    public List<T> GetArchetypeAll<T>() where T : struct
+    {
+        List<T> modsOfType = new List<T>();
+        foreach (KeyValuePair<int, Modifier> kvp in allMods)
+        {
+            if (kvp.Value.GetType() == typeof(T))
+                modsOfType.Add((T)kvp.Value);
         }
         return modsOfType;
     }

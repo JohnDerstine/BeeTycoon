@@ -200,8 +200,10 @@ public class Hive : MonoBehaviour
             {
                 if (queen.nullQueen)
                     Condition = "Dead";
-                if (game.CurrentState == GameStates.Running)
-                    player.OpenHiveUI(template, hiveUI, this);
+                player.OpenHiveUI(template, hiveUI, this);
+
+                if (game.CurrentState != GameStates.Running)
+                    player.CloseHiveUI(this);
             }
         }
     }
