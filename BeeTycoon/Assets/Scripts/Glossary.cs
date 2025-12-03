@@ -80,7 +80,7 @@ public class Glossary : MonoBehaviour
 
         "HONEYMARKET",
 
-        "BEESTATS",
+        "BEESTATS"
     };
 
     List<string> afflictions = new List<string>()

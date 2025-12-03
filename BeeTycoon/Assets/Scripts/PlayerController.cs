@@ -67,7 +67,7 @@ public class PlayerController : MonoBehaviour
     private bool pickedUpThisFrame = false;
     private Tile storedTile;
 
-    private int money = 60;
+    private int money = 50;
     public int moneyEarned = 0;
     public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
@@ -556,8 +556,10 @@ public class PlayerController : MonoBehaviour
                             h.hiveTile = t;
                             t.HasHive = true;
                             h.x = (int)t.transform.position.x;
-                            h.y = (int)t.transform.position.y;
+                            h.y = (int)t.transform.position.z;
                             Debug.Log("Put down object");
+                            h.transform.position = t.transform.position;
+                            h.transform.position += new Vector3(0, 0.5f, 0);
                         }
                         else
                         {

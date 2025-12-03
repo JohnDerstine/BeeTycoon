@@ -76,7 +76,7 @@ public class MapLoader : MonoBehaviour
     const int fireweedValue = 30;
     const int goldenrodValue = 50;
     const int dandelionValue = 20;
-    const int sunflowerValue = 22;
+    const int sunflowerValue = 10;
     const int orangeValue = 50;
     const int daisyValue = 50;
     const int thistleValue = 0;
@@ -828,7 +828,7 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Dandelion)
                 {
                     if (item == null)
-                        UpdateNectarUI(2);
+                        UpdateNectarUI(5);
 
                     List<Tile> adjTiles = GetAdjacentTiles(i, j);
                     List<Tile> diagTiles = GetDiagonalTiles(i, j);
@@ -876,7 +876,7 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Sunflower)
                 {
                     if (item == null)
-                        UpdateNectarUI(2);
+                        UpdateNectarUI(6);
 
                     List<Tile> adjTiles = GetAdjacentTiles(i, j);
                     List<Tile> diagTiles = GetDiagonalTiles(i, j);
@@ -928,7 +928,7 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Orange)
                 {
                     if (item == null)
-                        UpdateNectarUI(2);
+                        UpdateNectarUI(10);
 
                     List<Tile> adjTiles = GetAdjacentTiles(i, j);
                     List<Tile> diagTiles = GetDiagonalTiles(i, j);
@@ -976,7 +976,7 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Daisy)
                 {
                     if (item == null)
-                        UpdateNectarUI(2);
+                        UpdateNectarUI(7);
 
                     List<Tile> adjTiles = GetAdjacentTiles(i, j);
                     List<Tile> diagTiles = GetDiagonalTiles(i, j);
@@ -1040,7 +1040,7 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Thistle)
                 {
                     if (item == null)
-                        UpdateNectarUI(2);
+                        UpdateNectarUI(8);
 
                     List<Tile> adjTiles = GetAdjacentTiles(i, j);
                     List<Tile> diagTiles = GetDiagonalTiles(i, j);
@@ -1107,7 +1107,7 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Blueberry)
                 {
                     if (item == null)
-                        UpdateNectarUI(2);
+                        UpdateNectarUI(9);
 
                     List<Tile> adjTiles = GetAdjacentTiles(i, j);
                     List<Tile> diagTiles = GetDiagonalTiles(i, j);
@@ -1160,7 +1160,7 @@ public class MapLoader : MonoBehaviour
                 if (tiles[i, j].Flower == FlowerType.Tupelo)
                 {
                     if (item == null)
-                        UpdateNectarUI(2);
+                        UpdateNectarUI(11);
 
                     List<Tile> adjTiles = GetAdjacentTiles(i, j);
                     List<Tile> diagTiles = GetDiagonalTiles(i, j);

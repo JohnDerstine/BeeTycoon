@@ -292,7 +292,8 @@ public class GameController : MonoBehaviour
 
         if ((turn - 1) % 4 == 0)
         {
-            previousQuota = quota;
+            if (season != "spring")
+                previousQuota = quota; //Avoid looping on 0 quota
             Quota = Quota * 2;
             //Quota = (int)(quotaScaling * Quota);
         }
