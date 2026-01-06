@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -213,8 +214,10 @@ public class Hive : MonoBehaviour
         get { return condition; }
         set
         {
+            Debug.Log("called");
             if (activePopup != null)
             {
+                Debug.Log("removing");
                 document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
                 activePopup = null;
             }
@@ -274,10 +277,13 @@ public class Hive : MonoBehaviour
 
             if (activePopup != null)
             {
+                Debug.Log("Not null");
                 AdjustPopupTransform();
                 activePopup.style.position = Position.Absolute;
                 activePopup.style.flexGrow = 0;
+                Debug.Log("Adding");
                 document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
+                Debug.Log("Added");
                 activePopup.RegisterCallback<PointerEnterEvent>(OnAfflictionHover);
                 activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
             }
@@ -351,6 +357,10 @@ public class Hive : MonoBehaviour
     }
     void Update()
     {
+        if (Condition != "Healthy" && !document.rootVisualElement.Q<VisualElement>("Base").Contains(activePopup))
+            document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
+
+        //Debug.Log(activePopup);
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (selectingQueen)
@@ -490,7 +500,8 @@ public class Hive : MonoBehaviour
         if (Condition != "Healthy" && queen.species == "Japanese" && Random.Range(0, 3) == 0)
             CureCondition();
 
-        TryAddCondition();
+        //TryAddCondition();
+        Condition = "Glued";
         hasSugar = false;
 
         Debug.Log("Population: " + population);
@@ -799,8 +810,8 @@ public class Hive : MonoBehaviour
 
     private void TryAddCondition()
     {
-        if (game.Season == "spring" && game.year == 1)
-            return;
+        //if (game.Season == "spring" && game.year == 1)
+        //    return;
 
         if (Condition == "Healthy" || game.Season == "winter")
         {
@@ -890,6 +901,7 @@ public class Hive : MonoBehaviour
         if (activePopup != null)
         {
             document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
+            Debug.Log("Removing");
             activePopup = null;
         }
     }
