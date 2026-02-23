@@ -72,6 +72,9 @@ public class PlayerController : MonoBehaviour
     public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
 
+    public int shovelsPerTurn = 3;
+    private int shovelUsesLeft = 3;
+
     public bool fromSave;
 
     private GameObject activeHolo;
@@ -101,7 +104,10 @@ public class PlayerController : MonoBehaviour
                 if (objectToMove != null)
                 {
                     if (objectToMove.TryGetComponent<Hive>(out Hive h))
+                    {
                         h.hiveTile.HasHive = true;
+                        h.hiveTile.hive = h;
+                    }
 
                     objectToMove.transform.position = storedPos;
                     objectToMove = null;
@@ -132,38 +138,38 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public GameObject ObjectToMove
-    {
-        get { return objectToMove; }
-        set
-        {
-            if (value == null)
-            {
-                objectToMove.transform.position = storedPos;
-                storedTile.Flower = storedFType;
-                storedTile = null;
-                storedFType = FlowerType.Empty;
-                Destroy(ObjectToMove);
-            }
-            else
-            {
-                Destroy(activeHolo);
-                activeHolo = Instantiate(holo, value.transform, true); //holo hover for placeables
-                value.TryGetComponent<Cost>(out Cost c);
-                if (c != null && c.tree)
-                {
-                    activeHolo.transform.localScale = new Vector3(3, 3, 3);
-                    activeHolo.transform.position = new Vector3(value.transform.position.x, 2f, value.transform.position.z);
-                }
-                storedPos = value.transform.position;
+    //public GameObject ObjectToMove
+    //{
+    //    get { return objectToMove; }
+    //    set
+    //    {
+    //        if (value == null)
+    //        {
+    //            objectToMove.transform.position = storedPos;
+    //            storedTile.Flower = storedFType;
+    //            storedTile = null;
+    //            storedFType = FlowerType.Empty;
+    //            Destroy(ObjectToMove);
+    //        }
+    //        else
+    //        {
+    //            Destroy(activeHolo);
+    //            activeHolo = Instantiate(holo, value.transform, true); //holo hover for placeables
+    //            value.TryGetComponent<Cost>(out Cost c);
+    //            if (c != null && c.tree)
+    //            {
+    //                activeHolo.transform.localScale = new Vector3(3, 3, 3);
+    //                activeHolo.transform.position = new Vector3(value.transform.position.x, 2f, value.transform.position.z);
+    //            }
+    //            storedPos = value.transform.position;
 
-                pickedUpThisFrame = true;
-                if (value.TryGetComponent<Hive>(out Hive h))
-                    h.hiveTile.HasHive = false;
-            }
-            objectToMove = value;
-        }
-    }
+    //            pickedUpThisFrame = true;
+    //            if (value.TryGetComponent<Hive>(out Hive h))
+    //                h.hiveTile.HasHive = false;
+    //        }
+    //        objectToMove = value;
+    //    }
+    //}
 
     public int Money
     {
@@ -235,8 +241,8 @@ public class PlayerController : MonoBehaviour
             SelectedItem = null;
             hexMenu.UnhighlightHex();
             
-            if (ObjectToMove != null)
-                ObjectToMove = null;
+            //if (ObjectToMove != null)
+            //    ObjectToMove = null;
         }
 
         if (Input.GetKeyDown(KeyCode.G))
@@ -247,45 +253,45 @@ public class PlayerController : MonoBehaviour
         if (SelectedItem != null)
             checkForClick();
 
-        if (objectToMove != null && !pickedUpThisFrame)
-        {
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        //if (objectToMove != null && !pickedUpThisFrame)
+        //{
+        //    var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-            //If a tile is clicked while holding a placeable object, place the object
-            if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
-            {
-                if (objectToMove.GetComponent<Cost>().tree)
-                    activeHolo.transform.position = new Vector3(objectToMove.transform.position.x, 2f, objectToMove.transform.position.z);
-                else
-                    activeHolo.transform.position = objectToMove.transform.position;
+        //    //If a tile is clicked while holding a placeable object, place the object
+        //    if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
+        //    {
+        //        if (objectToMove.GetComponent<Cost>().tree)
+        //            activeHolo.transform.position = new Vector3(objectToMove.transform.position.x, 2f, objectToMove.transform.position.z);
+        //        else
+        //            activeHolo.transform.position = objectToMove.transform.position;
 
-                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
-                {
-                    if (objectToMove.GetComponent<Cost>().tree)
-                        objectToMove.transform.position = new Vector3(t.gameObject.transform.position.x + 1, t.gameObject.transform.position.y, t.gameObject.transform.position.z + 1);
-                    else
-                        objectToMove.transform.position = t.gameObject.transform.position;
+        //        if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
+        //        {
+        //            if (objectToMove.GetComponent<Cost>().tree)
+        //                objectToMove.transform.position = new Vector3(t.gameObject.transform.position.x + 1, t.gameObject.transform.position.y, t.gameObject.transform.position.z + 1);
+        //            else
+        //                objectToMove.transform.position = t.gameObject.transform.position;
 
-                    if (objectToMove.GetComponent<Cost>().tree && (t.y == map.mapHeight - 1 || t.x == map.mapWidth - 1 || !t.Check234() || t.HasHive || t.Flower != FlowerType.Empty))
-                        activeHolo.GetComponent<MeshRenderer>().material = redHolo;
-                    else if (t.HasHive || t.Flower != FlowerType.Empty)
-                        activeHolo.GetComponent<MeshRenderer>().material = redHolo;
-                    else
-                        activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
-                }
-            }
-            else if (Physics.Raycast(ray, out var hit2, 1000, LayerMask.GetMask("OOB")))
-            {
-                activeHolo.GetComponent<MeshRenderer>().material = redHolo;
-                objectToMove.transform.position = hit2.point;
-                if (objectToMove.GetComponent<Cost>().tree)
-                    activeHolo.transform.position = new Vector3(objectToMove.transform.position.x, objectToMove.transform.position.y + 2f, objectToMove.transform.position.z);
-                else
-                    activeHolo.transform.position = objectToMove.transform.position;
-            }
+        //            if (objectToMove.GetComponent<Cost>().tree && (t.y == map.mapHeight - 1 || t.x == map.mapWidth - 1 || !t.Check234() || t.HasHive || t.Flower != FlowerType.Empty))
+        //                activeHolo.GetComponent<MeshRenderer>().material = redHolo;
+        //            else if (t.HasHive || t.Flower != FlowerType.Empty)
+        //                activeHolo.GetComponent<MeshRenderer>().material = redHolo;
+        //            else
+        //                activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
+        //        }
+        //    }
+        //    else if (Physics.Raycast(ray, out var hit2, 1000, LayerMask.GetMask("OOB")))
+        //    {
+        //        activeHolo.GetComponent<MeshRenderer>().material = redHolo;
+        //        objectToMove.transform.position = hit2.point;
+        //        if (objectToMove.GetComponent<Cost>().tree)
+        //            activeHolo.transform.position = new Vector3(objectToMove.transform.position.x, objectToMove.transform.position.y + 2f, objectToMove.transform.position.z);
+        //        else
+        //            activeHolo.transform.position = objectToMove.transform.position;
+        //    }
 
-            CheckForPlacement(); 
-        }
+        //    CheckForPlacement(); 
+        //}
 
 
 
@@ -363,6 +369,7 @@ public class PlayerController : MonoBehaviour
                                 h.Placed = true;
                                 h.SetUpTemplate();
                                 t.HasHive = true;
+                                t.hive = h;
                                 h.hiveTile = t;
                             }
                         }
@@ -415,14 +422,14 @@ public class PlayerController : MonoBehaviour
                         }
                         return;
                     }
-                    else if (selectedItem.tag == "Shovel" && t.Flower != FlowerType.Empty && objectToMove == null)
-                    {
-                        Debug.Log(t.FlowerObject.GetComponent<Cost>().ftype);
-                        storedTile = t;
-                        storedFType = t.Flower;
-                        t.FlowerFixed = FlowerType.Empty;
-                        ObjectToMove = t.FlowerObject;
-                    }
+                    //else if (selectedItem.tag == "Shovel" && shovelUsesLeft > 0 && t.Flower != FlowerType.Empty && objectToMove == null)
+                    //{
+                    //    Debug.Log(t.FlowerObject.GetComponent<Cost>().ftype);
+                    //    storedTile = t;
+                    //    storedFType = t.Flower;
+                    //    t.FlowerFixed = FlowerType.Empty;
+                    //    //ObjectToMove = t.FlowerObject;
+                    //}
                 }
             }
             if (Physics.Raycast(ray, out var hiveHit, 1000, LayerMask.GetMask("Hive")))
@@ -512,7 +519,7 @@ public class PlayerController : MonoBehaviour
 
                     if (SelectedItem != null && selectedItem.tag == "Dolly" && h.hiveTile.HasHive == true)
                     {
-                        ObjectToMove = h.gameObject;
+                        //ObjectToMove = h.gameObject;
                         storedTile = h.hiveTile;
                     }
                     else if (SelectedItem != null && selectedItem.tag == "HiveTool" && h.Condition == "Glued")
@@ -541,6 +548,7 @@ public class PlayerController : MonoBehaviour
                 objectToMove = null;
                 storedTile.Flower = FlowerType.Empty;
                 Debug.Log("Trashed object");
+                shovelUsesLeft--;
                 return;
             }
 
@@ -564,6 +572,7 @@ public class PlayerController : MonoBehaviour
                         else
                         {
                             t.Flower = storedFType;
+                            shovelUsesLeft--;
                             Debug.Log("Put down object");
                         }
                         if (activeHolo != null)
@@ -636,6 +645,7 @@ public class PlayerController : MonoBehaviour
         foreach (Hive h in hives)
             h.UpdateHive();
         honeyMarket.UpdateMarket();
+        shovelUsesLeft = shovelsPerTurn;
     }
 
     public void OpenHiveUI(TemplateContainer template, VisualTreeAsset hiveUI, Hive hive)

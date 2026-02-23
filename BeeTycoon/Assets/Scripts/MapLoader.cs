@@ -181,6 +181,7 @@ public class MapLoader : MonoBehaviour
             h.Placed = true;
             h.queen = h.GetComponent<QueenBee>();
             tiles[randX, randY].HasHive = true;
+            tiles[randX, randY].hive = h;
             h.hiveTile = tiles[randX, randY];
             h.x = (int)tiles[randX, randY].transform.position.x;
             h.y = (int)tiles[randX, randY].transform.position.y;
@@ -1386,6 +1387,7 @@ public class MapLoader : MonoBehaviour
         mapHeight++;
         FlowerType[,] flowers = new FlowerType[mapWidth, mapHeight];
         bool[,] hives = new bool[mapWidth, mapHeight];
+        Hive[,] hiveObjects = new Hive[mapWidth, mapHeight];
         for (int i = 0; i < mapWidth - 1; i++)
         {
             for (int j = 0; j < mapHeight - 1; j++)
@@ -1394,6 +1396,7 @@ public class MapLoader : MonoBehaviour
                     flowers[i, j] = FlowerType.Empty;
                 flowers[i, j] = tiles[i, j].Flower;
                 hives[i, j] = tiles[i, j].HasHive;
+                hiveObjects[i, j] = tiles[i, j].hive;
             }
         }
 
@@ -1410,6 +1413,7 @@ public class MapLoader : MonoBehaviour
             {
                 tiles[i, j].Flower = flowers[i, j];
                 tiles[i, j].HasHive = hives[i, j];
+                tiles[i, j].hive = hiveObjects[i, j];
             }
         }
 
@@ -1444,6 +1448,7 @@ public class MapLoader : MonoBehaviour
     {
         List<FlowerType> flowerData = new List<FlowerType>();
         List<bool> hiveData = new List<bool>();
+        List<Hive> hives = new List<Hive>();
 
         //loop through each tile, calling it's save function
         for (int i = 0; i < mapWidth; i++)
@@ -1452,11 +1457,13 @@ public class MapLoader : MonoBehaviour
             {
                 flowerData.Add(tiles[i, j].Flower);
                 hiveData.Add(tiles[i, j].HasHive);
+                hives.Add(tiles[i, j].hive);
             }
         }
 
         data.flowerData = flowerData;
         data.hiveData = hiveData;
+        data.hives = hives;
         data.width = mapWidth;
         data.height = mapHeight;
     }
@@ -1471,6 +1478,7 @@ public class MapLoader : MonoBehaviour
             {
                 tiles[i, j].HasHive = data.hiveData[count];
                 tiles[i, j].Flower = data.flowerData[count];
+                tiles[i, j].hive = data.hives[count];
                 count++;
             }
         }
@@ -1485,6 +1493,7 @@ public struct MapSaveData
 {
     public List<FlowerType> flowerData;
     public List<bool> hiveData;
+    public List<Hive> hives;
     public int width;
     public int height;
 }

@@ -355,10 +355,14 @@ public class Hive : MonoBehaviour
 
         hiveEfficency = (population / popCap) * size;
     }
+    //void Start()
+    //{
+    //    map.tiles[x, y].hive = this;
+    //}
     void Update()
     {
         if (Condition != "Healthy" && !document.rootVisualElement.Q<VisualElement>("Base").Contains(activePopup))
-            document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
+            document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup); //I don't know how the active popup is being added and removed from Base on the same frame. band-aid fix
 
         //Debug.Log(activePopup);
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -500,8 +504,8 @@ public class Hive : MonoBehaviour
         if (Condition != "Healthy" && queen.species == "Japanese" && Random.Range(0, 3) == 0)
             CureCondition();
 
-        //TryAddCondition();
-        Condition = "Glued";
+        TryAddCondition();
+        //Condition = "Glued";
         hasSugar = false;
 
         Debug.Log("Population: " + population);

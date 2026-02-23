@@ -4,6 +4,16 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+public enum Tool
+{
+    Smoker,
+    Shovel,
+    Dolly,
+    HiveTool,
+    BeeSuit,
+    Extractor
+}
+
 public class QueenChooser : MonoBehaviour
 {
     [SerializeField]
@@ -23,6 +33,9 @@ public class QueenChooser : MonoBehaviour
 
     [SerializeField]
     private VisualTreeAsset sizeUI;
+
+    [SerializeField]
+    private VisualTreeAsset toolUI;
 
     [SerializeField]
     private VisualTreeAsset modifierUI;
@@ -87,7 +100,7 @@ public class QueenChooser : MonoBehaviour
         queenMoveCallback = new EventCallback<PointerMoveEvent, MyCustomData>(OnQueenMove);
         quirkExitCallback = new EventCallback<PointerLeaveEvent>(OnQuirkExit);
         quirkEnterCallback = new EventCallback<PointerEnterEvent, string>(OnQuirkEnter);
-        rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI};
+        rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI, toolUI};
     }
 
     public IEnumerator GiveChoice(int choice, bool starter = false, bool modifier = false)
@@ -210,6 +223,20 @@ public class QueenChooser : MonoBehaviour
 
                     popup.AddManipulator(new Clickable(e => SelectSize()));
                 }
+                else if (rngChoices[i] == toolUI)
+                {
+                    MyCustomData colors = new MyCustomData(sizeDark, sizeLight);
+                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
+                    popup.RegisterCallback(queenExitCallback, colors);
+
+                    List<Tool> upgradableTools = tracker.ownedTools;
+                    foreach (Tool t in tracker.GetMaxedTools())
+                        upgradableTools.Remove(t);
+
+                    Tool rand = (Tool)Random.Range(0, upgradableTools.Count);
+
+                    popup.AddManipulator(new Clickable(e => SelectTool(rand)));
+                }
                 else if (rngChoices[i] == modifierUI)
                 {
                     MyCustomData colors = new MyCustomData(modifierDark, modifierLight);
@@ -239,7 +266,8 @@ public class QueenChooser : MonoBehaviour
                     popup.Q<Label>("Title").text = applicableMods[randID].Name;
                     popup.Q<Label>("Description").text = applicableMods[randID].Description;
 
-                    popup.AddManipulator(new Clickable(e => SelectModifier(randID)));
+                    popup.AddManipulator(new Clickable(e => SelectModifier(randID))); //Looking back on it, this doesn't make sense. I don't want randID, I want the ID of the mod in applicableMods[randID]
+                    //Double check to make sure that the game refelcts this being incorrect
                 }
                     container.Add(temp);
             }
@@ -342,6 +370,17 @@ public class QueenChooser : MonoBehaviour
     {
         selectionActive = false;
         GameObject.Find("MapLoader").GetComponent<MapLoader>().IncreaseMapSize();
+        queenOptions.Clear();
+        document.rootVisualElement.Q<VisualElement>("Container").Clear();
+    }
+
+    private void SelectTool(Tool tool)
+    {
+        selectionActive = false;
+
+        //Apply changes here
+        
+
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }

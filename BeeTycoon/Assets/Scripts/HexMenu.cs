@@ -15,6 +15,8 @@ public class HexMenu : MonoBehaviour
 
     private PlayerController player;
 
+    private ToolManager toolManager;
+
     [SerializeField]
     private Glossary glossary;
 
@@ -130,6 +132,7 @@ public class HexMenu : MonoBehaviour
     {
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         unlocks = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+        toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
 
         toolObjectList.Add(GameObject.Find("HiveTool"));
         toolObjectList.Add(GameObject.Find("Smoker"));
@@ -404,6 +407,7 @@ public class HexMenu : MonoBehaviour
             if (player.SelectedItem == item)
             {
                 player.SelectedItem = null;
+                toolManager.SetToolNull();
                 return;
             }
         }
@@ -429,6 +433,7 @@ public class HexMenu : MonoBehaviour
             UnityEngine.Cursor.SetCursor(sprite, new Vector2(sprite.width / 2, sprite.height / 2), CursorMode.Auto);
             player.SelectedItem = item;
             player.selectedItemSprite = sprite;
+            toolManager.SetActiveTool(item);
         }
 
         if (item.tag == "Placeable")

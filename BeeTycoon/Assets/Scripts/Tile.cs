@@ -10,6 +10,7 @@ public class Tile : MonoBehaviour
     private GameObject flowerObject;
     public bool completed;
     private bool hasHive;
+    public Hive hive;
 
     [SerializeField]
     private Material greenMat;
