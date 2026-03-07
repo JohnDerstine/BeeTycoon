@@ -2,15 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShovelTool : ToolScript
+public class ExtractorTool : ToolScript
 {
-    public int usesPerTurn = 0;
-    public int usesLeft = 0;
+    public bool noCombLoss;
+    public float extractorBonus = 1f;
     private List<string> descriptions = new List<string>()
     {
-        "Moves flowers from one tile to another.\n\n3 Uses per turn",
-        "Uses per turn:\n3 -> 5",
-        "Uses per turn:\n5 -> 7"
+        "Increases harvest efficiency which grants 10% more honey",
+        "Honey bonus:\n10% -> 25%",
+        "Removes comb loss when harvesting"
     };
 
     public override string GetDescription()
@@ -22,18 +22,17 @@ public class ShovelTool : ToolScript
     {
         level++;
         if (level == 1)
-        {
-            usesPerTurn = 3;
-            usesLeft = 3;
-        }
+            extractorBonus = 1.1f;
+        else if (level == 2)
+            extractorBonus = 1.25f;
         else
-            usesPerTurn += 2;
+            noCombLoss = true;
 
         base.Upgrade();
     }
 
     public override void TurnReset()
     {
-        usesLeft = usesPerTurn;
+        //Nothing
     }
 }

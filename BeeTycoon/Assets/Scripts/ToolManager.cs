@@ -2,21 +2,45 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum Tool
+{
+    HiveTool,
+    Smoker,
+    Shovel,
+    Dolly,
+    BeeSuit,
+    Extractor
+}
+
 public class ToolManager : MonoBehaviour
 {
     [SerializeField]
-    ShovelTool shovel;
-
-    //[SerializeField]
-    // SmokerTool smoker;
+    public ShovelTool shovel;
 
     [SerializeField]
-    DollyTool dolly;
-    //Add others later
+    public SmokerTool smoker;
 
+    [SerializeField]
+    public HiveTool hiveTool;
 
-    //private ShovelTool shovelTool;
-    //private DollyTool dollyTool;
+    [SerializeField]
+    public DollyTool dolly;
+
+    [SerializeField]
+    public ExtractorTool extractor;
+
+    [SerializeField]
+    public SuitTool suit;
+
+    public Dictionary<Tool, bool> toolsMaxed = new Dictionary<Tool, bool>()
+    {
+        {Tool.Smoker, false},
+        {Tool.Shovel, false},
+        {Tool.Dolly, false},
+        {Tool.HiveTool, false},
+        {Tool.BeeSuit, false},
+        {Tool.Extractor, false}
+    };
 
     //Object to Move
     [SerializeField]
@@ -100,6 +124,10 @@ public class ToolManager : MonoBehaviour
             else
                 CheckForPlacement();
         }
+        else if (activeTool == smoker || activeTool == hiveTool)
+        {
+            CheckForUse();
+        }
 
         if (objectToMove != null && !pickedUpThisFrame)
         {
@@ -108,20 +136,47 @@ public class ToolManager : MonoBehaviour
         //Else if other tool active, CheckForUse()
     }
 
-    public void SetActiveTool(GameObject item)
-    {   
-        switch (item.tag)
+    public void TurnReset()
+    {
+        shovel.TurnReset();
+        dolly.TurnReset();
+        hiveTool.TurnReset();
+        smoker.TurnReset();
+    }
+
+    public ToolScript GetToolFromTag(string tag)
+    {
+        switch (tag)
         {
             case "Dolly":
-                activeTool = dolly;
-                break;
+                return dolly;
             case "Shovel":
-                activeTool = shovel;
-                break;
+                return shovel;
+            case "Smoker":
+                return smoker;
+            case "HiveTool":
+                return hiveTool;
+            case "Extractor":
+                return extractor;
+            case "BeeSuit":
+                return suit;
             default:
-                activeTool = null;
-                break;
+                return null;
         }
+    }
+
+    public List<Tool> GetUnmaxedTools()
+    {
+        List<Tool> unmaxedTools = new List<Tool>();
+        foreach (KeyValuePair<Tool, bool> kvp in toolsMaxed)
+            if (!kvp.Value)
+                unmaxedTools.Add(kvp.Key);
+        return unmaxedTools;
+    }
+
+    public void SetActiveTool(GameObject item)
+    {   
+        activeTool = GetToolFromTag(item.tag);
     }
 
     public void SetToolNull(){ 
@@ -138,14 +193,14 @@ public class ToolManager : MonoBehaviour
             {
                 if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
                 {
-                    if (activeTool == shovel && shovel.uses > 0 && t.Flower != FlowerType.Empty)
+                    if (activeTool == shovel && shovel.usesLeft > 0 && t.Flower != FlowerType.Empty)
                     {
                         storedTile = t;
                         storedFType = t.Flower;
                         t.FlowerFixed = FlowerType.Empty;
                         ObjectToMove = t.FlowerObject;
                     }
-                    else if (activeTool == dolly && dolly.uses > 0 && t.HasHive)
+                    else if (activeTool == dolly && dolly.usesLeft > 0 && t.HasHive)
                     {
                         ObjectToMove = t.hive.gameObject;
                         storedTile = t;
@@ -165,7 +220,7 @@ public class ToolManager : MonoBehaviour
             if (Physics.Raycast(ray, out var trashHit, 1000, LayerMask.GetMask("Trash")) && activeTool == shovel)
             {
                 Destroy(objectToMove);
-                shovel.uses--;
+                shovel.usesLeft--;
                 CleanUpShovel();
                 return;
             }
@@ -179,7 +234,7 @@ public class ToolManager : MonoBehaviour
                         if (t.Flower == FlowerType.Empty && !t.HasHive)
                         {
                             t.Flower = storedFType;
-                            shovel.uses--;
+                            shovel.usesLeft--;
                             CleanUpShovel(t);
                         }
                     }
@@ -193,9 +248,29 @@ public class ToolManager : MonoBehaviour
                         h.y = (int)t.transform.position.z;
                         h.transform.position = t.transform.position;
                         h.transform.position += new Vector3(0, 0.5f, 0);
-                        dolly.uses--;
+                        dolly.usesLeft--;
                         CleanUpDolly(t);
                     }
+                }
+            }
+        }
+    }
+
+    private void CheckForUse()
+    {
+        if (Input.GetMouseButtonDown(0))
+        {
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+
+            if (Physics.Raycast(ray, out var hiveHit, 1000, LayerMask.GetMask("Hive")))
+            {
+                //If a hive is clicked with an item, apply the item's effect
+                if (hiveHit.collider.gameObject.TryGetComponent<Hive>(out Hive h))
+                {
+                    if (activeTool == smoker)
+                        h.CureCondition("Aggrevated");
+                    else if (activeTool == hiveTool)
+                        h.CureCondition("Glued");
                 }
             }
         }

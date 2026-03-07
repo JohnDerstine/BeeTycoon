@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/popupStyle.uss?fileID=7433441132597879392&amp;guid=1caa120a5e4b7c946be1af1820d7e3c3&amp;type=3#popupStyle" />
+    <CustomVisualElement name="Popup" style="width: 544px; height: 700px; background-image: url(&quot;project://database/Assets/Sprites/Selection%20UI/ToolUI.png?fileID=2800000&amp;guid=f728f4a60b02d014baf324d5badd1a7a&amp;type=3#ToolUI&quot;); background-color: rgba(0, 0, 0, 0); -unity-background-image-tint-color: rgb(166, 166, 166); padding-right: 80px; padding-left: 80px;">
+        <ui:VisualElement name="Icon" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Sprites/BeeIcon.png?fileID=2800000&amp;guid=d794b4b9be42e824f883ecaf14cd324c&amp;type=3#BeeIcon&quot;); position: absolute; width: 128px; height: 128px; margin-top: 40px; align-items: stretch; align-self: center;" />
+        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Type" class="Statistic" style="margin-top: 80px; -unity-text-align: middle-center;" />
+        <ui:Label tabindex="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Description" class="Statistic" style="margin-top: 60px; -unity-text-align: middle-center; font-size: 28px;" />
+    </CustomVisualElement>
+</ui:UXML>

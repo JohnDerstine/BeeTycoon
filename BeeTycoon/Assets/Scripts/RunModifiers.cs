@@ -10,8 +10,6 @@ public class RunModifiers : MonoBehaviour
     public Dictionary<int, Modifier> allMods = new Dictionary<int, Modifier>();
     public List<Modifier> accquiredMods = new List<Modifier>();
 
-    //private List<ITool> allTools = new List<ITool>();
-
     [SerializeField]
     private List<Texture2D> modSprites = new List<Texture2D>();
 

@@ -540,8 +540,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   shovel: {fileID: 1756888619}
-  smoker: {fileID: 3921509521645674253}
+  smoker: {fileID: 3921509521645674255}
+  hiveTool: {fileID: 5462901012706523370}
   dolly: {fileID: 1376056228845150883}
+  extractor: {fileID: 4978123142478959167}
+  suit: {fileID: 8228312832242615338}
   holo: {fileID: 2085591973050882581, guid: 2dff1a0aa35e1924abf9fbd8652ec70a, type: 3}
   redHolo: {fileID: 2100000, guid: c2fe6ec33656bf24ea8fd6493d4807fe, type: 2}
   greenHolo: {fileID: 2100000, guid: dfaad3ab82e289348929b3458ad7212a, type: 2}
@@ -777,7 +780,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ownedFlowers: 
-  ownedTools: 
 --- !u!4 &1005663709
 Transform:
   m_ObjectHideFlags: 0
@@ -938,8 +940,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 296230285890aec49a5b7b0237cb2287, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  level: 0
-  uses: 3
+  toolManager: {fileID: 0}
+  toolID: 2
+  usesPerTurn: 0
+  usesLeft: 0
 --- !u!1 &1759206121
 GameObject:
   m_ObjectHideFlags: 0
@@ -1129,8 +1133,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b07ee45d8b4cbd14ab694397031a6bb5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  level: 0
-  uses: 3
+  toolManager: {fileID: 0}
+  toolID: 3
+  usesPerTurn: 0
+  usesLeft: 0
+  carryCapcity: 2
 --- !u!1001 &3921509521645674252
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1194,6 +1201,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5912064434823061562, guid: 5dd53c23090678f498d266006cc077b4, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3921509521645674254}
+    - targetCorrespondingSourceObject: {fileID: 5912064434823061562, guid: 5dd53c23090678f498d266006cc077b4, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3921509521645674255}
   m_SourcePrefab: {fileID: 100100000, guid: 5dd53c23090678f498d266006cc077b4, type: 3}
 --- !u!1 &3921509521645674253 stripped
 GameObject:
@@ -1217,6 +1227,23 @@ MonoBehaviour:
   ftype: 0
   OneTime: 1
   tree: 0
+--- !u!114 &3921509521645674255
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3921509521645674253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ccf96155dce03542990d0e61b0d6845, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  toolManager: {fileID: 0}
+  toolID: 1
+  usesPerTurn: 0
+  usesLeft: 0
+  calming: 0
 --- !u!1001 &4978123142478959165
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1272,8 +1299,32 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8823266071735625130, guid: d2a3d2c503815894da396d481136b285, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4978123142478959167}
   m_SourcePrefab: {fileID: 100100000, guid: d2a3d2c503815894da396d481136b285, type: 3}
+--- !u!1 &4978123142478959166 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8823266071735625130, guid: d2a3d2c503815894da396d481136b285, type: 3}
+  m_PrefabInstance: {fileID: 4978123142478959165}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4978123142478959167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4978123142478959166}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c946afc96edcc841ad232e42341d06e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  toolManager: {fileID: 0}
+  toolID: 5
+  noCombLoss: 0
+  extractorBonus: 1
 --- !u!1001 &5462901012706523368
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1329,8 +1380,33 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4473018494580430433, guid: 72becc10ef7e23d4087db2ad80f81674, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5462901012706523370}
   m_SourcePrefab: {fileID: 100100000, guid: 72becc10ef7e23d4087db2ad80f81674, type: 3}
+--- !u!1 &5462901012706523369 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4473018494580430433, guid: 72becc10ef7e23d4087db2ad80f81674, type: 3}
+  m_PrefabInstance: {fileID: 5462901012706523368}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5462901012706523370
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5462901012706523369}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f277b4ef6a2d134c8b59f138f32ae85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  toolManager: {fileID: 0}
+  toolID: 0
+  usesPerTurn: 0
+  usesLeft: 0
+  canRemoveSupers: 0
 --- !u!1001 &8228312832242615336
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1386,8 +1462,32 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4706762157225718967, guid: b7c5680fba13001409ab77b8ebd0bc99, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8228312832242615338}
   m_SourcePrefab: {fileID: 100100000, guid: b7c5680fba13001409ab77b8ebd0bc99, type: 3}
+--- !u!1 &8228312832242615337 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4706762157225718967, guid: b7c5680fba13001409ab77b8ebd0bc99, type: 3}
+  m_PrefabInstance: {fileID: 8228312832242615336}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8228312832242615338
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8228312832242615337}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0c9702c93e4a214190b77d603385137, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  toolManager: {fileID: 0}
+  toolID: 4
+  allowHarvest: 0
+  cureChance: -1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

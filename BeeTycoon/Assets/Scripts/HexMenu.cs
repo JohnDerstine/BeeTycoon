@@ -44,7 +44,7 @@ public class HexMenu : MonoBehaviour
     public List<GameObject> beeObjectList = new List<GameObject>();
 
     [SerializeField]
-    private List<Texture2D> toolSprites = new List<Texture2D>();
+    public List<Texture2D> toolSprites = new List<Texture2D>();
 
     [SerializeField]
     private List<GameObject> toolObjectList = new List<GameObject>();
@@ -445,8 +445,11 @@ public class HexMenu : MonoBehaviour
         {
             item.GetComponent<Cost>().Purchased = true;
             Label costLabel = hex.Q<Label>();
-            if (costLabel.text != "Owned")
+            if (toolManager.GetToolFromTag(item.tag).Level == 0)
+            {
                 player.Money = -cost;
+                toolManager.GetToolFromTag(item.tag).Upgrade();
+            }
             costLabel.text = "Owned";
             item.GetComponent<Cost>().Price = 0;
         }

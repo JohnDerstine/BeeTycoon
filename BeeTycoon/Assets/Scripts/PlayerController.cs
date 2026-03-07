@@ -47,9 +47,6 @@ public class PlayerController : MonoBehaviour
 
     private Glossary glossary;
 
-    //[SerializeField]
-    //private VisualTreeAsset hiveUI;
-
     private TemplateContainer activeUI;
     public Hive currentHive;
 
@@ -138,39 +135,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    //public GameObject ObjectToMove
-    //{
-    //    get { return objectToMove; }
-    //    set
-    //    {
-    //        if (value == null)
-    //        {
-    //            objectToMove.transform.position = storedPos;
-    //            storedTile.Flower = storedFType;
-    //            storedTile = null;
-    //            storedFType = FlowerType.Empty;
-    //            Destroy(ObjectToMove);
-    //        }
-    //        else
-    //        {
-    //            Destroy(activeHolo);
-    //            activeHolo = Instantiate(holo, value.transform, true); //holo hover for placeables
-    //            value.TryGetComponent<Cost>(out Cost c);
-    //            if (c != null && c.tree)
-    //            {
-    //                activeHolo.transform.localScale = new Vector3(3, 3, 3);
-    //                activeHolo.transform.position = new Vector3(value.transform.position.x, 2f, value.transform.position.z);
-    //            }
-    //            storedPos = value.transform.position;
-
-    //            pickedUpThisFrame = true;
-    //            if (value.TryGetComponent<Hive>(out Hive h))
-    //                h.hiveTile.HasHive = false;
-    //        }
-    //        objectToMove = value;
-    //    }
-    //}
-
     public int Money
     {
         get { return money; }
@@ -240,9 +204,6 @@ public class PlayerController : MonoBehaviour
         {
             SelectedItem = null;
             hexMenu.UnhighlightHex();
-            
-            //if (ObjectToMove != null)
-            //    ObjectToMove = null;
         }
 
         if (Input.GetKeyDown(KeyCode.G))
@@ -252,48 +213,6 @@ public class PlayerController : MonoBehaviour
         //Checks to see if selected item is placed
         if (SelectedItem != null)
             checkForClick();
-
-        //if (objectToMove != null && !pickedUpThisFrame)
-        //{
-        //    var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-        //    //If a tile is clicked while holding a placeable object, place the object
-        //    if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
-        //    {
-        //        if (objectToMove.GetComponent<Cost>().tree)
-        //            activeHolo.transform.position = new Vector3(objectToMove.transform.position.x, 2f, objectToMove.transform.position.z);
-        //        else
-        //            activeHolo.transform.position = objectToMove.transform.position;
-
-        //        if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
-        //        {
-        //            if (objectToMove.GetComponent<Cost>().tree)
-        //                objectToMove.transform.position = new Vector3(t.gameObject.transform.position.x + 1, t.gameObject.transform.position.y, t.gameObject.transform.position.z + 1);
-        //            else
-        //                objectToMove.transform.position = t.gameObject.transform.position;
-
-        //            if (objectToMove.GetComponent<Cost>().tree && (t.y == map.mapHeight - 1 || t.x == map.mapWidth - 1 || !t.Check234() || t.HasHive || t.Flower != FlowerType.Empty))
-        //                activeHolo.GetComponent<MeshRenderer>().material = redHolo;
-        //            else if (t.HasHive || t.Flower != FlowerType.Empty)
-        //                activeHolo.GetComponent<MeshRenderer>().material = redHolo;
-        //            else
-        //                activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
-        //        }
-        //    }
-        //    else if (Physics.Raycast(ray, out var hit2, 1000, LayerMask.GetMask("OOB")))
-        //    {
-        //        activeHolo.GetComponent<MeshRenderer>().material = redHolo;
-        //        objectToMove.transform.position = hit2.point;
-        //        if (objectToMove.GetComponent<Cost>().tree)
-        //            activeHolo.transform.position = new Vector3(objectToMove.transform.position.x, objectToMove.transform.position.y + 2f, objectToMove.transform.position.z);
-        //        else
-        //            activeHolo.transform.position = objectToMove.transform.position;
-        //    }
-
-        //    CheckForPlacement(); 
-        //}
-
-
 
         //Displays selected item under mouse
         if (hovering && hoverObject != null && selectedItem != null)
@@ -422,14 +341,6 @@ public class PlayerController : MonoBehaviour
                         }
                         return;
                     }
-                    //else if (selectedItem.tag == "Shovel" && shovelUsesLeft > 0 && t.Flower != FlowerType.Empty && objectToMove == null)
-                    //{
-                    //    Debug.Log(t.FlowerObject.GetComponent<Cost>().ftype);
-                    //    storedTile = t;
-                    //    storedFType = t.Flower;
-                    //    t.FlowerFixed = FlowerType.Empty;
-                    //    //ObjectToMove = t.FlowerObject;
-                    //}
                 }
             }
             if (Physics.Raycast(ray, out var hiveHit, 1000, LayerMask.GetMask("Hive")))
@@ -481,8 +392,8 @@ public class PlayerController : MonoBehaviour
                             if (!h.hasReducer)
                             {
                                 h.hasReducer = true;
-                                if (h.Condition == "Mice")
-                                    h.CureCondition();
+                                if (h.conditions.Contains("Mice"))
+                                    h.CureCondition("Mice");
                             }
                         }
                         else if (selectedItem.tag == "Stand")
@@ -496,8 +407,8 @@ public class PlayerController : MonoBehaviour
                         }
                         else if (selectedItem.tag == "Repellant")
                         {
-                            if (h.Condition == "Mites")
-                                h.CureCondition();
+                            if (h.conditions.Contains("Mites"))
+                                h.CureCondition("Mites");
                             h.repellantTurns = 4;
                         }
                         else if (selectedItem.tag == "Insulation")
@@ -507,81 +418,14 @@ public class PlayerController : MonoBehaviour
                                 h.hasInsulation = true;
                             }
                         }
-                        else if (selectedItem.tag == "Emergency" && (h.Condition == "Freezing" || h.Condition == "Starving"))
-                        {
-                            h.CureCondition();
-                        }
+                        //else if (selectedItem.tag == "Emergency" && (h.Condition == "Freezing" || h.Condition == "Starving"))
+                        //{
+                        //    h.CureCondition();
+                        //}
 
                         Destroy(hoverObject);
                         SelectedItem = null;
                         selectedItemSprite = null;
-                    }
-
-                    if (SelectedItem != null && selectedItem.tag == "Dolly" && h.hiveTile.HasHive == true)
-                    {
-                        //ObjectToMove = h.gameObject;
-                        storedTile = h.hiveTile;
-                    }
-                    else if (SelectedItem != null && selectedItem.tag == "HiveTool" && h.Condition == "Glued")
-                    {
-                        h.CureCondition();
-                    }
-                    else if (SelectedItem != null && selectedItem.tag == "Smoker" && h.Condition == "Aggrevated")
-                    {
-                        h.CureCondition();
-                    }
-                }
-            }
-        }
-    }
-
-    private void CheckForPlacement()
-    {
-        if (Input.GetMouseButtonDown(0))
-        {
-            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-
-            //If trash is clicked, delete flower
-            if (Physics.Raycast(ray, out var trashHit, 1000, LayerMask.GetMask("Trash")))
-            {
-                Destroy(objectToMove);
-                objectToMove = null;
-                storedTile.Flower = FlowerType.Empty;
-                Debug.Log("Trashed object");
-                shovelUsesLeft--;
-                return;
-            }
-
-            //If a tile is clicked while holding a placeable object, place the object
-            if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")) && activeHolo.GetComponent<MeshRenderer>().material.color == greenHolo.color)
-            {
-                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
-                {
-                    if (t.Flower == FlowerType.Empty && !t.HasHive)
-                    {
-                        if (objectToMove.TryGetComponent<Hive>(out Hive h))
-                        {
-                            h.hiveTile = t;
-                            t.HasHive = true;
-                            h.x = (int)t.transform.position.x;
-                            h.y = (int)t.transform.position.z;
-                            Debug.Log("Put down object");
-                            h.transform.position = t.transform.position;
-                            h.transform.position += new Vector3(0, 0.5f, 0);
-                        }
-                        else
-                        {
-                            t.Flower = storedFType;
-                            shovelUsesLeft--;
-                            Debug.Log("Put down object");
-                        }
-                        if (activeHolo != null)
-                            Destroy(activeHolo);
-                        objectToMove = null;
-                        if (storedTile != t)
-                            storedTile.Flower = FlowerType.Empty;
-                        storedTile = null;
-                        storedFType = FlowerType.Empty;
                     }
                 }
             }
@@ -593,11 +437,11 @@ public class PlayerController : MonoBehaviour
         switch (item.tag)
         {
             case "HiveTool":
-                if (h.Condition != "Glued")
+                if (!h.conditions.Contains("Glued"))
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
             case "Smoker":
-                if (h.Condition != "Aggrevated")
+                if (!h.conditions.Contains("Aggrevated"))
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
             case "Insulation":
@@ -629,11 +473,11 @@ public class PlayerController : MonoBehaviour
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
             case "Bee":
-                if (h.Condition != "Dead")
+                if (!h.conditions.Contains("Dead"))
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
             case "Emergency":
-                if (h.Condition != "Freezing" && h.Condition != "Starving")
+                if (!h.conditions.Contains("Freezing") && !h.conditions.Contains("Starving"))
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
         }
@@ -821,7 +665,7 @@ public class PlayerController : MonoBehaviour
             possibleNectar.Add(h.nectarGain);
             population.Add(h.population);
             size.Add(h.Size);
-            condition.Add(h.Condition);
+            //condition.Add(h.Condition);
 
             //Queen
             nullQueen.Add(h.queen.nullQueen);
@@ -936,7 +780,7 @@ public class PlayerController : MonoBehaviour
                 hive.possibleNectar = data.possibleNectar[i];
                 hive.population = data.population[i];
                 hive.Size = data.size[i];
-                hive.Condition = data.condition[i];
+                //hive.Condition = data.condition[i];
 
                 foreach (var v in values)
                 {

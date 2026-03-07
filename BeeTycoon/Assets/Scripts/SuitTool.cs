@@ -2,15 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ShovelTool : ToolScript
+public class SuitTool : ToolScript
 {
-    public int usesPerTurn = 0;
-    public int usesLeft = 0;
+    public bool allowHarvest;
+    public int cureChance = -1;
     private List<string> descriptions = new List<string>()
     {
-        "Moves flowers from one tile to another.\n\n3 Uses per turn",
-        "Uses per turn:\n3 -> 5",
-        "Uses per turn:\n5 -> 7"
+        "Allows harvesting of hives with 2 or more stress",
+        "Grants 25% chance to cure a random affliction when harvesting an almost full hive",
+        "Affliction cure chance:\n25% -> 50%"
     };
 
     public override string GetDescription()
@@ -22,18 +22,17 @@ public class ShovelTool : ToolScript
     {
         level++;
         if (level == 1)
-        {
-            usesPerTurn = 3;
-            usesLeft = 3;
-        }
+            allowHarvest = true;
+        else if (level == 2)
+            cureChance = 4;
         else
-            usesPerTurn += 2;
+            cureChance = 2;
 
         base.Upgrade();
     }
 
     public override void TurnReset()
     {
-        usesLeft = usesPerTurn;
+        //Nothing
     }
 }

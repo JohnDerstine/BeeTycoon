@@ -24,16 +24,6 @@ public class UnlockTracker : MonoBehaviour
         {Tool.Extractor, false}
     };
 
-    //public Dictionary<Tool, bool> toolUpgrades2 = new Dictionary<Tool, bool>()
-    //{
-    //    {Tool.Smoker, false},
-    //    {Tool.Shovel, false},
-    //    {Tool.Dolly, false},
-    //    {Tool.HiveTool, false},
-    //    {Tool.BeeSuit, false},
-    //    {Tool.Extractor, false}
-    //};
-
     public Dictionary<FlowerType, bool> Stage12Flowers = new Dictionary<FlowerType, bool>()
     {
         {FlowerType.Clover, false},
@@ -83,7 +73,6 @@ public class UnlockTracker : MonoBehaviour
     };
 
     public List<FlowerType> ownedFlowers = new List<FlowerType>();
-    public List<Tool> ownedTools = new List<Tool>();
 
     private int stage = 0;
 
@@ -142,63 +131,4 @@ public class UnlockTracker : MonoBehaviour
         GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().AddHoneyCards(availableFlowers);
         return availableFlowers;
     }
-    
-    public List<Tool> GetMaxedTools()
-    {
-        List<Tool> maxedTools = new List<Tool>();
-        foreach (KeyValuePair<Tool, bool> kvp in toolUpgrades)
-            if (kvp.Value)
-                maxedTools.Add(kvp.Key);
-        return maxedTools;
-    }
 }
-
-//public interface ITool
-//{
-//    public Tool Tool
-//    {
-//        get;
-//    }
-
-//    public string Description
-//    {
-//        get;
-//    }
-
-//    public Texture2D Sprite
-//    {
-//        get;
-//    }
-
-//    public bool Unlocked
-//    {
-//        get;
-//    }
-//}
-
-//public struct Shovel : ITool
-//{
-//    private Tool tool;
-//    public Tool Tool
-//    {
-//        get { return tool; }
-//    }
-
-//    private string description;
-//    public string Description
-//    {
-//        get { return description; }
-//    }
-
-//    private Texture2D sprite;
-//    public Texture2D Sprite
-//    {
-//        get { return sprite; }
-//    }
-
-//    private bool unlocked;
-//    public bool Unlocked
-//    {
-//        get { return unlocked; }
-//    }
-//}

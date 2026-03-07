@@ -48,6 +48,8 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset quotaScreenUI;
 
+    private ToolManager toolManager;
+
     private int turn = 1;
     public int year = 1;
     private CustomVisualElement turnButton;
@@ -137,6 +139,7 @@ public class GameController : MonoBehaviour
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         hexMenu = document.gameObject.GetComponent<HexMenu>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
+        toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
         honeyMarket.GameLoaded();
@@ -155,6 +158,7 @@ public class GameController : MonoBehaviour
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         hexMenu = document.gameObject.GetComponent<HexMenu>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
+        toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
         honeyMarket.GameLoaded();
@@ -301,6 +305,8 @@ public class GameController : MonoBehaviour
             Quota = 0;
         if (season == "spring")
             Quota = previousQuota;
+
+        toolManager.TurnReset();
 
         CurrentState = GameStates.Running;
     }

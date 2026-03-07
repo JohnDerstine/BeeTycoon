@@ -4,16 +4,6 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public enum Tool
-{
-    Smoker,
-    Shovel,
-    Dolly,
-    HiveTool,
-    BeeSuit,
-    Extractor
-}
-
 public class QueenChooser : MonoBehaviour
 {
     [SerializeField]
@@ -47,6 +37,7 @@ public class QueenChooser : MonoBehaviour
     private UIDocument document;
 
     private PlayerController player;
+    private ToolManager toolManager;
     private HexMenu hexMenu;
 
     [SerializeField]
@@ -70,21 +61,13 @@ public class QueenChooser : MonoBehaviour
 
     private VisualElement root;
     private VisualElement container;
-    EventCallback<PointerMoveEvent, MyCustomData> queenMoveCallback;
-    EventCallback<PointerLeaveEvent, MyCustomData> queenExitCallback;
+    EventCallback<PointerMoveEvent> queenMoveCallback;
+    EventCallback<PointerLeaveEvent> queenExitCallback;
 
     EventCallback<PointerEnterEvent, string> quirkEnterCallback;
     EventCallback<PointerLeaveEvent> quirkExitCallback;
-    Color beeDark = new Color(0.6f, 0.6f, 0.6f, 1f);
-    Color beeLight = new Color(0.8f, 0.8f, 0.8f, 1f);
-    Color honeyDark = new Color(0.8f, 0.8f, 0.8f, 1f);
-    Color honeyLight = Color.white;
-    Color flowerDark = new Color(0, 0.75f, 0.89f);
-    Color flowerLight = new Color(0.44f, 1, 0.91f);
-    Color sizeDark = new Color(0, 0.4f, 1);
-    Color sizeLight = new Color(0, 0.6f, 1);
-    Color modifierDark = new Color(0.88f, 0, 1);
-    Color modifierLight = new Color(1, 0f, .43f);
+    Color dark = new Color(0.65f, 0.65f, 0.65f);
+    Color light = new Color(0.9f, 0.9f, 0.9f);
 
     private List<QueenBee> queenOptions = new List<QueenBee>();
     private List<VisualTreeAsset> rngOptions;
@@ -93,11 +76,12 @@ public class QueenChooser : MonoBehaviour
     {
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+        toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
         hexMenu = document.gameObject.GetComponent<HexMenu>();
 
         root = document.rootVisualElement;
-        queenExitCallback = new EventCallback<PointerLeaveEvent, MyCustomData>(OnQueenExit);
-        queenMoveCallback = new EventCallback<PointerMoveEvent, MyCustomData>(OnQueenMove);
+        queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
+        queenMoveCallback = new EventCallback<PointerMoveEvent>(OnQueenMove);
         quirkExitCallback = new EventCallback<PointerLeaveEvent>(OnQuirkExit);
         quirkEnterCallback = new EventCallback<PointerEnterEvent, string>(OnQuirkEnter);
         rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI, toolUI};
@@ -163,7 +147,7 @@ public class QueenChooser : MonoBehaviour
         if (starter)
         {
             for (int i = 0; rngChoices.Count < numChoices; i++)
-                rngChoices.Add(queenUI);
+                rngChoices.Add(toolUI);
         }
         else if (modifier)
         {
@@ -190,13 +174,11 @@ public class QueenChooser : MonoBehaviour
                 //Set up UI template for choice
                 TemplateContainer temp = rngChoices[i].Instantiate();
                 VisualElement popup = temp.Q<VisualElement>("Popup");
+                popup.RegisterCallback(queenMoveCallback); //register callbacks for hovering over the choices
+                popup.RegisterCallback(queenExitCallback);
 
                 if (rngChoices[i] == honeyUI)
                 {
-                    MyCustomData colors = new MyCustomData(honeyDark, honeyLight);
-                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
-                    popup.RegisterCallback(queenExitCallback, colors);
-
                     FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
                     popup.Q<Label>("Type").text = rand.ToString();
                     popup.Q<Label>("Price").text = "$" + GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().GetPrice(rand) + " / lb.";
@@ -205,10 +187,6 @@ public class QueenChooser : MonoBehaviour
             
                 else if (rngChoices[i] == flowerUI)
                 {
-                    MyCustomData colors = new MyCustomData(flowerDark, flowerLight);
-                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
-                    popup.RegisterCallback(queenExitCallback, colors);
-
                     FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
                     popup.Q<Label>("Type").text = rand.ToString();
                     popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[(int)rand - 2];
@@ -217,32 +195,27 @@ public class QueenChooser : MonoBehaviour
                 }
                 else if (rngChoices[i] == sizeUI)
                 {
-                    MyCustomData colors = new MyCustomData(sizeDark, sizeLight);
-                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
-                    popup.RegisterCallback(queenExitCallback, colors);
-
                     popup.AddManipulator(new Clickable(e => SelectSize()));
                 }
                 else if (rngChoices[i] == toolUI)
                 {
-                    MyCustomData colors = new MyCustomData(sizeDark, sizeLight);
-                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
-                    popup.RegisterCallback(queenExitCallback, colors);
+                    Tool rand = toolManager.GetUnmaxedTools()[Random.Range(0, toolManager.GetUnmaxedTools().Count)];
 
-                    List<Tool> upgradableTools = tracker.ownedTools;
-                    foreach (Tool t in tracker.GetMaxedTools())
-                        upgradableTools.Remove(t);
+                    string title = rand.ToString();
+                    int level = toolManager.GetToolFromTag(rand.ToString()).Level;
+                    if (level == 1)
+                        title += " Upgrade I";
+                    else if (level == 2)
+                        title += " Upgrade II";
 
-                    Tool rand = (Tool)Random.Range(0, upgradableTools.Count);
+                    popup.Q<Label>("Type").text = title;
+                    popup.Q<Label>("Description").text = toolManager.GetToolFromTag(rand.ToString()).GetDescription();
+                    popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.toolSprites[(int)rand];
 
                     popup.AddManipulator(new Clickable(e => SelectTool(rand)));
                 }
                 else if (rngChoices[i] == modifierUI)
                 {
-                    MyCustomData colors = new MyCustomData(modifierDark, modifierLight);
-                    popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
-                    popup.RegisterCallback(queenExitCallback, colors);
-
                     List<Modifier> applicableMods = new List<Modifier>();
                     foreach (FlowerModifier mod in mods.GetArchetypeAll<FlowerModifier>())
                     {
@@ -279,7 +252,7 @@ public class QueenChooser : MonoBehaviour
         if (!starter)
             template.Q<Label>("Description").text = "This will be added to your shop";
 
-        rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI };
+        rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI, toolUI };
         selectionActive = true;
     }
 
@@ -320,9 +293,8 @@ public class QueenChooser : MonoBehaviour
             //Set up UI template for queen choice
             TemplateContainer temp = queenUI.Instantiate();
             VisualElement popup = temp.Q<VisualElement>("Popup");
-            MyCustomData colors = new MyCustomData(beeDark, beeLight);
-            popup.RegisterCallback(queenMoveCallback, colors); //register callbacks for hovering over the choices
-            popup.RegisterCallback(queenExitCallback, colors);
+            popup.RegisterCallback(queenMoveCallback); //register callbacks for hovering over the choices
+            popup.RegisterCallback(queenExitCallback);
 
             int savedI = i; //I needs to be saved to a variable for callbacks to reference it correctly
             popup.AddManipulator(new Clickable(e => SelectQueen(savedI))); //Add Click event
@@ -377,9 +349,10 @@ public class QueenChooser : MonoBehaviour
     private void SelectTool(Tool tool)
     {
         selectionActive = false;
-
-        //Apply changes here
-        
+        ToolScript toolScript = toolManager.GetToolFromTag(tool.ToString());
+        if (toolScript.Level == 0)
+            toolScript.gameObject.GetComponent<Cost>().Purchased = true;
+        toolManager.GetToolFromTag(tool.ToString()).Upgrade();
 
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
@@ -408,19 +381,19 @@ public class QueenChooser : MonoBehaviour
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }
 
-    private void OnQueenMove(PointerMoveEvent e, MyCustomData colors)
+    private void OnQueenMove(PointerMoveEvent e)
     {
         CustomVisualElement target = e.currentTarget as CustomVisualElement;
         if (target.ContainsPoint(e.localPosition))
-            target.style.unityBackgroundImageTintColor = colors.light;
+            target.style.unityBackgroundImageTintColor = light;
         else
-            target.style.unityBackgroundImageTintColor = colors.dark;
+            target.style.unityBackgroundImageTintColor = dark;
     }
 
-    private void OnQueenExit(PointerLeaveEvent e, MyCustomData colors)
+    private void OnQueenExit(PointerLeaveEvent e)
     {
         CustomVisualElement target = e.currentTarget as CustomVisualElement;
-        target.style.unityBackgroundImageTintColor = colors.dark;
+        target.style.unityBackgroundImageTintColor = dark;
     }
 
     private void OnQuirkEnter(PointerEnterEvent e, string quirk)
@@ -445,16 +418,4 @@ public class QueenChooser : MonoBehaviour
         document.rootVisualElement.Remove(activeLabel);
         activeLabel = null;
     }
-}
-
-public class MyCustomData
-{
-    public MyCustomData (Color dark, Color light)
-    {
-        this.dark = dark;
-        this.light = light;
-    }
-
-    public Color dark { get; set; }
-    public Color light { get; set; }
 }

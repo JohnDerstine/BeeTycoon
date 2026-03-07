@@ -67,6 +67,8 @@ public class Hive : MonoBehaviour
 
     private Texture2D currentIcon;
 
+    private ToolManager toolManager;
+
     public TemplateContainer template;
     private TemplateContainer hoverTemplate;
     private TemplateContainer tooltip;
@@ -98,6 +100,7 @@ public class Hive : MonoBehaviour
     float industrious;
     float agile;
     float hiveStandBonus;
+    float stressMod;
 
     private float addedNectar = 0;
 
@@ -114,6 +117,25 @@ public class Hive : MonoBehaviour
     //private float collection = 1f; //was 400 //Not currently in use. Nectar is now caclulated through flowers
     private float resilience = 1;
     private float aggressivness = 3;
+
+    private int stressLevel = 0;
+    public List<string> conditions = new List<string>();
+    private List<string> randConditions = new List<string>() { "Mice", "Mites", "Moths", "Fungus", "Aggrevated", "Glued"};
+    private List<string> baseRandConditions = new List<string>() { "Mice", "Mites", "Moths", "Fungus", "Aggrevated", "Glued" };
+    private Dictionary<string, int> conditionValues = new Dictionary<string, int>()
+    {
+        { "Mice", 2},
+        { "Mites", 3},
+        { "Moths", 2},
+        { "Fungus", 1},
+        { "Aggrevated", 1},
+        { "Glued", 1},
+        { "Freezing", 4},
+        { "Starving", 4},
+        { "Defending", 1 }
+    };
+    private bool attacking;
+
 
     public QueenBee queen;
 
@@ -199,8 +221,8 @@ public class Hive : MonoBehaviour
             placed = value;
             if (value)
             {
-                if (queen.nullQueen)
-                    Condition = "Dead";
+                //if (queen.nullQueen)
+                //    Condition = "Dead";
                 player.OpenHiveUI(template, hiveUI, this);
 
                 if (game.CurrentState != GameStates.Running)
@@ -209,86 +231,126 @@ public class Hive : MonoBehaviour
         }
     }
 
-    public string Condition
+    //EFFECTS:
+    //-1 +10% efficiency
+    //0 Nothing
+    //1 -33% efficiency 
+    //2 You can't harvest without a suit
+    //3 Attacks other hives
+    //4 Halt all production
+    //5 Death
+
+    public int StressLevel
     {
-        get { return condition; }
+        get { return stressLevel; }
         set
         {
-            Debug.Log("called");
-            if (activePopup != null)
+            stressLevel = value;
+            
+            if (stressLevel >= 3 && !attacking)
             {
-                Debug.Log("removing");
-                document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
-                activePopup = null;
+                attacking = true;
+                foreach (Hive h in player.hives)
+                {
+                    if (h != this)
+                        h.AddCondition("Defending");
+                }
             }
-            if (tooltip != null)
+            else if (stressLevel < 3 && attacking)
             {
-                document.rootVisualElement.Q<VisualElement>("Base").Remove(tooltip);
-                tooltip = null;
+                attacking = false;
+                foreach (Hive h in player.hives)
+                {
+                    if (h != this)
+                        h.CureCondition("Defending");
+                }
             }
 
-            condition = value;
-            activePopup = afflictionPopupUI.Instantiate();
-
-            switch (value)
-            {
-                case "Mites":
-                    hiveEfficency /= 2;
-                    currentIcon = remedyIcons[0];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[0];
-                    break;
-                case "Mice":
-                    construction /= 2;
-                    currentIcon = remedyIcons[4];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[6];
-                    break;
-                case "Glued":
-                    canBeOpened = false;
-                    currentIcon = remedyIcons[2];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[3];
-                    break;
-                case "Freezing":
-                    construction /= 2;
-                    currentIcon = remedyIcons[5];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[2];
-                    break;
-                case "Starving":
-                    construction /= 2;
-                    currentIcon = remedyIcons[5];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[4];
-                    break;
-                case "Aggrevated":
-                    canBeOpened = false;
-                    currentIcon = remedyIcons[1];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[1];
-                    break;
-                case "Healthy":
-                    activePopup = null;
-                    break;
-                case "Dead":
-                    empty = true;
-                    if (queen != null)
-                        queen = null;
-                    currentIcon = remedyIcons[3];
-                    activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[5];
-                    break;
-            }
-            Debug.Log(condition);
-
-            if (activePopup != null)
-            {
-                Debug.Log("Not null");
-                AdjustPopupTransform();
-                activePopup.style.position = Position.Absolute;
-                activePopup.style.flexGrow = 0;
-                Debug.Log("Adding");
-                document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
-                Debug.Log("Added");
-                activePopup.RegisterCallback<PointerEnterEvent>(OnAfflictionHover);
-                activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
-            }
+            if (stressLevel >= 5) //Kill hive if stress >= 5
+                queen = null;
         }
     }
+
+    //public string Condition
+    //{
+    //    get { return condition; }
+    //    set
+    //    {
+    //        Debug.Log("called");
+    //        if (activePopup != null)
+    //        {
+    //            Debug.Log("removing");
+    //            document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
+    //            activePopup = null;
+    //        }
+    //        if (tooltip != null)
+    //        {
+    //            document.rootVisualElement.Q<VisualElement>("Base").Remove(tooltip);
+    //            tooltip = null;
+    //        }
+
+    //        condition = value;
+    //        activePopup = afflictionPopupUI.Instantiate();
+
+    //        switch (value)
+    //        {
+    //            case "Mites":
+    //                hiveEfficency /= 2;
+    //                currentIcon = remedyIcons[0];
+    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[0];
+    //                break;
+    //            case "Mice":
+    //                construction /= 2;
+    //                currentIcon = remedyIcons[4];
+    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[6];
+    //                break;
+    //            case "Glued":
+    //                canBeOpened = false;
+    //                currentIcon = remedyIcons[2];
+    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[3];
+    //                break;
+    //            case "Freezing":
+    //                construction /= 2;
+    //                currentIcon = remedyIcons[5];
+    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[2];
+    //                break;
+    //            case "Starving":
+    //                construction /= 2;
+    //                currentIcon = remedyIcons[5];
+    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[4];
+    //                break;
+    //            case "Aggrevated":
+    //                canBeOpened = false;
+    //                currentIcon = remedyIcons[1];
+    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[1];
+    //                break;
+    //            case "Healthy":
+    //                activePopup = null;
+    //                break;
+    //            case "Dead":
+    //                empty = true;
+    //                if (queen != null)
+    //                    queen = null;
+    //                currentIcon = remedyIcons[3];
+    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[5];
+    //                break;
+    //        }
+    //        Debug.Log(condition);
+
+    //        if (activePopup != null)
+    //        {
+    //            Debug.Log("Not null");
+    //            AdjustPopupTransform();
+    //            activePopup.style.position = Position.Absolute;
+    //            activePopup.style.flexGrow = 0;
+    //            Debug.Log("Adding");
+    //            document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
+    //            Debug.Log("Added");
+    //            activePopup.RegisterCallback<PointerEnterEvent>(OnAfflictionHover);
+    //            activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
+    //        }
+    //    }
+    //}
 
     private void GlossaryOpen(PointerDownEvent e)
     {
@@ -331,6 +393,7 @@ public class Hive : MonoBehaviour
         game = GameObject.Find("GameController").GetComponent<GameController>();
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+        toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
         hexMenu = document.gameObject.GetComponent<HexMenu>();
         source = GetComponent<AudioSource>();
         queen = GetComponent<QueenBee>();
@@ -355,14 +418,11 @@ public class Hive : MonoBehaviour
 
         hiveEfficency = (population / popCap) * size;
     }
-    //void Start()
-    //{
-    //    map.tiles[x, y].hive = this;
-    //}
+
     void Update()
     {
-        if (Condition != "Healthy" && !document.rootVisualElement.Q<VisualElement>("Base").Contains(activePopup))
-            document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup); //I don't know how the active popup is being added and removed from Base on the same frame. band-aid fix
+        //if (Condition != "Healthy" && !document.rootVisualElement.Q<VisualElement>("Base").Contains(activePopup))
+        //    document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup); //I don't know how the active popup is being added and removed from Base on the same frame. band-aid fix
 
         //Debug.Log(activePopup);
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -421,13 +481,13 @@ public class Hive : MonoBehaviour
         if (empty)
             return;
 
-        //Mice eat through comb every turn
-        if (Condition == "Mice")
-        {
-            comb -= 0.5f;
-            if (comb <= 4)
-                comb = 4;
-        }
+        ////Mice eat through comb every turn
+        //if (Condition == "Mice")
+        //{
+        //    comb -= 0.5f;
+        //    if (comb <= 4)
+        //        comb = 4;
+        //}
 
         if (hasRepellant)
         {
@@ -455,41 +515,46 @@ public class Hive : MonoBehaviour
         }
 
         GetFlowerRatios();
+        if (stressLevel < 4)
+        {
+            //Bonuses depending on season
+            spring = (game.Season == "spring") ? 1.5f : 1;
+            summer = (game.Season == "summer") ? 1.5f : 1;
+            fall = (game.Season == "fall") ? 1.5f : 1;
+            greedy = (queen.quirks.Contains("Greedy")) ? tracker.quirkValues["Greedy"] : 1;
+            industrious = (queen.quirks.Contains("Industrious")) ? tracker.quirkValues["Industrious"] : 1;
+            agile = (queen.quirks.Contains("Agile")) ? tracker.quirkValues["Agile"] : 1;
+            hiveStandBonus = (hasStand) ? 1.1f : 1;
+            stressMod = (stressLevel <= -1) ? 1.1f : 0.67f;
+            if (stressLevel == 0)
+                stressMod = 1f;
 
-        //Bonuses depending on season
-        spring = (game.Season == "spring") ? 1.5f : 1;
-        summer = (game.Season == "summer") ? 1.5f : 1;
-        fall = (game.Season == "fall") ? 1.5f : 1;
-        greedy = (queen.quirks.Contains("Greedy")) ? tracker.quirkValues["Greedy"] : 1;
-        industrious = (queen.quirks.Contains("Industrious")) ? tracker.quirkValues["Industrious"] : 1;
-        agile = (queen.quirks.Contains("Agile")) ? tracker.quirkValues["Agile"] : 1;
-        hiveStandBonus = (hasStand) ? 1.1f : 1;
+            float possibleComb = construction * queen.constructionMult * hiveEfficency * spring * industrious * russianEff * hiveStandBonus * stressMod;
+            if (possibleComb + comb > combCap)
+                possibleComb = combCap - comb;
+            comb += possibleComb;
+            storage = storagePerComb * comb;
+            float possibleHoney = production * queen.productionMult * hiveEfficency * fall * greedy * italian * russianEff * hiveStandBonus * stressMod;
+            if (possibleHoney > nectar)
+                possibleHoney = nectar;
+            honey += possibleHoney;
+            nectar -= possibleHoney;
 
-        float possibleComb = construction * queen.constructionMult * hiveEfficency * spring * industrious * russianEff * hiveStandBonus;
-        if (possibleComb + comb > combCap)
-            possibleComb = combCap - comb;
-        comb += possibleComb;
-        storage = storagePerComb * comb;
-        float possibleHoney = production * queen.productionMult * hiveEfficency * fall * greedy * italian * russianEff * hiveStandBonus;
-        if (possibleHoney > nectar)
-            possibleHoney = nectar;
-        honey += possibleHoney;
-        nectar -= possibleHoney;
+            nectarGain = addedNectar + (map.nectarGains.Values.Sum() / map.populatedHives) * conversionRate; //scale it down to lbs
 
-        nectarGain = addedNectar + (map.nectarGains.Values.Sum() / map.populatedHives) * conversionRate; //scale it down to lbs
+            possibleNectar = nectarGain * queen.collectionMult * hiveEfficency * russianEff * summer * agile * hiveStandBonus * stressMod; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
+            if (possibleNectar + nectar + honey > storage)
+                possibleNectar = storage - (nectar + honey);
+            nectar += possibleNectar;
 
-        possibleNectar = nectarGain * queen.collectionMult * hiveEfficency * russianEff * summer * agile * hiveStandBonus; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
-        if (possibleNectar + nectar + honey > storage)
-            possibleNectar = storage - (nectar + honey);
-        nectar += possibleNectar;
+            if (possibleNectar > 0)
+                SplitNectar(possibleNectar);
 
-        if (possibleNectar > 0)
-            SplitNectar(possibleNectar);
-
-        float possiblePop = birthRate * comb/combCap;
-        if (possiblePop + population > popCap)
-            possiblePop = popCap - population;
-        population += possiblePop;
+            float possiblePop = birthRate * comb / combCap;
+            if (possiblePop + population > popCap)
+                possiblePop = popCap - population;
+            population += possiblePop;
+        }
 
         hiveEfficency = (population / popCap) * size;
 
@@ -501,8 +566,8 @@ public class Hive : MonoBehaviour
         CalcHoneyStats();
         if (template != null)
             UpdateMeters();
-        if (Condition != "Healthy" && queen.species == "Japanese" && Random.Range(0, 3) == 0)
-            CureCondition();
+        //if (Condition != "Healthy" && queen.species == "Japanese" && Random.Range(0, 3) == 0)
+        //    CureCondition();
 
         TryAddCondition();
         //Condition = "Glued";
@@ -516,26 +581,34 @@ public class Hive : MonoBehaviour
     private void Harvest(float percent)
     {
         float amount = percent * honey;
+        float extractorBonus = toolManager.extractor.extractorBonus;
         if (honeyType != FlowerType.Wildflower)
         {
-            player.inventory[honeyType][0] += amount;
+            player.inventory[honeyType][0] += amount * extractorBonus;
             honey -= amount;
             Debug.Log(amount);
 
             if (honeyPurity >= .9f)
-                player.inventory[honeyType][3] += amount;
+                player.inventory[honeyType][3] += amount * extractorBonus;
             else if (honeyPurity > .7f)
-                player.inventory[honeyType][2] += amount;
+                player.inventory[honeyType][2] += amount * extractorBonus;
             else
-                player.inventory[honeyType][1] += amount;
+                player.inventory[honeyType][1] += amount * extractorBonus;
         }
         else
         {
-            player.inventory[honeyType][0] += amount;
+            player.inventory[honeyType][0] += amount * extractorBonus;
             honey -= amount;
             Debug.Log(amount);
-            player.inventory[honeyType][2] += amount;
+            player.inventory[honeyType][2] += amount * extractorBonus;
         }
+
+        if (!toolManager.extractor.noCombLoss)
+            comb = comb / 1.1f; //lose 10% of comb every extraction
+
+        if (percent == 1f && amount / storage > .75f)
+            if (Random.Range(0, toolManager.suit.cureChance) == 0)
+                CureCondition(conditions[Random.Range(0, conditions.Count)]);
 
         UpdateMeters();
 
@@ -733,7 +806,7 @@ public class Hive : MonoBehaviour
 
         combMeter.value = (comb / combCap * 100) + 0;
         if (production * queen.productionMult * hiveEfficency != 0)
-            nectarMeter.value = (nectarGain * possibleNectar / (production * queen.productionMult * hiveEfficency * hiveStandBonus * agile) * 100) + 0;// * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f) 
+            nectarMeter.value = (nectarGain * possibleNectar / (production * queen.productionMult * hiveEfficency * hiveStandBonus * agile * stressMod) * 100) + 0;// * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f) 
         else
             nectarMeter.value = 0;
         honeyMeter.value = (honey / (comb * storagePerComb * conversionRate)) + 0;
@@ -743,7 +816,7 @@ public class Hive : MonoBehaviour
     private void UpdateMeterLabels()
     {
         if (production * queen.productionMult * hiveEfficency != 0)
-            nectarHover.Q<Label>("Percent").text = (Mathf.Round(nectarGain * possibleNectar / (production * queen.productionMult * hiveEfficency * hiveStandBonus) * 100 * 10) / 10.0f).ToString() + "%"; //* Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f
+            nectarHover.Q<Label>("Percent").text = (Mathf.Round(nectarGain * possibleNectar / (production * queen.productionMult * hiveEfficency * hiveStandBonus * stressMod) * 100 * 10) / 10.0f).ToString() + "%"; //* Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f
         else
             nectarHover.Q<Label>("Percent").text = "0%";
         nectarHover.Q<Label>("Flat").text = (Mathf.Round(nectarGain * possibleNectar * 10) / 10.0f) + " lbs."; //*Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
@@ -762,7 +835,7 @@ public class Hive : MonoBehaviour
     {
         if (q == null)
         {
-            Condition = "Dead";
+            //Condition = "Dead";
             if (queenHex != null)
             {
                 queenHex.style.backgroundImage = deadSprite;
@@ -774,7 +847,7 @@ public class Hive : MonoBehaviour
         StartCoroutine(queen.TransferStats(q));
         Destroy(q.gameObject);
         empty = false;
-        Condition = "Healthy";
+        //Condition = "Healthy";
         queenHex.style.backgroundImage = queenSprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
 
@@ -788,10 +861,10 @@ public class Hive : MonoBehaviour
         if (queen.nullQueen == false)
         {
             empty = false;
-            Condition = "Healthy";
+            //Condition = "Healthy";
         }
-        else
-            Condition = "Dead";
+        //else
+        //    Condition = "Dead";
         queenHex.style.backgroundImage = queenSprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
         game = GameObject.Find("GameController").GetComponent<GameController>();
@@ -812,85 +885,40 @@ public class Hive : MonoBehaviour
         UpdateMeters();
     }
 
+    private void AddCondition(string con)
+    {
+        conditions.Add(con);
+        StressLevel += conditionValues[con];
+
+        if (randConditions.Contains(con))
+            randConditions.Remove(con);
+    }
+
     private void TryAddCondition()
     {
-        //if (game.Season == "spring" && game.year == 1)
-        //    return;
-
-        if (Condition == "Healthy" || game.Season == "winter")
+        if (game.Season == "winter")
         {
-            if (game.Season == "winter")
-            {
+            float rugged = (queen.quirks.Contains("Rugged")) ? tracker.quirkValues["Rugged"] : 1;
+ 
+            if (honey <= population / (16 - resilience * queen.resilienceMult * rugged))
+                AddCondition("Starving");
 
-                float rugged = (queen.quirks.Contains("Rugged")) ? tracker.quirkValues["Rugged"] : 1;
-                if (Condition != "Healthy" && honey <= population / (16 - resilience * queen.resilienceMult * rugged))
-                    Condition = "Dead";
-                else if (honey <= population / (16 - resilience * queen.resilienceMult * rugged))
-                    Condition = "Starving";
-                if (Condition != "Healthy" && (!hasInsulation || population <= popCap / (Size * 2)))
-                    Condition = "Dead";
-                else if ((!hasInsulation || population <= popCap / (Size * 2)))
-                    Condition = "Freezing";
-
-                if (Condition == "Healthy" && !hasReducer)
-                    Condition = "Mice";
-                return;
-            }
-            
-
-            int rand = Random.Range(0, 20);
-            if (rand <= 4)
-            {
-                if (rand <= 1)
-                {
-                    float territorial = (queen.quirks.Contains("Territorial")) ? tracker.quirkValues["Territorial"] : 1;
-                    if (!hasReducer && game.Season != "spring" && game.Season != "summer")
-                        Condition = "Mice";
-                    if (!hasRepellant)
-                       Condition = "Mites";
-                    float russian = (queen.species == "Russian") ? 1.5f : 1f;
-                    if (game.Season != "summer" && Random.Range(0, 24) <= (aggressivness * queen.aggressivnessMult * territorial * russian))
-                        Condition = "Aggrevated";
-
-                    if (Condition == "Healthy" && game.Season != "fall")
-                        Condition = "Glued";
-                }
-                else if (rand > 1)
-                {
-                    if (game.Season == "spring")
-                        Condition = "Glued";
-                    else if (game.Season == "summer" && !hasRepellant)
-                        Condition = "Mites";
-                    else if (game.Season == "fall")
-                        Condition = "Aggrevated";
-                }
-            }
+            if ((!hasInsulation || population <= popCap / (Size * 2)))
+                AddCondition("Freezing");
+        }
+        else if (Random.Range(0, 20) <= 4)
+        {
+            conditions.Add(randConditions[Random.Range(0, randConditions.Count)]);
         }
     }
 
-    public void CureCondition()
+    public void CureCondition(string con)
     {
-        switch (Condition)
-        {
-            case "Mites":
-                hiveEfficency *= 2;
-                break;
-            case "Mice":
-                break;
-            case "Glued":
-                canBeOpened = true;
-                break;
-            case "Aggrevated":
-                canBeOpened = true;
-                break;
-            case "Freezing":
-                break;
-            case "Starving":
-                honey += storage / 4;
-                break;
-        }
+        conditions.Remove(con);
+        StressLevel -= conditionValues[con];
 
-        Condition = "Healthy";
+        if (baseRandConditions.Contains(con))
+            randConditions.Add(con);
     }
 
     public void AddSugarWater()
@@ -944,12 +972,18 @@ public class Hive : MonoBehaviour
             mediumHarvest = template.Q<VisualElement>("MediumClick");
             largeHarvest = template.Q<VisualElement>("LargeClick");
 
-            //smallHarvest.AddManipulator(new Clickable(e => SelectHarvest(smallHarvest)));
-            //mediumHarvest.AddManipulator(new Clickable(e => SelectHarvest(mediumHarvest)));
-            //largeHarvest.AddManipulator(new Clickable(e => SelectHarvest(largeHarvest)));
-            smallHarvest.AddManipulator(new Clickable(e => SelectHarvest(smallHarvest)));
-            mediumHarvest.AddManipulator(new Clickable(e => SelectHarvest(mediumHarvest)));
-            largeHarvest.AddManipulator(new Clickable(e => SelectHarvest(largeHarvest)));
+            if (stressLevel < 2 || toolManager.suit.Level > 0)
+            {
+                smallHarvest.AddManipulator(new Clickable(e => SelectHarvest(smallHarvest)));
+                mediumHarvest.AddManipulator(new Clickable(e => SelectHarvest(mediumHarvest)));
+                largeHarvest.AddManipulator(new Clickable(e => SelectHarvest(largeHarvest)));
+            }
+            else
+            {
+                smallHarvest.style.unityBackgroundImageTintColor = darkTint;
+                mediumHarvest.style.unityBackgroundImageTintColor = darkTint;
+                largeHarvest.style.unityBackgroundImageTintColor = darkTint;
+            }
             smallHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
             mediumHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
             largeHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
@@ -1152,7 +1186,7 @@ public class Hive : MonoBehaviour
         tooltip.style.left = e.position.x;// - tooltip.resolvedStyle.width;
         tooltip.style.top = e.position.y;//Screen.height - e.position.y;// - tooltip.resolvedStyle.height / 1.5f;
         tooltip.pickingMode = PickingMode.Ignore;
-        tooltip.Q<Label>("Affliction").text = Condition;
+        //tooltip.Q<Label>("Affliction").text = Condition;
         tooltip.Q<VisualElement>("Icon").style.backgroundImage = currentIcon;
         document.rootVisualElement.Q<VisualElement>("Base").Add(tooltip);
     }
