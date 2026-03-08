@@ -65,6 +65,9 @@ public class Hive : MonoBehaviour
     [SerializeField]
     private AudioClip audio;
 
+    [SerializeField]
+    private VisualTreeAsset StressPanel;
+
     private Texture2D currentIcon;
 
     private ToolManager toolManager;
@@ -157,6 +160,10 @@ public class Hive : MonoBehaviour
     private ProgressBar combMeter;
     private ProgressBar nectarMeter;
     private ProgressBar honeyMeter;
+    private CustomVisualElement stressClick;
+    private TemplateContainer stressContainer;
+    private Clickable openWindow;
+    private Clickable closeWindow;
     private Dictionary<VisualElement, bool> harvestDict = new Dictionary<VisualElement, bool>();
     private Toggle noHarvest;
     //private float harvestPercentage;
@@ -988,6 +995,11 @@ public class Hive : MonoBehaviour
             mediumHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
             largeHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
 
+            openWindow = new Clickable(e => OpenStressWindow());
+            closeWindow = new Clickable(e => CloseStressWindow());
+            stressClick = template.Q<CustomVisualElement>("StressClick");
+            stressClick.AddManipulator(openWindow);
+
             combMeter = template.Q<ProgressBar>("CombBar");
             nectarMeter = template.Q<ProgressBar>("NectarBar");
             honeyMeter = template.Q<ProgressBar>("HoneyBar");
@@ -1099,6 +1111,58 @@ public class Hive : MonoBehaviour
 
     //    }
     //}
+
+    private void OpenStressWindow()
+    {
+        stressContainer = StressPanel.Instantiate();
+        stressContainer.style.width = 423;
+        stressContainer.style.height = 550;
+        stressContainer.style.position = Position.Absolute;
+        stressContainer.style.left = 200;
+
+        //Highlight current stress level
+        stressContainer.Q<Label>("StressLabel").text = "Stress: " + stressLevel;
+        if (stressLevel > 0)
+        {
+            for (int i = stressLevel; i > 0; i--)
+            {
+                VisualElement numVE = stressContainer.Q<VisualElement>(i.ToString());
+                numVE.Q<Label>("num").style.color = Color.white;
+                numVE.Q<Label>("desc").style.color = Color.white;
+            }
+        }
+        else if (stressLevel == -1)
+        {
+            VisualElement numVE = stressContainer.Q<VisualElement>("-1");
+            numVE.Q<Label>("num").style.color = Color.white;
+            numVE.Q<Label>("desc").style.color = Color.white;
+        }
+
+        //List afflictions
+        for (int i = 0; i < conditions.Count; i++)
+        {
+            Label label = new Label();
+            label.text = conditions[i].ToString() + " +" + conditionValues[conditions[i]];
+            if (i < 3)
+                stressContainer.Q<VisualElement>("Afflictions1").Add(label);
+            else
+                stressContainer.Q<VisualElement>("Afflictions2").Add(label);
+        }
+
+        document.rootVisualElement.Q<VisualElement>("Right").Add(stressContainer);
+        stressClick.RemoveManipulator(openWindow);
+        stressClick.AddManipulator(closeWindow);
+    }
+
+    public void CloseStressWindow()
+    {
+        if (stressContainer == null)
+            return;
+        stressClick.RemoveManipulator(closeWindow);
+        stressClick.AddManipulator(openWindow);
+        document.rootVisualElement.Q<VisualElement>("Right").Remove(stressContainer);
+        stressContainer = null;
+    }    
 
     private void OpenQueenTab()
     {

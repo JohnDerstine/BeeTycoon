@@ -145,6 +145,7 @@ MonoBehaviour:
   queenSprite: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
   deadSprite: {fileID: 2800000, guid: a08311bf23e020142b6cdc8d2863fa71, type: 3}
   audio: {fileID: 8300000, guid: c7b12fafb3785974cac5b9d9c7396aee, type: 3}
+  StressPanel: {fileID: 9197481963319205126, guid: 173af282454bfba4c8d5a62d04c7a68b, type: 3}
   empty: 1
   placed: 0
   x: 0
@@ -155,6 +156,7 @@ MonoBehaviour:
   combSizeCap: 8
   nectar: 0
   honey: 0
+  conditions: []
   queen: {fileID: 0}
   honeyType: 0
   honeyPurity: 0
@@ -210,6 +212,7 @@ MonoBehaviour:
   purchased: 0
   ftype: 0
   OneTime: 0
+  tree: 0
 --- !u!82 &-773387937429646206
 AudioSource:
   m_ObjectHideFlags: 0

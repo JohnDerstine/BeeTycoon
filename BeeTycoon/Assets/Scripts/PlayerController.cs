@@ -538,6 +538,7 @@ public class PlayerController : MonoBehaviour
 
         hive.CheckCancelAnim();
 
+        hive.CloseStressWindow();
         ui.rootVisualElement.Q("Right").Remove(activeUI);
         activeUI = null;
         currentHive = null;

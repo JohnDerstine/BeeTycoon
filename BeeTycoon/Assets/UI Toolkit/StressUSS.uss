@@ -1,0 +1,25 @@
+.StressGroup {
+    flex-grow: 1;
+    flex-direction: row;
+}
+
+.StressIcon {
+    flex-grow: 0;
+    flex-basis: 15%;
+    background-image: url("project://database/Assets/Sprites/GreyBeeIcon.png?fileID=2800000&guid=a08311bf23e020142b6cdc8d2863fa71&type=3#GreyBeeIcon");
+    -unity-background-scale-mode: scale-to-fit;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+}
+
+.StressLabel {
+    color: rgb(115, 115, 115);
+    -unity-font-style: bold;
+    font-size: 14px;
+    flex-basis: 75%;
+    -unity-text-align: middle-left;
+    padding-left: 0;
+    border-left-color: rgb(0, 0, 0);
+    border-right-color: rgb(0, 0, 0);
+    border-top-color: rgb(0, 0, 0);
+    border-bottom-color: rgb(0, 0, 0);
+}

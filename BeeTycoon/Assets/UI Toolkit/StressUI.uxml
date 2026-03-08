@@ -1,0 +1,50 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/StressUSS.uss?fileID=7433441132597879392&amp;guid=a3f6339fcd5cd0749bc0c00cb057d3b9&amp;type=3#StressUSS" />
+    <ui:VisualElement name="Base" style="flex-grow: 1; flex-basis: auto; background-color: rgb(101, 63, 18); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 4px; border-right-width: 4px; border-bottom-width: 4px; border-left-width: 4px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px;">
+        <ui:VisualElement name="Stress" style="flex-grow: 0; flex-basis: 70%; background-color: rgb(101, 63, 18); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 0; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px;">
+            <ui:Label tabindex="-1" text="Stress: 0" parse-escape-sequences="true" display-tooltip-when-elided="true" name="StressLabel" style="color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 26px; -unity-text-align: upper-center; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-bottom-width: 1px; width: 75%; align-self: center;" />
+            <ui:VisualElement name="5" class="StressGroup">
+                <ui:VisualElement class="StressIcon" style="-unity-background-image-tint-color: rgb(255, 0, 0);" />
+                <ui:Label tabindex="-1" text="5" parse-escape-sequences="true" display-tooltip-when-elided="true" name="num" class="StressLabel" style="flex-basis: 10%;" />
+                <ui:Label tabindex="-1" text="Death" parse-escape-sequences="true" display-tooltip-when-elided="true" name="desc" class="StressLabel" style="flex-basis: 75%;" />
+            </ui:VisualElement>
+            <ui:VisualElement name="4" class="StressGroup">
+                <ui:VisualElement class="StressIcon" style="-unity-background-image-tint-color: rgb(255, 142, 73);" />
+                <ui:Label tabindex="-1" text="4" parse-escape-sequences="true" display-tooltip-when-elided="true" name="num" class="StressLabel" style="flex-basis: 10%;" />
+                <ui:Label tabindex="-1" text="Halt all production" parse-escape-sequences="true" display-tooltip-when-elided="true" name="desc" class="StressLabel" />
+            </ui:VisualElement>
+            <ui:VisualElement name="3" class="StressGroup">
+                <ui:VisualElement class="StressIcon" style="-unity-background-image-tint-color: rgb(255, 179, 0);" />
+                <ui:Label tabindex="-1" text="3" parse-escape-sequences="true" display-tooltip-when-elided="true" name="num" class="StressLabel" style="flex-basis: 10%;" />
+                <ui:Label tabindex="-1" text="Starts attacking other hives" parse-escape-sequences="true" display-tooltip-when-elided="true" name="desc" class="StressLabel" />
+            </ui:VisualElement>
+            <ui:VisualElement name="2" class="StressGroup">
+                <ui:VisualElement class="StressIcon" style="-unity-background-image-tint-color: rgb(255, 238, 0);" />
+                <ui:Label tabindex="-1" text="2" parse-escape-sequences="true" display-tooltip-when-elided="true" name="num" class="StressLabel" style="flex-basis: 10%;" />
+                <ui:Label tabindex="-1" text="A suit is required to harvest honey" parse-escape-sequences="true" display-tooltip-when-elided="true" name="desc" class="StressLabel" />
+            </ui:VisualElement>
+            <ui:VisualElement name="1" class="StressGroup">
+                <ui:VisualElement class="StressIcon" style="-unity-background-image-tint-color: rgb(193, 255, 0);" />
+                <ui:Label tabindex="-1" text="1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="num" class="StressLabel" style="flex-basis: 10%;" />
+                <ui:Label tabindex="-1" text="-10% efficiency" parse-escape-sequences="true" display-tooltip-when-elided="true" name="desc" class="StressLabel" />
+            </ui:VisualElement>
+            <ui:VisualElement name="0" class="StressGroup">
+                <ui:VisualElement class="StressIcon" style="-unity-background-image-tint-color: rgb(0, 255, 46);" />
+                <ui:Label tabindex="-1" text="0" parse-escape-sequences="true" display-tooltip-when-elided="true" name="num" class="StressLabel" style="flex-basis: 10%; color: rgb(255, 255, 255);" />
+                <ui:Label tabindex="-1" text="Neutral" parse-escape-sequences="true" display-tooltip-when-elided="true" name="desc" class="StressLabel" style="color: rgb(255, 255, 255);" />
+            </ui:VisualElement>
+            <ui:VisualElement name="-1" class="StressGroup">
+                <ui:VisualElement class="StressIcon" style="-unity-background-image-tint-color: rgb(0, 194, 255); background-image: url(&quot;project://database/Assets/Sprites/GreyBeeIcon.png?fileID=2800000&amp;guid=a08311bf23e020142b6cdc8d2863fa71&amp;type=3#GreyBeeIcon&quot;);" />
+                <ui:Label tabindex="-1" text="-1" parse-escape-sequences="true" display-tooltip-when-elided="true" name="num" class="StressLabel" style="flex-basis: 10%;" />
+                <ui:Label tabindex="-1" text="+10% efficiency" parse-escape-sequences="true" display-tooltip-when-elided="true" name="desc" class="StressLabel" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="Afflictions" style="flex-grow: 0; flex-basis: 30%; background-color: rgb(132, 82, 23); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 4px; border-right-width: 4px; border-bottom-width: 0; border-left-width: 4px; border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; width: 423px; left: -3px;">
+            <ui:Label tabindex="-1" text="Afflictions:" parse-escape-sequences="true" display-tooltip-when-elided="true" style="-unity-font-style: bold; color: rgb(236, 236, 236); font-size: 18px; -unity-text-align: upper-center;" />
+            <ui:VisualElement name="AfflictionBox" style="flex-grow: 1; flex-direction: row;">
+                <ui:VisualElement name="Afflictions1" style="flex-grow: 1; color: rgb(255, 255, 255); font-size: 16px; -unity-text-align: upper-center;" />
+                <ui:VisualElement name="Afflictions2" style="flex-grow: 1; font-size: 16px; color: rgb(255, 255, 255); -unity-text-align: upper-center;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>
