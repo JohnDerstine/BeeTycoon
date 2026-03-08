@@ -252,6 +252,23 @@ public class Hive : MonoBehaviour
         get { return stressLevel; }
         set
         {
+            if (stressLevel != value)//spawn popup bubble
+            {
+                if (activePopup != null)
+                {
+                    document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
+                    activePopup = null;
+                }
+
+                activePopup = afflictionPopupUI.Instantiate();
+                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[1];
+                AdjustPopupTransform();
+                activePopup.style.position = Position.Absolute;
+                activePopup.style.flexGrow = 0;
+                document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
+                activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
+            }
+
             stressLevel = value;
             
             if (stressLevel >= 3 && !attacking)
@@ -277,87 +294,6 @@ public class Hive : MonoBehaviour
                 queen = null;
         }
     }
-
-    //public string Condition
-    //{
-    //    get { return condition; }
-    //    set
-    //    {
-    //        Debug.Log("called");
-    //        if (activePopup != null)
-    //        {
-    //            Debug.Log("removing");
-    //            document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
-    //            activePopup = null;
-    //        }
-    //        if (tooltip != null)
-    //        {
-    //            document.rootVisualElement.Q<VisualElement>("Base").Remove(tooltip);
-    //            tooltip = null;
-    //        }
-
-    //        condition = value;
-    //        activePopup = afflictionPopupUI.Instantiate();
-
-    //        switch (value)
-    //        {
-    //            case "Mites":
-    //                hiveEfficency /= 2;
-    //                currentIcon = remedyIcons[0];
-    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[0];
-    //                break;
-    //            case "Mice":
-    //                construction /= 2;
-    //                currentIcon = remedyIcons[4];
-    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[6];
-    //                break;
-    //            case "Glued":
-    //                canBeOpened = false;
-    //                currentIcon = remedyIcons[2];
-    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[3];
-    //                break;
-    //            case "Freezing":
-    //                construction /= 2;
-    //                currentIcon = remedyIcons[5];
-    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[2];
-    //                break;
-    //            case "Starving":
-    //                construction /= 2;
-    //                currentIcon = remedyIcons[5];
-    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[4];
-    //                break;
-    //            case "Aggrevated":
-    //                canBeOpened = false;
-    //                currentIcon = remedyIcons[1];
-    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[1];
-    //                break;
-    //            case "Healthy":
-    //                activePopup = null;
-    //                break;
-    //            case "Dead":
-    //                empty = true;
-    //                if (queen != null)
-    //                    queen = null;
-    //                currentIcon = remedyIcons[3];
-    //                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[5];
-    //                break;
-    //        }
-    //        Debug.Log(condition);
-
-    //        if (activePopup != null)
-    //        {
-    //            Debug.Log("Not null");
-    //            AdjustPopupTransform();
-    //            activePopup.style.position = Position.Absolute;
-    //            activePopup.style.flexGrow = 0;
-    //            Debug.Log("Adding");
-    //            document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
-    //            Debug.Log("Added");
-    //            activePopup.RegisterCallback<PointerEnterEvent>(OnAfflictionHover);
-    //            activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
-    //        }
-    //    }
-    //}
 
     private void GlossaryOpen(PointerDownEvent e)
     {
@@ -1066,54 +1002,14 @@ public class Hive : MonoBehaviour
         clickedElement.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
     }
 
-    //private void SelectHarvest(VisualElement clickedElement)
-    //{
-    //    if (harvestDict[clickedElement] == false && !noHarvest.value)
-    //    {
-    //        Dictionary<VisualElement, bool> temp = new Dictionary<VisualElement, bool>();
-    //        temp.Add(smallHarvest, harvestDict[smallHarvest]);
-    //        temp.Add(mediumHarvest, harvestDict[mediumHarvest]);
-    //        temp.Add(largeHarvest, harvestDict[largeHarvest]);
-
-    //        foreach (KeyValuePair<VisualElement, bool> kvp in temp)
-    //        {
-    //            if (kvp.Key != clickedElement)
-    //                harvestDict[kvp.Key] = false;
-    //            else
-    //                harvestDict[kvp.Key] = true;
-    //        }
-    //    }
-    //    AdjustTints();
-    //}
-
-    //private void OnHarvestToggled(ChangeEvent<bool> evt)
-    //{
-    //    if (noHarvest.value)
-    //    {
-    //        harvestDict[smallHarvest] = false;
-    //        harvestDict[mediumHarvest] = false;
-    //        harvestDict[largeHarvest] = false;
-    //    }
-    //    else
-    //        harvestDict[mediumHarvest] = true;
-    //    AdjustTints();
-    //}
-
-    //private void AdjustTints()
-    //{
-    //    foreach (KeyValuePair<VisualElement, bool> kvp in harvestDict)
-    //    {
-    //        VisualElement tint = kvp.Key.Q<VisualElement>("Tint");
-    //        if (kvp.Value == false)
-    //            tint.style.unityBackgroundImageTintColor = darkTint;
-    //        else
-    //            tint.style.unityBackgroundImageTintColor = lightTint;
-
-    //    }
-    //}
-
     private void OpenStressWindow()
     {
+        if (activePopup != null)
+        {
+            document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
+            activePopup = null;
+        }
+
         stressContainer = StressPanel.Instantiate();
         stressContainer.style.width = 423;
         stressContainer.style.height = 550;
