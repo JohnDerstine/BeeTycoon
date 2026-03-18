@@ -71,6 +71,7 @@ public class QueenChooser : MonoBehaviour
 
     private List<QueenBee> queenOptions = new List<QueenBee>();
     private List<VisualTreeAsset> rngOptions;
+    private List<string> sizeDirections = new List<string>() { "right", "left", "down"};
 
     public void OnSceneLoaded()
     {
@@ -141,6 +142,8 @@ public class QueenChooser : MonoBehaviour
     //Takes an input for the number of choices and whether or not this will be the player's starter Queen
     private IEnumerator SpawnChoices(int numChoices, bool starter, bool modifier)
     {
+        if (sizeDirections.Count == 0 && rngOptions.Contains(sizeUI))
+            rngOptions.Remove(sizeUI);
 
         //Get the options that user will have to choose from
         List<VisualTreeAsset> rngChoices = new List<VisualTreeAsset>();
@@ -195,7 +198,9 @@ public class QueenChooser : MonoBehaviour
                 }
                 else if (rngChoices[i] == sizeUI)
                 {
-                    popup.AddManipulator(new Clickable(e => SelectSize()));
+                    string dir = sizeDirections[Random.Range(0, sizeDirections.Count)];
+                    popup.Q<Label>("Amount").text = "Expand plot<br> " + dir + "wards";
+                    popup.AddManipulator(new Clickable(e => SelectSize(dir)));
                 }
                 else if (rngChoices[i] == toolUI)
                 {
@@ -338,10 +343,11 @@ public class QueenChooser : MonoBehaviour
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }
 
-    private void SelectSize()
+    private void SelectSize(string dir)
     {
         selectionActive = false;
-        GameObject.Find("MapLoader").GetComponent<MapLoader>().IncreaseMapSize();
+        GameObject.Find("MapLoader").GetComponent<MapLoader>().IncreaseMapSize(dir);
+        sizeDirections.Remove(dir);
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }

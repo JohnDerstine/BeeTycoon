@@ -38,10 +38,12 @@ public class MapLoader : MonoBehaviour
     private List<Material> tileMats = new List<Material>();
     [SerializeField]
     private List<Material> tuftMats = new List<Material>();
+    [SerializeField]
+    private Material water;
 
     private int spawnChance = 4;
-    public int mapWidth = 6;
-    public int mapHeight = 6;
+    public int mapWidth = 12;
+    public int mapHeight = 16;
     private int foliageDensityMin = 5;
     private int foliageDensityMax = 12;
 
@@ -100,6 +102,10 @@ public class MapLoader : MonoBehaviour
     VisualElement total;
     Label totalAmount;
 
+
+    private List<Tile> leftChoices = new List<Tile>();
+    private List<Tile> rightChoices = new List<Tile>();
+
     void Awake()
     {
         tiles = new Tile[mapWidth, mapHeight];
@@ -132,30 +138,40 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                //if (i >= mapWidth / 4f && i < 3 * (mapWidth / 4f)
-                //    && j >= mapHeight / 4f && j < 3 * (mapHeight / 4f))
-                //{
                 GameObject temp = Instantiate(grassTile, new Vector3(i * 2, 0, j * 2), Quaternion.identity);
                 tiles[i, j] = temp.GetComponent<Tile>();
+                Material[] m = new Material[1] { tileMats[1] };
+                temp.GetComponent<MeshRenderer>().materials = m;
                 tiles[i, j].map = this;
                 tiles[i, j].Flower = (FlowerType)0;
                 tiles[i, j].x = i;
                 tiles[i, j].y = j;
                 tileList.Add(temp);
-                //}
-                //else
-                //{
-                //    Instantiate(outOfBoundsTile, new Vector3(i * 2, 0, j * 2), Quaternion.identity);
-
-                //    //Generate Trees
-                //    Vector3 rotation = new Vector3(0, Random.Range(0, 360), 0);
-                //    Vector3 offset = new Vector3(Random.Range(-0.2f, 0.2f), 0, Random.Range(-0.2f, 0.2f));
-                //    Instantiate(outOfBoundsTree, new Vector3(i * 2, 0, j * 2) + offset, Quaternion.Euler(rotation));
-                //}
+                Debug.Log("i " + i + " j " + j + " x " + tiles[i,j].transform.position.x + " y " + tiles[i, j].transform.position.z);
+                if (j >= 4 && j <= 11)
+                {
+                    if (i >= 0 && i <= 7)
+                    {
+                        Material[] m2 = new Material[1] { tileMats[0] };
+                        if (j != 4 && j != 11 && i < 6)
+                        {
+                            tiles[i, j].alive = true;
+                            tiles[i, j].gameObject.GetComponent<MeshRenderer>().materials = m2;
+                        }
+                        else if (Random.Range(0, 3) == 0)
+                        {
+                            tiles[i, j].alive = true;
+                            tiles[i, j].gameObject.GetComponent<MeshRenderer>().materials = m2;
+                        }
+                    }
+                }
             }
         }
 
-        GenerateFoliage();
+        GenerateLake();
+        CleanupEdges();
+
+        //GenerateFoliage();
         GenerateBorder();
         if (!fromSave)
         {
@@ -187,7 +203,46 @@ public class MapLoader : MonoBehaviour
             h.y = (int)tiles[randX, randY].transform.position.y;
         }
 
-        GenerateTrash();
+        //GenerateTrash();
+    }
+
+    private void CleanupEdges()
+    {
+        Material[] m = new Material[1] { tileMats[1] };
+        Material[] m2 = new Material[1] { tileMats[0] };
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                if (tiles[i, j].alive && GetAdjTileCount(i, j) <= 1)
+                {
+                    tiles[i, j].alive = false;
+                    tiles[i, j].gameObject.GetComponent<MeshRenderer>().materials = m;
+                    i = 0;
+                    j = 0;
+                }
+
+                if (!tiles[i, j].alive && GetAdjTileCount(i, j) >= 3)
+                {
+                    tiles[i, j].alive = true;
+                    tiles[i, j].gameObject.GetComponent<MeshRenderer>().materials = m2;
+                }
+            }
+        }
+    }
+
+    private int GetAdjTileCount(int i, int j)
+    {
+        int count = 0;
+        if (i < 11 && tiles[i + 1, j].alive)
+            count++;
+        if (j < 11 && tiles[i, j + 1].alive)
+            count++;
+        if (i > 0 && tiles[i - 1, j].alive)
+            count++;
+        if (j > 0 && tiles[i, j - 1].alive)
+            count++;
+        return count;
     }
 
     private void GenerateTrash()
@@ -195,6 +250,62 @@ public class MapLoader : MonoBehaviour
         trashObject = Instantiate(trash, new Vector3(3, 0, -3), Quaternion.identity);
         ClearOverlappingTrees();
     }
+
+    private void GenerateLake()
+    {
+        Material[] m = new Material[1] { water };
+        int posX = Random.Range(2, mapWidth - 2);
+        int posY;
+        if (posX > 4 && posX < 11)
+            posY = Random.Range(7, mapHeight - 2);
+        else
+            posY = Random.Range(2, mapHeight - 2);
+
+        tiles[posX, posY].GetComponent<MeshRenderer>().materials = m;
+        tiles[posX, posY].water = true;
+        tiles[posX, posY].alive = false;
+        Debug.Log("x: " + posX + " y: " + posY);
+
+
+        int randX = Random.Range(2, 5);
+        int randY = Random.Range(2, 5);
+        Debug.Log("randx: " + randX + " randy: " + randY);
+
+        for (int i = posY; i < posY + randY; i++)
+        {
+            for (int j = posX; j < posX + randX; j++)
+            {
+                if (i < 12 && i >= 0 && j < 16 && j >= 0)
+                {
+                    tiles[i, j].GetComponent<MeshRenderer>().materials = m;
+                    tiles[i, j].water = true;
+                    tiles[i, j].alive = false;
+                }
+            }
+        }
+        
+        int newPosX = Random.Range(posX, posX + randX);
+        int newPosY = Random.Range(posY, posY + randY);
+
+        int randX2 = Random.Range(2, 5);
+        int randY2 = Random.Range(2, 5);
+        Debug.Log("randx2: " + randX2 + " randy2: " + randY2);
+
+        int offset = Random.Range(-randY + 1, 1);
+
+        for (int i = newPosY + offset; i < newPosY + randY2 + offset; i++)
+        {
+            for (int j = newPosX; j < newPosX + randX2; j++)
+            {
+                if (i < 12 && i >= 0 && j < 16 && j >= 0)
+                {
+                    tiles[i, j].GetComponent<MeshRenderer>().materials = m;
+                    tiles[i, j].water = true;
+                    tiles[i, j].alive = false;
+                }
+            }
+        }
+    }    
 
     private void ClearOverlappingTrees()
     {
@@ -236,6 +347,21 @@ public class MapLoader : MonoBehaviour
                 oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i), Quaternion.identity));
                 trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
                 trees.Add(Instantiate(outOfBoundsTree, new Vector3(-2 - i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
+            }
+        }
+
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                if (!tiles[i, j].alive && !tiles[i, j].water)
+                {
+                    Vector3 offset = new Vector3(Random.Range(-0.2f, 0.2f), 0, Random.Range(-0.2f, 0.2f));
+                    int rotatationRand = Random.Range(0, 360);
+                    GameObject tree = Instantiate(outOfBoundsTree, new Vector3(i * 2, 0, j * 2) + offset, Quaternion.Euler(0, rotatationRand, 0));
+                    trees.Add(tree);
+                    tiles[i, j].tree = tree;
+                }
             }
         }
         SeasonRecolor();
@@ -307,13 +433,13 @@ public class MapLoader : MonoBehaviour
             tile.GetComponent<MeshRenderer>().materials = oobTileMaterial;
         }
 
-        Material[] tileMaterial = new Material[1];
-        tileMaterial[0] = tileMats[grassIndex];
-        foreach (GameObject tile in tileList)
-        {
-            tile.GetComponent<MeshRenderer>().materials = tileMaterial;
-            tile.GetComponent<Tile>().currentMat = tileMats[grassIndex];
-        }
+        //Material[] tileMaterial = new Material[1];
+        //tileMaterial[0] = tileMats[grassIndex];
+        //foreach (GameObject tile in tileList)
+        //{
+        //    tile.GetComponent<MeshRenderer>().materials = tileMaterial;
+        //    tile.GetComponent<Tile>().currentMat = tileMats[grassIndex];
+        //}
 
         Material[] tuftMaterial = new Material[1];
         tuftMaterial[0] = tuftMats[grassIndex];
@@ -330,7 +456,7 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                if (Random.Range(0, spawnChance) == 0)
+                if (tiles[i, j].alive && Random.Range(0, spawnChance) == 0)
                 {
                     bool possible = false;
                     if (game.CurrentState == GameStates.Menu && tiles[i, j].Flower == FlowerType.Empty)
@@ -1381,43 +1507,62 @@ public class MapLoader : MonoBehaviour
 
     #endregion
 
-    public void IncreaseMapSize()
+    public void IncreaseMapSize(string dir)
     {
-        mapWidth++;
-        mapHeight++;
-        FlowerType[,] flowers = new FlowerType[mapWidth, mapHeight];
-        bool[,] hives = new bool[mapWidth, mapHeight];
-        Hive[,] hiveObjects = new Hive[mapWidth, mapHeight];
-        for (int i = 0; i < mapWidth - 1; i++)
+
+        if (dir == "right")
+            IncreaseHelper(0, 6, 1, 11, true);
+        else if (dir == "left")
+            IncreaseHelper(0, 6, -1, 4, true);
+        else if (dir == "down")
+            IncreaseHelper(4, 11, 1, 6, false);
+    }
+
+    private void IncreaseHelper(int randStartMin, int randStartMax, int jMod, int jLimitStart, bool horizontal)
+    {
+        Material[] m2 = new Material[1] { tileMats[3] };
+        int tilesGained = 0;
+
+        while (tilesGained < 15)
         {
-            for (int j = 0; j < mapHeight - 1; j++)
+            int j = 0;
+            int randStartY = Random.Range(randStartMin, randStartMax);
+            int randLength = Random.Range(3, 6);
+            while (randLength > 1 && 11 + j < mapHeight)
             {
-                if ((tiles[i, j].Flower == FlowerType.Orange || tiles[i, j].Flower == FlowerType.Orange) && tiles[i, j] != tiles[i, j].Original)
-                    flowers[i, j] = FlowerType.Empty;
-                flowers[i, j] = tiles[i, j].Flower;
-                hives[i, j] = tiles[i, j].HasHive;
-                hiveObjects[i, j] = tiles[i, j].hive;
+                if (tilesGained > 18)
+                    break;
+
+                for (int i = randStartY; i < randStartY + randLength; i++)
+                {
+                    int x, y;
+                    if (horizontal)
+                    {
+                        x = i - Mathf.FloorToInt(randLength / 2);
+                        y = jLimitStart + j;
+                    }
+                    else
+                    {
+                        x = jLimitStart + j;
+                        y = i - Mathf.FloorToInt(randLength / 2);
+                    }
+
+                        Debug.Log(x + " " + y);
+                    if (x >= 0 && y >= 0 && x < 16 && y < 12 && !tiles[x, y].alive && !tiles[x, y].water)
+                    {
+                        Tile t = tiles[x, y];
+                        t.alive = true;
+                        Destroy(t.tree);
+                        t.tree = null;
+                        t.gameObject.GetComponent<MeshRenderer>().materials = m2;
+                        tilesGained++;
+                    }
+                }
+                j += jMod;
+
+                randLength -= Random.Range(0, 4);
             }
         }
-
-        ClearAllTiles();
-        tiles = new Tile[mapWidth, mapHeight];
-        GeneratePlot(false, true, false);
-        GameObject.Find("GridRenderer").GetComponent<GridRenderer>().Reload();
-        player.CenterCamera();
-        ClearFlowers();
-
-        for (int i = 0; i < mapWidth - 1; i++)
-        {
-            for (int j = 0; j < mapHeight - 1; j++)
-            {
-                tiles[i, j].Flower = flowers[i, j];
-                tiles[i, j].HasHive = hives[i, j];
-                tiles[i, j].hive = hiveObjects[i, j];
-            }
-        }
-
-        ClearOverlappingTrees();
     }
 
     private void ClearAllTiles()

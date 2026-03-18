@@ -6,6 +6,9 @@ public class Tile : MonoBehaviour
 {
     public MapLoader map;
 
+    public bool alive = false;
+    public bool water = false;
+    public GameObject tree;
     private FlowerType flower = FlowerType.Empty;
     private GameObject flowerObject;
     public bool completed;
