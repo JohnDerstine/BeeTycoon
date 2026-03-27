@@ -68,6 +68,9 @@ public class Hive : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset StressPanel;
 
+    [SerializeField]
+    private Material Highlight;
+
     private Texture2D currentIcon;
 
     private ToolManager toolManager;
@@ -197,6 +200,9 @@ public class Hive : MonoBehaviour
     List<TemplateContainer> globs = new List<TemplateContainer>();
     private AudioSource source;
     private bool animsRunning;
+
+    List<Tile> tileRadius = new List<Tile>();
+    private int rotation = 0;
 
     public int Size
     {
@@ -483,6 +489,7 @@ public class Hive : MonoBehaviour
             honey += possibleHoney;
             nectar -= possibleHoney;
 
+            Debug.Log(map.nectarGains.Values.Sum());
             nectarGain = addedNectar + (map.nectarGains.Values.Sum() / map.populatedHives) * conversionRate; //scale it down to lbs
 
             possibleNectar = nectarGain * queen.collectionMult * hiveEfficency * russianEff * summer * agile * hiveStandBonus * stressMod; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
@@ -516,15 +523,18 @@ public class Hive : MonoBehaviour
         //Condition = "Glued";
         hasSugar = false;
 
-        Debug.Log("Population: " + population);
-        Debug.Log("Honey: " + honey);
-        Debug.Log(honey - population / 20000);
+        //Debug.Log("Population: " + population);
+        //Debug.Log("Honey: " + honey);
+        //Debug.Log(honey - population / 20000);
     }
 
     private void Harvest(float percent)
     {
         float amount = percent * honey;
         float extractorBonus = toolManager.extractor.extractorBonus;
+        foreach (FlowerType key in nectarValues.Keys.ToList())
+            nectarValues[key] -= nectarValues[key] * percent;
+
         if (honeyType != FlowerType.Wildflower)
         {
             player.inventory[honeyType][0] += amount * extractorBonus;
@@ -659,79 +669,78 @@ public class Hive : MonoBehaviour
         button.style.height = 128;
     }
 
-    private void GetFlowerRatios() //Returns the same number for all flowers right now, but might be used for balancing later
+    private void GetFlowerRatios()
     {
-        for (int i = 0; i < map.mapWidth; i++)
+        foreach (Tile t in tileRadius)
+            flowerValues[t.Flower] += t.lastGain; //TODO: Store last gain amount in each tile, then loop through all radius tiles and add that amount to respective flowerType of tile
+
+        totalFlowerWeight = flowerValues.Values.Sum(); 
+    }
+
+    private void GetTileRadius()
+    {
+        Debug.Log("START " + x + " " + y);
+        switch (queen.RadiusType)
         {
-            for (int j = 0; j < map.mapHeight; j++)
-            {
-                int distance = Mathf.CeilToInt((Mathf.Abs(x - i) + Mathf.Abs(y - j)) / 2);
-                if (distance == 0)
-                    distance = 1;
-                switch (map.tiles[i,j].Flower)
-                {
-                    case FlowerType.Clover:
-                        flowerValues[FlowerType.Clover] += 1f / distance;
-                        break;
-                    case FlowerType.Alfalfa:
-                        flowerValues[FlowerType.Alfalfa] += 1f / distance;
-                        break;
-                    case FlowerType.Buckwheat:
-                        flowerValues[FlowerType.Buckwheat] += 1f / distance;
-                        break;
-                    case FlowerType.Fireweed:
-                        flowerValues[FlowerType.Fireweed] += 1f / distance;
-                        break;
-                    case FlowerType.Goldenrod:
-                        flowerValues[FlowerType.Goldenrod] += 1f / distance;
-                        break;
-                    case FlowerType.Dandelion:
-                        flowerValues[FlowerType.Dandelion] += 1f / distance;
-                        break;
-                    case FlowerType.Sunflower:
-                        flowerValues[FlowerType.Sunflower] += 1f / distance;
-                        break;
-                    case FlowerType.Daisy:
-                        flowerValues[FlowerType.Daisy] += 1f / distance;
-                        break;
-                    case FlowerType.Orange:
-                        flowerValues[FlowerType.Orange] += 1f / distance;
-                        break;
-                    case FlowerType.Thistle:
-                        flowerValues[FlowerType.Thistle] += 1f / distance;
-                        break;
-                    case FlowerType.Blueberry:
-                        flowerValues[FlowerType.Blueberry] += 1f / distance;
-                        break;
-                    case FlowerType.Tupelo:
-                        flowerValues[FlowerType.Tupelo] += 1f / distance;
-                        break;
-                    case FlowerType.Empty:
-                        break;
-                    default:
-                        break;
-                }
-            }
+            case "Square":
+                RadiusLoopHelper(2, 2, 4, 4);
+                break;
+
+            case "Long":
+                int startMod = (rotation == 0 || rotation == 270)? 4 : 1;
+
+                if (rotation == 0 || rotation == 180)
+                    RadiusLoopHelper(startMod, 1, 5, 2);
+                else
+                    RadiusLoopHelper(1, startMod, 2, 5);
+
+                break;
+
+            case "L":
+                if (rotation == 0 || rotation == 90)
+                    RadiusLoopHelper(1, 1, 2, 4);
+
+                if (rotation == 90 || rotation == 180)
+                    RadiusLoopHelper(1, 1, 4, 2);
+
+                if (rotation == 180 || rotation == 270)
+                    RadiusLoopHelper(1, 3, 2, 4);
+
+                if (rotation == 270 || rotation == 0)
+                    RadiusLoopHelper(3, 1, 4, 2);
+                break;
         }
-        totalFlowerWeight = flowerValues.Values.Sum();
+    }
+
+    private void RadiusLoopHelper(int xStart, int yStart, int xMod, int yMod)
+    {
+        for (int i = x - xStart; i <= x - xStart + xMod; i++)
+            for (int j = y - yStart; j <= y - yStart + yMod; j++)
+                if (i >= 0 && j >= 0 && i <= 11 && j <= 15)
+                    tileRadius.Add(map.tiles[i, j]);
     }
 
     private void SplitNectar(float inputNectar)
     {
         //Apply the weights of each type of flower to the nectar being gained this turn
         foreach (FlowerType key in nectarValues.Keys.ToList())
-            nectarValues[key] += inputNectar * (flowerValues[key] / totalFlowerWeight);
+            nectarValues[key] += flowerValues[key] / inputNectar;
+
+        Debug.Log(inputNectar);
     }
 
     public void CalcHoneyStats()
     {
         //set honeyType and honeyPurity to the type of honey that is most appundant from the available flowers this turn
-        if (honey > 0)
-        {
+        //if (honey > 0)
+        //{
             honeyType = nectarValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
-            honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();         
+            honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();
+
+            Debug.Log(nectarValues[honeyType]);
 
             float roundedPurity = Mathf.Round(honeyPurity * 1000) / 10.0f;
+            Debug.Log(roundedPurity);
             if (roundedPurity <= 60)
             {
                 roundedPurity = 100 - roundedPurity;
@@ -739,7 +748,7 @@ public class Hive : MonoBehaviour
             }
             honeyTypeLabel.text = "Type:\n" + honeyType.ToString();
             honeyPurityLabel.text = "Purity:\n" + roundedPurity + "%";
-        }
+        //}
     }
 
     public void UpdateMeters()
@@ -796,6 +805,8 @@ public class Hive : MonoBehaviour
 
         italian = (queen.species == "Italian") ? 1.25f : 1f;
         russianEff = (queen.species == "Russian") ? 1.1f : 1f;
+
+        GetTileRadius();
     }
 
     //Load queen from save doesn't require transfering stats

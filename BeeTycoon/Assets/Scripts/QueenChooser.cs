@@ -150,7 +150,7 @@ public class QueenChooser : MonoBehaviour
         if (starter)
         {
             for (int i = 0; rngChoices.Count < numChoices; i++)
-                rngChoices.Add(toolUI);
+                rngChoices.Add(queenUI);
         }
         else if (modifier)
         {

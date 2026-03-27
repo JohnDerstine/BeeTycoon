@@ -189,8 +189,8 @@ public class MapLoader : MonoBehaviour
 
         if (!fromSave && !reload && game.CurrentState != GameStates.Menu)
         {
-            int randX = Random.Range(0, mapWidth);
-            int randY = Random.Range(0, mapHeight);
+            int randX = Random.Range(0, 6);
+            int randY = Random.Range(5, 11);
             GameObject temp = Instantiate(hive, new Vector3(randX * 2, 0.5f, randY * 2), Quaternion.identity);
             Hive h = temp.GetComponent<Hive>();
             player.hives.Add(h);
@@ -199,8 +199,9 @@ public class MapLoader : MonoBehaviour
             tiles[randX, randY].HasHive = true;
             tiles[randX, randY].hive = h;
             h.hiveTile = tiles[randX, randY];
-            h.x = (int)tiles[randX, randY].transform.position.x;
-            h.y = (int)tiles[randX, randY].transform.position.y;
+            h.x = randX; h.y = randY;
+            //h.x = (int)tiles[randX, randY].transform.position.x;
+            //h.y = (int)tiles[randX, randY].transform.position.y;
         }
 
         //GenerateTrash();

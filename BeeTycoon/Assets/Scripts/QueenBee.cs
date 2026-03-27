@@ -19,7 +19,13 @@ public class QueenBee : MonoBehaviour
     public string species;
     public int age;
     public float grade;
+    private string radiusType = "L";
     public List<string> quirks = new List<string>();
+
+    public string RadiusType
+    {
+        get { return radiusType; }
+    }
 
     void Start()
     {

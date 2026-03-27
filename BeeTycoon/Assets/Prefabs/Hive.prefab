@@ -146,6 +146,7 @@ MonoBehaviour:
   deadSprite: {fileID: 2800000, guid: a08311bf23e020142b6cdc8d2863fa71, type: 3}
   audio: {fileID: 8300000, guid: c7b12fafb3785974cac5b9d9c7396aee, type: 3}
   StressPanel: {fileID: 9197481963319205126, guid: 173af282454bfba4c8d5a62d04c7a68b, type: 3}
+  Highlight: {fileID: 2100000, guid: e62bc6755cfe5a441b059ae6c407dab8, type: 2}
   empty: 1
   placed: 0
   x: 0
@@ -195,6 +196,7 @@ MonoBehaviour:
   species: 
   age: 0
   grade: 0
+  radiusType: Square
   quirks: []
 --- !u!114 &-6374463908099276077
 MonoBehaviour:
