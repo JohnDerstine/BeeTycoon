@@ -72,10 +72,12 @@ public class ToolManager : MonoBehaviour
             if (value == null)
             {
                 objectToMove.transform.position = storedPos;
+                if (objectToMove.TryGetComponent<Hive>(out Hive h))
+                    h.GetTileRadius(h.x, h.y);
                 storedTile.Flower = storedFType;
                 storedTile = null;
                 storedFType = FlowerType.Empty;
-                Destroy(ObjectToMove);
+                Destroy(activeHolo);
             }
             else
             {
@@ -113,7 +115,11 @@ public class ToolManager : MonoBehaviour
         if (Input.GetMouseButtonDown(1))
         {
             if (ObjectToMove != null)
+            {
+                if (ObjectToMove.TryGetComponent<Hive>(out Hive h) && !h.isOpen)
+                    h.HideHiveRadius();
                 ObjectToMove = null;
+            }
             activeTool = null;
         }
 
@@ -122,7 +128,11 @@ public class ToolManager : MonoBehaviour
             if (ObjectToMove == null)
                 CheckForPickup();
             else
+            {
                 CheckForPlacement();
+                if (activeTool == dolly)
+                    CheckForRotation();
+            }
         }
         else if (activeTool == smoker || activeTool == hiveTool)
         {
@@ -204,6 +214,8 @@ public class ToolManager : MonoBehaviour
                     {
                         ObjectToMove = t.hive.gameObject;
                         storedTile = t;
+                        t.hive.HideHiveRadius();
+                        t.hive.DisplayHiveRadius();
                     }
                 }
             }
@@ -244,15 +256,32 @@ public class ToolManager : MonoBehaviour
                         h.hiveTile = t;
                         t.HasHive = true;
                         t.hive = h;
-                        h.x = (int)t.transform.position.x;
-                        h.y = (int)t.transform.position.z;
+                        h.x = t.x;
+                        h.y = t.y;
                         h.transform.position = t.transform.position;
                         h.transform.position += new Vector3(0, 0.5f, 0);
                         dolly.usesLeft--;
                         CleanUpDolly(t);
+                        h.GetTileRadius(h.x, h.y);
+                        if (!h.isOpen)
+                            h.HideHiveRadius();
                     }
                 }
             }
+        }
+    }
+
+    private void CheckForRotation()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            Hive h = objectToMove.GetComponent<Hive>();
+            if (h.rotation == 270)
+                h.rotation = 0;
+            else
+                h.rotation += 90;
+            h.HideHiveRadius();
+            h.GetTileRadius(h.x, h.y);
         }
     }
 
@@ -326,6 +355,13 @@ public class ToolManager : MonoBehaviour
                     activeHolo.GetComponent<MeshRenderer>().material = redHolo;
                 else
                     activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
+
+                if (objectToMove.TryGetComponent<Hive>(out Hive h))
+                {
+                    h.HideHiveRadius();
+                    h.GetTileRadius(t.x, t.y);
+                    h.DisplayHiveRadius();
+                }
             }
         }
         else if (Physics.Raycast(ray, out var hit2, 1000, LayerMask.GetMask("OOB")))

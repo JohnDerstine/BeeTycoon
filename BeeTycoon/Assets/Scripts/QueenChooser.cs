@@ -307,7 +307,7 @@ public class QueenChooser : MonoBehaviour
             //Display Info about queen
             temp.Q<VisualElement>("Icon").style.backgroundImage = queenSprite;
             temp.Q<Label>("Species").text = "Species: " + queenOptions[i].species;
-            temp.Q<Label>("Age").text = "Age: " + queenOptions[i].age.ToString() + " Months";
+            temp.Q<Label>("Age").text = "Radius Type: " + queenOptions[i].radiusType;
             temp.Q<Label>("Grade").text = "Grade: " + queenOptions[i].grade.ToString() + "/10";
 
             //Add quirk labels to the queen

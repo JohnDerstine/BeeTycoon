@@ -250,15 +250,6 @@ public class GameController : MonoBehaviour
                     break;
             }
 
-            foreach (Hive h in player.hives)
-            {
-                h.queen.age += 3;
-                if (h.queen.age >= 56)
-                {
-                    h.Populate(null);
-                }
-            }
-
             map.SeasonRecolor();
             previousMoney = player.Money;
             player.Money = -Quota;

@@ -17,15 +17,13 @@ public class QueenBee : MonoBehaviour
     public float aggressivnessMult = 0.0f;
 
     public string species;
-    public int age;
     public float grade;
-    private string radiusType = "L";
+    public string radiusType;
     public List<string> quirks = new List<string>();
 
-    public string RadiusType
-    {
-        get { return radiusType; }
-    }
+    private List<string> rTypes = new List<string>() { "Square", "Long", "L-Shaped"};
+
+    public bool transferComplete = false;
 
     void Start()
     {
@@ -57,7 +55,8 @@ public class QueenBee : MonoBehaviour
         }
         species = possibilites[Random.Range(0, possibilites.Count)];
 
-        age = Random.Range(1, 36);
+        radiusType = rTypes[Random.Range(0, 3)];
+        Debug.Log(radiusType);
         grade = Mathf.Round((productionMult + constructionMult + collectionMult + resilienceMult + aggressivnessMult) * 10) / 10.0f;
 
         int quirkNum;
@@ -97,10 +96,11 @@ public class QueenBee : MonoBehaviour
         constructionMult = newQueen.constructionMult;
         aggressivnessMult = newQueen.aggressivnessMult;
         resilienceMult = newQueen.resilienceMult;
-        age = newQueen.age;
+        radiusType = newQueen.radiusType;
         species = newQueen.species;
         quirks = newQueen.quirks;
         grade = newQueen.grade;
         nullQueen = false;
+        transferComplete = true;
     }
 }

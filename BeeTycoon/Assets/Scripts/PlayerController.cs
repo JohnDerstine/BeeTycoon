@@ -212,7 +212,11 @@ public class PlayerController : MonoBehaviour
         pickedUpThisFrame = false;
         //Checks to see if selected item is placed
         if (SelectedItem != null)
+        {
             checkForClick();
+            if (hoverObject != null && hoverObject.TryGetComponent<Hive>(out Hive h))
+                CheckForRotation();
+        }
 
         //Displays selected item under mouse
         if (hovering && hoverObject != null && selectedItem != null)
@@ -258,6 +262,20 @@ public class PlayerController : MonoBehaviour
         PanCamera();
     }
 
+    //Check to see if hive is rotated
+    private void CheckForRotation()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            Hive h = hoverObject.GetComponent<Hive>();
+            if (h.rotation == 270)
+                h.rotation = 0;
+            else
+                h.rotation += 90;
+            h.GetTileRadius(h.x, h.y);
+        }
+    }
+
     //Check for user clicks on various GameObjects or when an object from the hex menu is selected
     private void checkForClick()
     {
@@ -280,8 +298,8 @@ public class PlayerController : MonoBehaviour
                                 hoverObject.transform.position += new Vector3(0, 0.5f, 0);
                                 hives.Add(h);
                                 Money = -hoverObject.GetComponent<Cost>().Price;
-                                h.x = (int)t.transform.position.x;
-                                h.y = (int)t.transform.position.z;
+                                h.x = t.x;
+                                h.y = t.y;
                                 selectedItem = null;
                                 hoverObject = null;
                                 Destroy(activeHolo);
@@ -356,7 +374,7 @@ public class PlayerController : MonoBehaviour
                         if (selectedItem.TryGetComponent(out QueenBee queen))
                         {
                             Debug.Log("Trying to assign queen");
-                            h.Populate(queen);
+                            StartCoroutine(h.Populate(queen));
                             //Money = -hoverObject.GetComponent<Cost>().Price;
                             hexMenu.beeObjectList.Remove(SelectedItem);
                             hexMenu.beeSprites.Remove(selectedItemSprite);
@@ -529,6 +547,9 @@ public class PlayerController : MonoBehaviour
         hive.template = template;
         activeUI = template;
         currentHive = hive;
+
+        //Display radius of hive when selected
+        hive.DisplayHiveRadius();
     }
 
     public void CloseHiveUI(Hive hive)
@@ -543,6 +564,7 @@ public class PlayerController : MonoBehaviour
         activeUI = null;
         currentHive = null;
         hive.isOpen = false;
+        hive.HideHiveRadius();
     }
 
     public void ReloadUI()
@@ -639,7 +661,7 @@ public class PlayerController : MonoBehaviour
         List<float> resilienceMult = new List<float>();
         List<float> aggressivnessMult = new List<float>();
         List<string> species = new List<string>();
-        List<int> age = new List<int>();
+        List<string> radiusType = new List<string>();
         List<float> grade = new List<float>();
         List<string> quirks = new List<string>();
         List<int> quirksCount = new List<int>();
@@ -677,7 +699,7 @@ public class PlayerController : MonoBehaviour
             resilienceMult.Add(h.queen.resilienceMult);
             aggressivnessMult.Add(h.queen.aggressivnessMult);
             species.Add(h.queen.species);
-            age.Add(h.queen.age);
+            radiusType.Add(h.queen.radiusType);
             grade.Add(h.queen.grade);
             foreach (string s in h.queen.quirks)
                 quirks.Add(s);
@@ -730,7 +752,7 @@ public class PlayerController : MonoBehaviour
         data.resilienceMult = resilienceMult;
         data.aggressivnessMult = aggressivnessMult;
         data.species = species;
-        data.age = age;
+        data.radiusType = radiusType;
         data.grade = grade;
         data.quirks = quirks;
         data.quirksCount = quirksCount;
@@ -827,7 +849,7 @@ public class PlayerController : MonoBehaviour
             queen.resilienceMult = data.resilienceMult[i];
             queen.aggressivnessMult = data.aggressivnessMult[i];
             queen.species = data.species[i];
-            queen.age = data.age[i];
+            queen.radiusType = data.radiusType[i];
             queen.grade = data.grade[i];
 
             int count = 0;
@@ -885,7 +907,7 @@ public struct PlayerSaveData
     public List<float> resilienceMult;
     public List<float> aggressivnessMult;
     public List<string> species;
-    public List<int> age;
+    public List<string> radiusType;
     public List<float> grade;
     public List<string> quirks;
     public List<int> quirksCount;

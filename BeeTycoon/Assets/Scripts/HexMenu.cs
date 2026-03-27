@@ -472,7 +472,7 @@ public class HexMenu : MonoBehaviour
 
         ui.GetComponent<AudioSource>().Play();
         player.Money = -cost;
-        hive.Populate(item.GetComponent<QueenBee>());
+        StartCoroutine(hive.Populate(item.GetComponent<QueenBee>()));
         beeObjectList.Remove(item);
         beeSprites.Remove(sprite);
         tab1ItemCount--;
@@ -530,7 +530,7 @@ public class HexMenu : MonoBehaviour
                 //Update tooltip text to reflect queen stats
                 popup.Q<VisualElement>("Icon").style.backgroundImage = sprite;
                 popup.Q<Label>("Species").text = "Species: " + queen.species;
-                popup.Q<Label>("Age").text = "Age: " + queen.age.ToString() + " Months";
+                popup.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
                 popup.Q<Label>("Grade").text = "Grade: " + queen.grade.ToString() + "/10";
                 VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");
                 foreach (string s in queen.quirks)
@@ -624,7 +624,7 @@ public class HexMenu : MonoBehaviour
         List<float> resilienceMult = new List<float>();
         List<float> aggressivnessMult = new List<float>();
         List<string> species = new List<string>();
-        List<int> age = new List<int>();
+        List<string> radiusType = new List<string>();
         List<float> grade = new List<float>();
         List<string> quirks = new List<string>();
         List<int> quirksCount = new List<int>();
@@ -647,7 +647,7 @@ public class HexMenu : MonoBehaviour
             resilienceMult.Add(queen.resilienceMult);
             aggressivnessMult.Add(queen.aggressivnessMult);
             species.Add(queen.species);
-            age.Add(queen.age);
+            radiusType.Add(queen.radiusType);
             grade.Add(queen.grade);
             foreach (string s in queen.quirks)
                 quirks.Add(s);
@@ -672,7 +672,7 @@ public class HexMenu : MonoBehaviour
         data.resilienceMult = resilienceMult;
         data.aggressivnessMult = aggressivnessMult;
         data.species = species;
-        data.age = age;
+        data.radiusType = radiusType;
         data.grade = grade;
         data.quirks = quirks;
         data.quirksCount = quirksCount;
@@ -718,7 +718,7 @@ public class HexMenu : MonoBehaviour
         queen.resilienceMult = data.resilienceMult[i];
         queen.aggressivnessMult = data.aggressivnessMult[i];
         queen.species = data.species[i];
-        queen.age = data.age[i];
+        queen.radiusType = data.radiusType[i];
         queen.grade = data.grade[i];
 
         int count = 0;
@@ -745,7 +745,7 @@ public struct HexMenuSaveData
     public List<float> resilienceMult;
     public List<float> aggressivnessMult;
     public List<string> species;
-    public List<int> age;
+    public List<string> radiusType;
     public List<float> grade;
     public List<string> quirks;
     public List<int> quirksCount;

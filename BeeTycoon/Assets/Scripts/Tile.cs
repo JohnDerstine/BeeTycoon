@@ -26,6 +26,9 @@ public class Tile : MonoBehaviour
 
     public Material currentMat;
 
+    [SerializeField]
+    public Material[] lastMaterials;
+
     public int x;
     public int y;
     public int lastGain;

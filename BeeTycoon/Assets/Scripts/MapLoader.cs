@@ -147,7 +147,6 @@ public class MapLoader : MonoBehaviour
                 tiles[i, j].x = i;
                 tiles[i, j].y = j;
                 tileList.Add(temp);
-                Debug.Log("i " + i + " j " + j + " x " + tiles[i,j].transform.position.x + " y " + tiles[i, j].transform.position.z);
                 if (j >= 4 && j <= 11)
                 {
                     if (i >= 0 && i <= 7)

@@ -202,7 +202,10 @@ public class Hive : MonoBehaviour
     private bool animsRunning;
 
     List<Tile> tileRadius = new List<Tile>();
-    private int rotation = 0;
+    public int rotation = 0;
+
+    [SerializeField]
+    Material[] selectedMaterials = new Material[1];
 
     public int Size
     {
@@ -430,14 +433,6 @@ public class Hive : MonoBehaviour
         if (empty)
             return;
 
-        ////Mice eat through comb every turn
-        //if (Condition == "Mice")
-        //{
-        //    comb -= 0.5f;
-        //    if (comb <= 4)
-        //        comb = 4;
-        //}
-
         if (hasRepellant)
         {
             repellantTurns--;
@@ -490,7 +485,7 @@ public class Hive : MonoBehaviour
             nectar -= possibleHoney;
 
             Debug.Log(map.nectarGains.Values.Sum());
-            nectarGain = addedNectar + (map.nectarGains.Values.Sum() / map.populatedHives) * conversionRate; //scale it down to lbs
+            nectarGain = addedNectar + (map.nectarGains.Values.Sum() / map.populatedHives) * conversionRate; //scale it down to lbs //TODO CHANGE THIS
 
             possibleNectar = nectarGain * queen.collectionMult * hiveEfficency * russianEff * summer * agile * hiveStandBonus * stressMod; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
             if (possibleNectar + nectar + honey > storage)
@@ -677,46 +672,46 @@ public class Hive : MonoBehaviour
         totalFlowerWeight = flowerValues.Values.Sum(); 
     }
 
-    private void GetTileRadius()
+    public void GetTileRadius(int x, int y)
     {
-        Debug.Log("START " + x + " " + y);
-        switch (queen.RadiusType)
+        tileRadius.Clear();
+        switch (queen.radiusType)
         {
             case "Square":
-                RadiusLoopHelper(2, 2, 4, 4);
+                RadiusLoopHelper(2, 2, 4, 4, x, y);
                 break;
 
             case "Long":
                 int startMod = (rotation == 0 || rotation == 270)? 4 : 1;
 
                 if (rotation == 0 || rotation == 180)
-                    RadiusLoopHelper(startMod, 1, 5, 2);
+                    RadiusLoopHelper(startMod, 1, 5, 2, x, y);
                 else
-                    RadiusLoopHelper(1, startMod, 2, 5);
+                    RadiusLoopHelper(1, startMod, 2, 5, x, y);
 
                 break;
 
-            case "L":
+            case "L-Shaped":
                 if (rotation == 0 || rotation == 90)
-                    RadiusLoopHelper(1, 1, 2, 4);
+                    RadiusLoopHelper(1, 1, 2, 4, x, y);
 
                 if (rotation == 90 || rotation == 180)
-                    RadiusLoopHelper(1, 1, 4, 2);
+                    RadiusLoopHelper(1, 1, 4, 2, x, y);
 
                 if (rotation == 180 || rotation == 270)
-                    RadiusLoopHelper(1, 3, 2, 4);
+                    RadiusLoopHelper(1, 3, 2, 4, x, y);
 
                 if (rotation == 270 || rotation == 0)
-                    RadiusLoopHelper(3, 1, 4, 2);
+                    RadiusLoopHelper(3, 1, 4, 2, x, y);
                 break;
         }
     }
 
-    private void RadiusLoopHelper(int xStart, int yStart, int xMod, int yMod)
+    private void RadiusLoopHelper(int xStart, int yStart, int xMod, int yMod, int x, int y)
     {
         for (int i = x - xStart; i <= x - xStart + xMod; i++)
             for (int j = y - yStart; j <= y - yStart + yMod; j++)
-                if (i >= 0 && j >= 0 && i <= 11 && j <= 15)
+                if (i >= 0 && j >= 0 && i <= 11 && j <= 15 && !tileRadius.Contains(map.tiles[i, j]))
                     tileRadius.Add(map.tiles[i, j]);
     }
 
@@ -783,7 +778,7 @@ public class Hive : MonoBehaviour
         combHover.Q<Label>("Flat").text = (Mathf.Round(comb * storagePerComb * conversionRate * 100 * 10) / 10.0f) + " lbs."; //OLD REPLACE comb * storagePerComb * conversionRate: construction * queen.constructionMult * hiveEfficency
     }
 
-    public void Populate(QueenBee q)
+    public IEnumerator Populate(QueenBee q)
     {
         if (q == null)
         {
@@ -793,9 +788,10 @@ public class Hive : MonoBehaviour
                 queenHex.style.backgroundImage = deadSprite;
                 queenClick.UnregisterCallback<PointerMoveEvent>(OnQueenMove);
             }
-            return;
+            yield break;
         }
 
+        queen.transferComplete = false;
         StartCoroutine(queen.TransferStats(q));
         Destroy(q.gameObject);
         empty = false;
@@ -806,7 +802,10 @@ public class Hive : MonoBehaviour
         italian = (queen.species == "Italian") ? 1.25f : 1f;
         russianEff = (queen.species == "Russian") ? 1.1f : 1f;
 
-        GetTileRadius();
+        yield return new WaitWhile(() => !queen.transferComplete);
+
+        GetTileRadius(x, y);
+        DisplayHiveRadius();
     }
 
     //Load queen from save doesn't require transfering stats
@@ -992,6 +991,22 @@ public class Hive : MonoBehaviour
         }
     }
 
+    public void DisplayHiveRadius()
+    {
+        foreach (Tile t in tileRadius)
+        {
+            t.lastMaterials = t.GetComponent<MeshRenderer>().materials;
+            t.GetComponent<MeshRenderer>().materials = selectedMaterials;
+        }
+    }
+
+    public void HideHiveRadius()
+    {
+        foreach (Tile t in tileRadius)
+            if (t.lastMaterials.Count() > 0)
+                t.GetComponent<MeshRenderer>().materials = t.lastMaterials;
+    }
+
     private void SelectHarvest(VisualElement clickedElement)
     {
         document.GetComponent<AudioSource>().Play();
@@ -1118,7 +1133,7 @@ public class Hive : MonoBehaviour
 
                 popup.Q<VisualElement>("Icon").style.backgroundImage = queenHex.style.backgroundImage;
                 popup.Q<Label>("Species").text = "Species: " + queen.species;
-                popup.Q<Label>("Age").text = "Age: " + queen.age.ToString() + " Months";
+                popup.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
                 popup.Q<Label>("Grade").text = "Grade: " + queen.grade.ToString() + "/10";
                 VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");
                 foreach (string s in queen.quirks)
