@@ -31,6 +31,7 @@ public class Hive : MonoBehaviour
     private GameController game;
     private UnlockTracker tracker;
     private HexMenu hexMenu;
+    private NectarScoring nectarScoring;
 
     [SerializeField]
     private VisualTreeAsset hiveUI;
@@ -201,11 +202,11 @@ public class Hive : MonoBehaviour
     private AudioSource source;
     private bool animsRunning;
 
-    List<Tile> tileRadius = new List<Tile>();
+    public List<Tile> tileRadius = new List<Tile>();
     public int rotation = 0;
 
     [SerializeField]
-    Material[] selectedMaterials = new Material[1];
+    Material selectedMaterial;
 
     public int Size
     {
@@ -346,6 +347,7 @@ public class Hive : MonoBehaviour
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
         toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
+        nectarScoring = GameObject.Find("MapLoader").GetComponent<NectarScoring>();
         hexMenu = document.gameObject.GetComponent<HexMenu>();
         source = GetComponent<AudioSource>();
         queen = GetComponent<QueenBee>();
@@ -484,8 +486,8 @@ public class Hive : MonoBehaviour
             honey += possibleHoney;
             nectar -= possibleHoney;
 
-            Debug.Log(map.nectarGains.Values.Sum());
-            nectarGain = addedNectar + (map.nectarGains.Values.Sum() / map.populatedHives) * conversionRate; //scale it down to lbs //TODO CHANGE THIS
+            Debug.Log(nectarScoring.nectarGains.Values.Sum());
+            nectarGain = addedNectar + (nectarScoring.nectarGains.Values.Sum() / nectarScoring.populatedHives) * conversionRate; //scale it down to lbs //TODO CHANGE THIS
 
             possibleNectar = nectarGain * queen.collectionMult * hiveEfficency * russianEff * summer * agile * hiveStandBonus * stressMod; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
             if (possibleNectar + nectar + honey > storage)
@@ -995,16 +997,16 @@ public class Hive : MonoBehaviour
     {
         foreach (Tile t in tileRadius)
         {
-            t.lastMaterials = t.GetComponent<MeshRenderer>().materials;
-            t.GetComponent<MeshRenderer>().materials = selectedMaterials;
+            t.lastMaterial = t.GetComponent<MeshRenderer>().material;
+            t.GetComponent<MeshRenderer>().material = selectedMaterial;
         }
     }
 
     public void HideHiveRadius()
     {
         foreach (Tile t in tileRadius)
-            if (t.lastMaterials.Count() > 0)
-                t.GetComponent<MeshRenderer>().materials = t.lastMaterials;
+            if (t.lastMaterial != null)
+                t.GetComponent<MeshRenderer>().material = t.lastMaterial;
     }
 
     private void SelectHarvest(VisualElement clickedElement)

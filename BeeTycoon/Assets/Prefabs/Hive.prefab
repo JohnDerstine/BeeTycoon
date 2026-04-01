@@ -173,8 +173,9 @@ MonoBehaviour:
   canBeOpened: 1
   fromSave: 0
   repellantTurns: 0
-  selectedMaterials:
-  - {fileID: 2100000, guid: e62bc6755cfe5a441b059ae6c407dab8, type: 2}
+  tileRadius: []
+  rotation: 0
+  selectedMaterial: {fileID: 2100000, guid: e62bc6755cfe5a441b059ae6c407dab8, type: 2}
 --- !u!114 &-2763537602791666697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -196,9 +197,10 @@ MonoBehaviour:
   resilienceMult: 0
   aggressivnessMult: 0
   species: 
-  age: 0
   grade: 0
+  radiusType: 
   quirks: []
+  transferComplete: 0
 --- !u!114 &-6374463908099276077
 MonoBehaviour:
   m_ObjectHideFlags: 0

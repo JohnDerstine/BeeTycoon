@@ -22,6 +22,8 @@ TagManager:
   - Tile
   - Trash
   - Stage
+  - Market
+  - Shed
   layers:
   - Default
   - TransparentFX

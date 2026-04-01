@@ -48,6 +48,9 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset quotaScreenUI;
 
+    [SerializeField]
+    private NectarScoring nectar;
+
     private ToolManager toolManager;
 
     private int turn = 1;
@@ -149,6 +152,7 @@ public class GameController : MonoBehaviour
         Quota = 10;
 
         map.GameStart(false);
+        nectar.GameStart();
         SceneManager.sceneLoaded -= OnSceneLoadNew;
     }
 
@@ -167,6 +171,7 @@ public class GameController : MonoBehaviour
         ReloadUI();
 
         map.GameStart(true);
+        nectar.GameStart();
         SceneManager.sceneLoaded -= OnSceneLoadContinue;
     }
 
@@ -200,6 +205,12 @@ public class GameController : MonoBehaviour
         hexMenu.CloseTab();
         honeyMarket.CloseMarket();
 
+        //Updated hive count for scoring
+        nectar.populatedHives = 0;
+        foreach (Hive h in player.hives)
+            if (!h.queen.nullQueen)
+                nectar.populatedHives++;
+
         CurrentState = GameStates.TurnEnd;
         turn++;
         if (turn == 5)
@@ -207,7 +218,7 @@ public class GameController : MonoBehaviour
 
         document.visualTreeAsset = nectarUI;
 
-        StartCoroutine(map.GetNectarGains());
+        StartCoroutine(nectar.GetNectarGains());
 
         yield return new WaitWhile(() => !nectarCollectingFinished);
         nectarCollectingFinished = false;

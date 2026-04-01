@@ -238,7 +238,7 @@ public class PlayerController : MonoBehaviour
 
                         if (hoverObject.GetComponent<Cost>().tree && (t.y == map.mapHeight - 1 || t.x == map.mapWidth - 1 ||  !t.Check234() || t.HasHive || t.Flower != FlowerType.Empty))
                             activeHolo.GetComponent<MeshRenderer>().material = redHolo;
-                        else if (t.HasHive || t.Flower != FlowerType.Empty)
+                        else if (t.HasHive || t.Flower != FlowerType.Empty || !t.alive || t.water)
                             activeHolo.GetComponent<MeshRenderer>().material = redHolo;
                         else
                             activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
@@ -286,7 +286,7 @@ public class PlayerController : MonoBehaviour
             //If a tile is clicked while holding a placeable object, place the object
             if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
             {
-                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
+                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t) && t.alive && !t.water)
                 {
                     if (hoverObject != null && hoverObject.tag == "Placeable")
                     {
@@ -312,8 +312,12 @@ public class PlayerController : MonoBehaviour
                         }
                         else if (hoverObject.TryGetComponent<Cost>(out Cost c))
                         {
-                            if (c.ftype != FlowerType.Empty && (t.Flower == FlowerType.Empty || t.Flower == FlowerType.Orange || t.Flower == FlowerType.Tupelo) && !t.HasHive)
+                            if (c.ftype != FlowerType.Empty && c.ftype != FlowerType.Orange && c.ftype != FlowerType.Tupelo && t.Flower == FlowerType.Empty && !t.HasHive)
                             {
+                                Debug.Log("Money: " + money + " Price: " + c.Price);
+                                if (Money < c.Price)
+                                    return;
+
                                 t.Flower = c.ftype;
                                 if (hexMenu.flowersOwned[c.ftype] <= 0)
                                 {
@@ -512,19 +516,18 @@ public class PlayerController : MonoBehaviour
 
     public void OpenHiveUI(TemplateContainer template, VisualTreeAsset hiveUI, Hive hive)
     {
-        Debug.Log(hive.canBeOpened + " " + game.CurrentState + " " + selectedItem);
         if (selectedItem != null || game.CurrentState == GameStates.Paused || game.CurrentState == GameStates.TurnEnd || hive.canBeOpened == false)
             return;
 
-        Debug.Log("opening hive");
+        //Close any other open hive
+        foreach (Hive h in hives)
+            if (h.isOpen)
+                CloseHiveUI(h);
+
         //Check to see if the same hive is being clicked to close the hiveUI
         bool reclicked = false;
         if (activeUI == template && activeUI != null)
             reclicked = true;
-
-        //Close any other open hive UI
-        if (activeUI != null)
-            CloseHiveUI(hive);
 
         if (reclicked)
             return;
@@ -620,8 +623,9 @@ public class PlayerController : MonoBehaviour
 
     public void CenterCamera()
     {
-        int offset = (map.mapWidth % 2 == 0) ? 2 : 3;
-        Camera.main.transform.position = new Vector3(map.mapWidth + (0.15f * Mathf.Pow(map.mapWidth, 1.75f)), 2.25f * map.mapWidth, (map.mapWidth / 2) + offset);
+        //int offset = (map.mapHeight % 2 == 0) ? 2 : 3;
+        //Camera.main.transform.position = new Vector3(map.mapWidth + (0.15f * Mathf.Pow(map.mapWidth, 1.75f)), 2.25f * map.mapWidth, (map.mapWidth / 2) + offset);
+        Camera.main.transform.position = new Vector3(14.5f, 20, 13.5f);
     }
     #endregion
 

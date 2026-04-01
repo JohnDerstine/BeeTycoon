@@ -239,7 +239,7 @@ public class ToolManager : MonoBehaviour
 
             if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
             {
-                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t))
+                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t) && t.alive && !t.water)
                 {
                     if (activeTool == shovel)
                     {
@@ -351,7 +351,7 @@ public class ToolManager : MonoBehaviour
 
                 if (objectToMove.GetComponent<Cost>().tree && (t.y == map.mapHeight - 1 || t.x == map.mapWidth - 1 || !t.Check234() || t.HasHive || t.Flower != FlowerType.Empty))
                     activeHolo.GetComponent<MeshRenderer>().material = redHolo;
-                else if (t.HasHive || t.Flower != FlowerType.Empty)
+                else if (t.HasHive || t.Flower != FlowerType.Empty || t.water || !t.alive)
                     activeHolo.GetComponent<MeshRenderer>().material = redHolo;
                 else
                     activeHolo.GetComponent<MeshRenderer>().material = greenHolo;

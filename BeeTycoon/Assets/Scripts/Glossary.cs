@@ -361,6 +361,6 @@ public class Glossary : MonoBehaviour
     public void GameLoaded()
     {
         root = document.rootVisualElement;
-        root.Q<CustomVisualElement>("GlossaryButton").AddManipulator(new Clickable(() => OpenGlossary("Hive")));
+        //root.Q<CustomVisualElement>("GlossaryButton").AddManipulator(new Clickable(() => OpenGlossary("Hive")));
     }
 }

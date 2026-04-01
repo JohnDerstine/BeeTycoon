@@ -140,10 +140,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   map: {fileID: 0}
+  alive: 0
+  water: 0
+  tree: {fileID: 0}
   completed: 0
+  hive: {fileID: 0}
   greenMat: {fileID: 2100000, guid: f5b1b0b3a546eb3488ed5f07aa8061a7, type: 2}
-  yellowMat: {fileID: 2100000, guid: 3cf75eae7deed5e498ac828155b8dead, type: 2}
-  blueMat: {fileID: 2100000, guid: b9e3256ec3bebe04dbe82d207e09337f, type: 2}
-  currentMat: {fileID: 0}
+  yellowMat: {fileID: 2100000, guid: cda54bd7fb1da2e4aa45e8c7dccebec4, type: 2}
+  blueMat: {fileID: 2100000, guid: 9a2d3e1324220ba4e8b4189b4103619b, type: 2}
+  orangeMat: {fileID: 2100000, guid: e62bc6755cfe5a441b059ae6c407dab8, type: 2}
+  lastMaterial: {fileID: 0}
   x: 0
   y: 0
+  lastGain: 0

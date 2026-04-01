@@ -21,13 +21,13 @@ public class Tile : MonoBehaviour
     private Material yellowMat;
     [SerializeField]
     private Material blueMat;
+    [SerializeField]
+    private Material orangeMat;
 
     MeshRenderer matRenderer;
 
-    public Material currentMat;
-
-    [SerializeField]
-    public Material[] lastMaterials;
+    public Material lastMaterial;
+    public Material seasonColor;
 
     public int x;
     public int y;
@@ -142,7 +142,7 @@ public class Tile : MonoBehaviour
         return true;
     }
 
-    public IEnumerator Animate(FlowerType fType, float strength, float duration, bool primary, AudioSource audio)
+    public IEnumerator Animate(FlowerType fType, float strength, float duration, bool primary, AudioSource audio, Hive h)
     {
         if (flower != fType)
             yield return new WaitForEndOfFrame();
@@ -167,20 +167,25 @@ public class Tile : MonoBehaviour
                 audio.PlayOneShot(audio.clip);
             }
 
-            for (int i = 0; i < 5; i++)
+            duration /= 2; //To account for grow and shrink
+
+            for (int i = 0; i < 25; i++)
             {
-                flowerObject.transform.localScale += new Vector3(0, 0.25f * strength, 0);
-                yield return new WaitForSeconds(duration);
+                flowerObject.transform.localScale += new Vector3(0, 0.05f * strength, 0);
+                yield return new WaitForSeconds(duration / 25);
             }
 
-            for (int i = 0; i < 5; i++)
+            for (int i = 0; i < 25; i++)
             {
-                flowerObject.transform.localScale -= new Vector3(0, 0.25f * strength, 0);
-                yield return new WaitForSeconds(duration);
+                flowerObject.transform.localScale -= new Vector3(0, 0.05f * strength, 0);
+                yield return new WaitForSeconds(duration / 25);
             }
 
             //revert tile color
-            matRenderer.material = currentMat;
+            if (!h.tileRadius.Contains(this))
+                matRenderer.material = seasonColor;
+            else
+                matRenderer.material = orangeMat;
         }
 
         completed = true;
