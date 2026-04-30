@@ -31,7 +31,6 @@ public class Hive : MonoBehaviour
     private GameController game;
     private UnlockTracker tracker;
     private HexMenu hexMenu;
-    private NectarScoring nectarScoring;
 
     [SerializeField]
     private VisualTreeAsset hiveUI;
@@ -119,11 +118,11 @@ public class Hive : MonoBehaviour
     private float hiveEfficency; //Efficiency is a multiplier to all the hive's actions and is calculated by the population / total population * size of the hive
 
     //stats 0-1f
-    private float production = 9.6f; // was 400
-    private float construction = 1f; //was 0.5f
-    //private float collection = 1f; //was 400 //Not currently in use. Nectar is now caclulated through flowers
+    private float production = 20f; //was 9.6f
+    private float construction = 1f; 
+    //private float collection = 1f; //Not currently in use. Nectar is now caclulated through flowers
     private float resilience = 1;
-    private float aggressivness = 3;
+    private float aggressivness = 4;
 
     private int stressLevel = 0;
     public List<string> conditions = new List<string>();
@@ -139,21 +138,23 @@ public class Hive : MonoBehaviour
         { "Glued", 1},
         { "Freezing", 4},
         { "Starving", 4},
-        { "Defending", 1 }
+        { "Defending", 1 },
+        { "Undisturbed", -1},
+        { "Relaxed", -1},
+        { "Indulged", -1}
     };
     private bool attacking;
 
 
     public QueenBee queen;
 
-    private Dictionary<FlowerType, float> flowerValues = new Dictionary<FlowerType, float>();
     public Dictionary<FlowerType, float> nectarValues = new Dictionary<FlowerType, float>();
-    private float totalFlowerWeight = 0;
     public FlowerType honeyType = FlowerType.Empty;
     public float honeyPurity = 0;
 
     public float possibleNectar;
     public float nectarGain;
+    public Dictionary<FlowerType, float> personalNectarGains = new Dictionary<FlowerType, float>();
 
     //UI
     private Label honeyPurityLabel;
@@ -178,8 +179,14 @@ public class Hive : MonoBehaviour
     EventCallback<PointerLeaveEvent> exitCallback;
     EventCallback<PointerMoveEvent> queenMoveCallback;
     EventCallback<PointerLeaveEvent> queenExitCallback;
+    EventCallback<PointerEnterEvent> harvestEnterCallback;
+    EventCallback<PointerLeaveEvent> harvestLeaveCallback;
+    Clickable smallHarvestClick;
+    Clickable mediumHarvestClick;
+    Clickable largeHarvestClick;
     private CustomVisualElement currentHover;
     private StyleColor darkTint;
+    private StyleColor darkerTint;
     public StyleColor lightTint;
     private VisualElement queenHex;
     public CustomVisualElement queenClick;
@@ -194,7 +201,7 @@ public class Hive : MonoBehaviour
     public bool hasInsulation;
     public bool canBeOpened = true;
     private string condition = "Healthy";
-    private TemplateContainer activePopup;
+    private TemplateContainer activePopup = null;
     private Coroutine activePulse;
     public bool fromSave;
     public int repellantTurns;
@@ -204,6 +211,11 @@ public class Hive : MonoBehaviour
 
     public List<Tile> tileRadius = new List<Tile>();
     public int rotation = 0;
+
+    private int turnsSinceLastHarvest = 0;
+    private int mothTurns = 0;
+
+    private bool harvestActive = true;
 
     [SerializeField]
     Material selectedMaterial;
@@ -266,7 +278,7 @@ public class Hive : MonoBehaviour
             {
                 if (activePopup != null)
                 {
-                    document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
+                    activePopup.RemoveFromHierarchy();
                     activePopup = null;
                 }
 
@@ -280,7 +292,12 @@ public class Hive : MonoBehaviour
             }
 
             stressLevel = value;
-            
+
+            if ((stressLevel >= 2 && toolManager.suit.Level == 0) && harvestActive)
+                DisableHarvestButtons();
+            else if ((stressLevel < 2 || toolManager.suit.Level > 0) && !harvestActive)
+                EnableHarvestButtons();
+
             if (stressLevel >= 3 && !attacking)
             {
                 attacking = true;
@@ -347,8 +364,7 @@ public class Hive : MonoBehaviour
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
         toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
-        nectarScoring = GameObject.Find("MapLoader").GetComponent<NectarScoring>();
-        hexMenu = document.gameObject.GetComponent<HexMenu>();
+        hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
         source = GetComponent<AudioSource>();
         queen = GetComponent<QueenBee>();
 
@@ -356,14 +372,19 @@ public class Hive : MonoBehaviour
         foreach (var v in values)
         {
             FlowerType fType = (FlowerType)v;
-            flowerValues.Add(fType, 0);
+            personalNectarGains.Add(fType, 0);
             if (!fromSave)
                 nectarValues.Add(fType, 0);
         }
 
+        Color darkerTintColor = Color.black;
+        darkerTintColor.a = 0.8f;
+        darkerTint = new StyleColor(darkerTintColor);
+
         Color darkTintColor = Color.black;
         darkTintColor.a = 0.6f;
         darkTint = new StyleColor(darkTintColor);
+
         Color lightTintColor = Color.black;
         lightTintColor.a = 0.0f;
         lightTint = new StyleColor(lightTintColor);
@@ -371,6 +392,25 @@ public class Hive : MonoBehaviour
         assignQueen = new Clickable(OpenQueenTab);
 
         hiveEfficency = (population / popCap) * size;
+
+        //If there is no queen, dislpay empty queen popup
+        activePopup = afflictionPopupUI.Instantiate();
+        activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[5];
+        AdjustPopupTransform();
+        activePopup.style.position = Position.Absolute;
+        activePopup.style.flexGrow = 0;
+        document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
+        activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
+    }
+
+    public void ResetNectarGains()
+    {
+        var values = System.Enum.GetValues(typeof(FlowerType));
+        foreach (var v in values)
+        {
+            FlowerType fType = (FlowerType)v;
+            personalNectarGains[fType] = 0;
+        }
     }
 
     void Update()
@@ -390,6 +430,9 @@ public class Hive : MonoBehaviour
                 player.CloseHiveUI(this);
             }
         }
+
+        if (Input.GetKeyDown(KeyCode.L))
+            StressLevel = 3;
 
         if (activePopup != null)
         {
@@ -442,6 +485,13 @@ public class Hive : MonoBehaviour
                 hasRepellant = false;
         }
 
+        if (conditions.Contains("Moths"))
+        {
+            if (mothTurns == 3)
+                CureCondition("Moths");
+            mothTurns++;
+        }
+
         if (game.Season == "winter")
         {
             //CONVERT ALL LEFTOVER NECTAR INTO HONEY
@@ -459,8 +509,10 @@ public class Hive : MonoBehaviour
             }
             return;
         }
+        else if (conditions.Contains("Freezing"))
+            CureCondition("Freezing");
+            
 
-        GetFlowerRatios();
         if (stressLevel < 4)
         {
             //Bonuses depending on season
@@ -486,8 +538,7 @@ public class Hive : MonoBehaviour
             honey += possibleHoney;
             nectar -= possibleHoney;
 
-            Debug.Log(nectarScoring.nectarGains.Values.Sum());
-            nectarGain = addedNectar + (nectarScoring.nectarGains.Values.Sum() / nectarScoring.populatedHives) * conversionRate; //scale it down to lbs //TODO CHANGE THIS
+            nectarGain = (addedNectar + personalNectarGains.Values.Sum()) * conversionRate; //scale it down to lbs //TODO CHANGE THIS
 
             possibleNectar = nectarGain * queen.collectionMult * hiveEfficency * russianEff * summer * agile * hiveStandBonus * stressMod; // * Mathf.Clamp(map.GetFlowerCount() / (map.mapWidth * map.mapHeight), 0.5f, 0.8f)
             if (possibleNectar + nectar + honey > storage)
@@ -505,11 +556,6 @@ public class Hive : MonoBehaviour
 
         hiveEfficency = (population / popCap) * size;
 
-        //reset flowerValues
-        foreach (FlowerType key in flowerValues.Keys.ToList())
-            flowerValues[key] = 0f;
-        totalFlowerWeight = 0f;
-
         CalcHoneyStats();
         if (template != null)
             UpdateMeters();
@@ -519,6 +565,18 @@ public class Hive : MonoBehaviour
         TryAddCondition();
         //Condition = "Glued";
         hasSugar = false;
+
+        turnsSinceLastHarvest++;
+        if (turnsSinceLastHarvest == 3)
+            AddCondition("Undisturbed");
+
+        if (!conditions.Contains("Indulged") && map.GetAdjacentFlowers(queen.favorite, x, y).Count > 0)
+            AddCondition("Indulged");
+        else if (conditions.Contains("Indulged") && map.GetAdjacentFlowers(queen.favorite, x, y).Count <= 0)
+            CureCondition("Indulged");
+
+        if (conditions.Contains("Relaxed"))
+            CureCondition("Relaxed");
 
         //Debug.Log("Population: " + population);
         //Debug.Log("Honey: " + honey);
@@ -556,6 +614,10 @@ public class Hive : MonoBehaviour
         if (!toolManager.extractor.noCombLoss)
             comb = comb / 1.1f; //lose 10% of comb every extraction
 
+        if (turnsSinceLastHarvest >= 3)
+            CureCondition("Undisturbed");
+        turnsSinceLastHarvest = 0;
+
         if (percent == 1f && amount / storage > .75f)
             if (Random.Range(0, toolManager.suit.cureChance) == 0)
                 CureCondition(conditions[Random.Range(0, conditions.Count)]);
@@ -574,7 +636,6 @@ public class Hive : MonoBehaviour
 
         for (int i = 0; i < rounded; i++)
         {
-
             TemplateContainer glob = honeyGlobIcon.Instantiate();
             glob.style.position = Position.Absolute;
             glob.style.visibility = Visibility.Hidden;
@@ -609,16 +670,18 @@ public class Hive : MonoBehaviour
         source.pitch = 0.25f;
         foreach (TemplateContainer glob in globs)
         {
-            float top = -150;
-            float left = document.rootVisualElement.Q<VisualElement>("HiveBase").resolvedStyle.width;
+            Vector3 pos = Camera.main.WorldToScreenPoint(GameObject.Find("Truck").transform.position);
+            float top = Screen.height - pos.y - 150;
+            float left = pos.x - 1348;
+            Debug.Log(top + " " + left);
             StartCoroutine(ToPoint(glob, top, left, 0.5f, true));
             yield return new WaitForSeconds(0.15f);
             source.Play();
             document.rootVisualElement.Q<VisualElement>("HiveBase").Remove(glob);
 
-            if (activePulse != null)
-                StopCoroutine(activePulse);
-            activePulse = StartCoroutine(Pulse());
+            //if (activePulse != null)
+            //    StopCoroutine(activePulse);
+            //activePulse = StartCoroutine(Pulse());
         }
 
         globs.Clear();
@@ -647,32 +710,24 @@ public class Hive : MonoBehaviour
         }
     }
 
-    private IEnumerator Pulse()
-    {
-        CustomVisualElement button = document.rootVisualElement.Q<CustomVisualElement>("MarketButton");
-        while (152 - button.resolvedStyle.width >= 5)
-        {
-            button.style.width = Mathf.Lerp(button.resolvedStyle.width, 152, 0.5f);
-            button.style.height = Mathf.Lerp(button.resolvedStyle.height, 152, 0.5f);
-            yield return new WaitForSeconds(0.01f);
-        }
-        while (button.resolvedStyle.width >= 133)
-        {
-            button.style.width = Mathf.Lerp(button.resolvedStyle.width, 128, 0.5f);
-            button.style.height = Mathf.Lerp(button.resolvedStyle.height, 128, 0.5f);
-            yield return new WaitForSeconds(0.01f);
-        }
-        button.style.width = 128;
-        button.style.height = 128;
-    }
-
-    private void GetFlowerRatios()
-    {
-        foreach (Tile t in tileRadius)
-            flowerValues[t.Flower] += t.lastGain; //TODO: Store last gain amount in each tile, then loop through all radius tiles and add that amount to respective flowerType of tile
-
-        totalFlowerWeight = flowerValues.Values.Sum(); 
-    }
+    //private IEnumerator Pulse()
+    //{
+    //    CustomVisualElement button = document.rootVisualElement.Q<CustomVisualElement>("MarketButton");
+    //    while (152 - button.resolvedStyle.width >= 5)
+    //    {
+    //        button.style.width = Mathf.Lerp(button.resolvedStyle.width, 152, 0.5f);
+    //        button.style.height = Mathf.Lerp(button.resolvedStyle.height, 152, 0.5f);
+    //        yield return new WaitForSeconds(0.01f);
+    //    }
+    //    while (button.resolvedStyle.width >= 133)
+    //    {
+    //        button.style.width = Mathf.Lerp(button.resolvedStyle.width, 128, 0.5f);
+    //        button.style.height = Mathf.Lerp(button.resolvedStyle.height, 128, 0.5f);
+    //        yield return new WaitForSeconds(0.01f);
+    //    }
+    //    button.style.width = 128;
+    //    button.style.height = 128;
+    //}
 
     public void GetTileRadius(int x, int y)
     {
@@ -721,9 +776,7 @@ public class Hive : MonoBehaviour
     {
         //Apply the weights of each type of flower to the nectar being gained this turn
         foreach (FlowerType key in nectarValues.Keys.ToList())
-            nectarValues[key] += flowerValues[key] / inputNectar;
-
-        Debug.Log(inputNectar);
+            nectarValues[key] += personalNectarGains[key] / inputNectar;
     }
 
     public void CalcHoneyStats()
@@ -734,10 +787,7 @@ public class Hive : MonoBehaviour
             honeyType = nectarValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
             honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();
 
-            Debug.Log(nectarValues[honeyType]);
-
             float roundedPurity = Mathf.Round(honeyPurity * 1000) / 10.0f;
-            Debug.Log(roundedPurity);
             if (roundedPurity <= 60)
             {
                 roundedPurity = 100 - roundedPurity;
@@ -808,6 +858,13 @@ public class Hive : MonoBehaviour
 
         GetTileRadius(x, y);
         DisplayHiveRadius();
+        EnableHarvestButtons();
+
+        if (activePopup != null)
+        {
+            activePopup.RemoveFromHierarchy();
+            activePopup = null;
+        }
     }
 
     //Load queen from save doesn't require transfering stats
@@ -838,9 +895,16 @@ public class Hive : MonoBehaviour
 
         CalcHoneyStats();
         UpdateMeters();
+        EnableHarvestButtons();
+
+        if (activePopup != null)
+        {
+            activePopup.RemoveFromHierarchy();
+            activePopup = null;
+        }
     }
 
-    private void AddCondition(string con)
+    public void AddCondition(string con)
     {
         conditions.Add(con);
         StressLevel += conditionValues[con];
@@ -863,8 +927,12 @@ public class Hive : MonoBehaviour
         }
         else if (Random.Range(0, 20) <= 4)
         {
-            conditions.Add(randConditions[Random.Range(0, randConditions.Count)]);
+            AddCondition(randConditions[Random.Range(0, randConditions.Count)]);
         }
+
+        int aggrevatedChance = Random.Range(0, (int)(aggressivness * queen.aggressivnessMult));
+        if (!conditions.Contains("Aggrevated") && aggrevatedChance == 0)
+            AddCondition("Aggrevated");
     }
 
     public void CureCondition(string con)
@@ -887,8 +955,7 @@ public class Hive : MonoBehaviour
     {
         if (activePopup != null)
         {
-            document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
-            Debug.Log("Removing");
+            activePopup.RemoveFromHierarchy();
             activePopup = null;
         }
     }
@@ -913,13 +980,48 @@ public class Hive : MonoBehaviour
         SetUpTemplate();
     }
 
+    private void DisableHarvestButtons()
+    {
+        smallHarvest.RemoveManipulator(smallHarvestClick);
+        mediumHarvest.RemoveManipulator(mediumHarvestClick);
+        largeHarvest.RemoveManipulator(largeHarvestClick);
+
+        smallHarvest.UnregisterCallback<PointerEnterEvent>(harvestEnterCallback);
+        mediumHarvest.UnregisterCallback<PointerEnterEvent>(harvestEnterCallback);
+        largeHarvest.UnregisterCallback<PointerEnterEvent>(harvestEnterCallback);
+
+        smallHarvest.UnregisterCallback<PointerLeaveEvent>(harvestLeaveCallback);
+        mediumHarvest.UnregisterCallback<PointerLeaveEvent>(harvestLeaveCallback);
+        largeHarvest.UnregisterCallback<PointerLeaveEvent>(harvestLeaveCallback);
+
+        smallHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+        mediumHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+        largeHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+    }
+
+    private void EnableHarvestButtons()
+    {
+        smallHarvest.AddManipulator(smallHarvestClick);
+        mediumHarvest.AddManipulator(mediumHarvestClick);
+        largeHarvest.AddManipulator(largeHarvestClick);
+
+        smallHarvest.RegisterCallback<PointerEnterEvent>(harvestEnterCallback);
+        mediumHarvest.RegisterCallback<PointerEnterEvent>(harvestEnterCallback);
+        largeHarvest.RegisterCallback<PointerEnterEvent>(harvestEnterCallback);
+
+        smallHarvest.RegisterCallback<PointerLeaveEvent>(harvestLeaveCallback);
+        mediumHarvest.RegisterCallback<PointerLeaveEvent>(harvestLeaveCallback);
+        largeHarvest.RegisterCallback<PointerLeaveEvent>(harvestLeaveCallback);
+
+        smallHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
+        mediumHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
+        largeHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
+    }
+
     public void SetUpTemplate()
     {
         if (harvestDict.Keys.Count == 0)
         {
-            //noHarvest = template.Q<Toggle>();
-            //noHarvest.RegisterValueChangedCallback(OnHarvestToggled);
-
             honeyPurityLabel = template.Q<Label>("HoneyPurity");
             honeyTypeLabel = template.Q<Label>("HoneyType");
 
@@ -927,18 +1029,16 @@ public class Hive : MonoBehaviour
             mediumHarvest = template.Q<VisualElement>("MediumClick");
             largeHarvest = template.Q<VisualElement>("LargeClick");
 
-            if (stressLevel < 2 || toolManager.suit.Level > 0)
-            {
-                smallHarvest.AddManipulator(new Clickable(e => SelectHarvest(smallHarvest)));
-                mediumHarvest.AddManipulator(new Clickable(e => SelectHarvest(mediumHarvest)));
-                largeHarvest.AddManipulator(new Clickable(e => SelectHarvest(largeHarvest)));
-            }
-            else
-            {
-                smallHarvest.style.unityBackgroundImageTintColor = darkTint;
-                mediumHarvest.style.unityBackgroundImageTintColor = darkTint;
-                largeHarvest.style.unityBackgroundImageTintColor = darkTint;
-            }
+            harvestEnterCallback = new EventCallback<PointerEnterEvent>(HoverHarvestEnter);
+            harvestLeaveCallback = new EventCallback<PointerLeaveEvent>(HoverHarvestLeave);
+            smallHarvestClick = new Clickable(e => SelectHarvest(smallHarvest));
+            mediumHarvestClick = new Clickable(e => SelectHarvest(mediumHarvest));
+            largeHarvestClick = new Clickable(e => SelectHarvest(largeHarvest));
+
+            smallHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+            mediumHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+            largeHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+
             smallHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
             mediumHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
             largeHarvest.RegisterCallback<PointerDownEvent>(e => HoneyCycleReference(e));
@@ -1009,6 +1109,18 @@ public class Hive : MonoBehaviour
                 t.GetComponent<MeshRenderer>().material = t.lastMaterial;
     }
 
+    private void HoverHarvestEnter(PointerEnterEvent e)
+    {
+        VisualElement target = e.target as VisualElement;
+        target.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+    }
+
+    private void HoverHarvestLeave(PointerLeaveEvent e)
+    {
+        VisualElement target = e.target as VisualElement;
+        target.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
+    }
+
     private void SelectHarvest(VisualElement clickedElement)
     {
         document.GetComponent<AudioSource>().Play();
@@ -1025,7 +1137,7 @@ public class Hive : MonoBehaviour
 
     private IEnumerator ClickResponse(VisualElement clickedElement)
     {
-        clickedElement.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+        clickedElement.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkerTint;
         yield return new WaitForSeconds(0.1f);
         clickedElement.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
     }
@@ -1034,7 +1146,7 @@ public class Hive : MonoBehaviour
     {
         if (activePopup != null)
         {
-            document.rootVisualElement.Q<VisualElement>("Base").Remove(activePopup);
+            activePopup.RemoveFromHierarchy();
             activePopup = null;
         }
 
@@ -1135,7 +1247,7 @@ public class Hive : MonoBehaviour
 
                 popup.Q<VisualElement>("Icon").style.backgroundImage = queenHex.style.backgroundImage;
                 popup.Q<Label>("Species").text = "Species: " + queen.species;
-                popup.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
+                popup.Q<Label>("Age").text = "Favorite Flower: " + queen.favorite.ToString();
                 popup.Q<Label>("Grade").text = "Grade: " + queen.grade.ToString() + "/10";
                 VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");
                 foreach (string s in queen.quirks)

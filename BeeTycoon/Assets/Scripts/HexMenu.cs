@@ -5,19 +5,18 @@ using UnityEngine.UIElements;
 
 public class HexMenu : MonoBehaviour
 {
-    [SerializeField]
-    private UIDocument ui;
+    private UIDocument document;
 
-    [SerializeField]
     private GameController game;
 
     private UnlockTracker unlocks;
 
+    [SerializeField]
     private PlayerController player;
 
+    [SerializeField]
     private ToolManager toolManager;
 
-    [SerializeField]
     private Glossary glossary;
 
     [SerializeField]
@@ -86,7 +85,7 @@ public class HexMenu : MonoBehaviour
 
     public int tab1ItemCount = 0;
     private int tab2ItemCount = 6;
-    private int tab3ItemCount = 9;
+    private int tab3ItemCount = 8;
     private int tab4ItemCount = 1;
 
     [SerializeField]
@@ -130,16 +129,10 @@ public class HexMenu : MonoBehaviour
 
     public void GameLoaded()
     {
-        player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+        document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
+        game = GameObject.Find("GameController").GetComponent<GameController>();
         unlocks = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
-        toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
-
-        toolObjectList.Add(GameObject.Find("HiveTool"));
-        toolObjectList.Add(GameObject.Find("Smoker"));
-        toolObjectList.Add(GameObject.Find("ShovelTool"));
-        toolObjectList.Add(GameObject.Find("DollyTool"));
-        toolObjectList.Add(GameObject.Find("Suit"));
-        toolObjectList.Add(GameObject.Find("Extractor"));
+        glossary = document.GetComponent<Glossary>();
 
         flowerObjectList.Add(nextStage);
         flowerSprites.Add(nextStageSprite);
@@ -183,7 +176,7 @@ public class HexMenu : MonoBehaviour
         if (game.CurrentState == GameStates.TurnEnd || game.CurrentState == GameStates.Paused)
             return;
 
-        ui.GetComponent<AudioSource>().Play();
+        document.GetComponent<AudioSource>().Play();
 
         //Close any open tabs
         if (activeTab != null)
@@ -366,7 +359,7 @@ public class HexMenu : MonoBehaviour
     //Close Tabs
     public void CloseTab()
     {
-        ui.GetComponent<AudioSource>().Play();
+        document.GetComponent<AudioSource>().Play();
         if (activeTab == null)
             return;
         else
@@ -398,7 +391,7 @@ public class HexMenu : MonoBehaviour
         if (player.Money < cost)
             return;
 
-        ui.GetComponent<AudioSource>().Play();
+        document.GetComponent<AudioSource>().Play();
         if (selectedHex != null)
         {
             selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
@@ -425,10 +418,14 @@ public class HexMenu : MonoBehaviour
                 flowerSprites.Insert(0, allFlowerSprites[i]);
                 tab4ItemCount++;
             }
+            item.GetComponent<Cost>().Price *= 2;
+            RefreshMenuLists();
+            CloseTab();
+            OpenTab(3, open4, false);
             return;
         }
         
-        if (item.tag != "Placeable")
+        if (item.tag != "Placeable" && item.tag != "BeeSuit" && item.tag != "Extractor")
         {
             UnityEngine.Cursor.SetCursor(sprite, new Vector2(sprite.width / 2, sprite.height / 2), CursorMode.Auto);
             player.SelectedItem = item;
@@ -470,7 +467,7 @@ public class HexMenu : MonoBehaviour
         if (player.Money < cost)
             return;
 
-        ui.GetComponent<AudioSource>().Play();
+        document.GetComponent<AudioSource>().Play();
         player.Money = -cost;
         StartCoroutine(hive.Populate(item.GetComponent<QueenBee>()));
         beeObjectList.Remove(item);
@@ -478,7 +475,7 @@ public class HexMenu : MonoBehaviour
         tab1ItemCount--;
         if (hoverTemplate != null)
         {
-            ui.rootVisualElement.Q("Base").Remove(hoverTemplate);
+            document.rootVisualElement.Q("Base").Remove(hoverTemplate);
             hoverTemplate = null;
         }
         hive.CloseQueenSelection();
@@ -507,7 +504,7 @@ public class HexMenu : MonoBehaviour
             if (hoverTemplate == null)
             {
                 hoverTemplate = queenUI.Instantiate();
-                ui.rootVisualElement.Q("Base").Add(hoverTemplate);
+                document.rootVisualElement.Q("Base").Add(hoverTemplate);
                 VisualElement popup = hoverTemplate.Q<VisualElement>("Popup");
 
                 //Resolved style is NaN until updated
@@ -546,7 +543,7 @@ public class HexMenu : MonoBehaviour
         {
             if (hoverTemplate != null)
             {
-                ui.rootVisualElement.Q("Base").Remove(hoverTemplate);
+                document.rootVisualElement.Q("Base").Remove(hoverTemplate);
                 hoverTemplate = null;
             }
         }
@@ -557,7 +554,7 @@ public class HexMenu : MonoBehaviour
     {
         if (hoverTemplate != null)
         {
-            ui.rootVisualElement.Q("Base").Remove(hoverTemplate);
+            document.rootVisualElement.Q("Base").Remove(hoverTemplate);
             hoverTemplate = null;
         }
     }
@@ -590,19 +587,19 @@ public class HexMenu : MonoBehaviour
     {
         tabs.Clear();
 
-        left = ui.rootVisualElement.Q<VisualElement>("Left");
+        left = document.rootVisualElement.Q<VisualElement>("Left");
         endSelectionCallback = new EventCallback<PointerUpEvent>(EndQueenSelection);
 
-        tab1 = ui.rootVisualElement.Q<CustomVisualElement>("tab1");
+        tab1 = document.rootVisualElement.Q<CustomVisualElement>("tab1");
         tab1.AddManipulator(open1);
         tabs.Add(tab1);
-        tab2 = ui.rootVisualElement.Q<CustomVisualElement>("tab2");
+        tab2 = document.rootVisualElement.Q<CustomVisualElement>("tab2");
         tab2.AddManipulator(open2);
         tabs.Add(tab2);
-        tab3 = ui.rootVisualElement.Q<CustomVisualElement>("tab3");
+        tab3 = document.rootVisualElement.Q<CustomVisualElement>("tab3");
         tab3.AddManipulator(open3);
         tabs.Add(tab3);
-        tab4 = ui.rootVisualElement.Q<CustomVisualElement>("tab4");
+        tab4 = document.rootVisualElement.Q<CustomVisualElement>("tab4");
         tab4.AddManipulator(open4);
         tabs.Add(tab4);
 

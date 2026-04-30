@@ -86,7 +86,7 @@ public class MapLoader : MonoBehaviour
     public void GameStart(bool fromSave)
     {
         tiles = new Tile[mapWidth, mapHeight];
-        hexMenu = GameObject.Find("UIDocument").GetComponent<HexMenu>();
+        hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
         GeneratePlot(fromSave, false, true);
     }
 
@@ -151,8 +151,13 @@ public class MapLoader : MonoBehaviour
 
         if (!fromSave && !reload && game.CurrentState != GameStates.Menu)
         {
-            int randX = Random.Range(0, 6);
-            int randY = Random.Range(5, 11);
+            int randX = -999;
+            int randY = -999;
+            while ((randX == -999 && randY == -999) || tiles[randX, randY].water)
+            {
+                randX = Random.Range(0, 6);
+                randY = Random.Range(5, 11);
+            }
             GameObject temp = Instantiate(hive, new Vector3(randX * 2, 0.5f, randY * 2), Quaternion.identity);
             Hive h = temp.GetComponent<Hive>();
             player.hives.Add(h);
@@ -161,9 +166,8 @@ public class MapLoader : MonoBehaviour
             tiles[randX, randY].HasHive = true;
             tiles[randX, randY].hive = h;
             h.hiveTile = tiles[randX, randY];
-            h.x = randX; h.y = randY;
-            //h.x = (int)tiles[randX, randY].transform.position.x;
-            //h.y = (int)tiles[randX, randY].transform.position.y;
+            h.x = randX;
+            h.y = randY;
         }
 
         GenerateBuildings();
@@ -177,7 +181,7 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                if (tiles[i, j].alive && GetAdjTileCount(i, j) <= 1)
+                if (tiles[i, j].alive && GetAdjTileCount(i, j) <= 1 && i > 1)
                 {
                     tiles[i, j].alive = false;
                     tiles[i, j].gameObject.GetComponent<MeshRenderer>().materials = m;
@@ -212,6 +216,7 @@ public class MapLoader : MonoBehaviour
     {
         trashObject = Instantiate(trash, new Vector3(-3, 0, 11), Quaternion.Euler(0, 90, 0));
         marketObject = Instantiate(market, new Vector3(-6, 0.5f, 15.125f), Quaternion.Euler(0, 0, 0));
+        marketObject.name = "Truck";
         shedObject = Instantiate(shed, new Vector3(-2.5f, 0, 19), Quaternion.Euler(270, 180, 0));
         //glossaryObject = Instantiate(glossary, new Vector3(3, 0, -3), Quaternion.identity);
 
@@ -223,25 +228,18 @@ public class MapLoader : MonoBehaviour
         ClearOverlappingTrees();
     }
 
-    private void GenerateLake()
+    private void GenerateLake() //THIS ALGORITHM DOES NOT MAKE SENSE TO READ. The map width and height values are flipped, and so many variable 
     {
         Material[] m = new Material[1] { water };
-        int posX = Random.Range(2, mapWidth - 2);
-        int posY;
-        if (posX > 4 && posX < 11)
-            posY = Random.Range(7, mapHeight - 2);
+        int posY = Random.Range(2, mapWidth - 2);
+        int posX;
+        if (posY > 4 && posY < 11)
+            posX = Random.Range(7, mapHeight - 2);
         else
-            posY = Random.Range(2, mapHeight - 2);
+            posX = Random.Range(2, mapHeight - 2);
 
-        tiles[posX, posY].GetComponent<MeshRenderer>().materials = m;
-        tiles[posX, posY].water = true;
-        tiles[posX, posY].alive = false;
-        Debug.Log("x: " + posX + " y: " + posY);
-
-
-        int randX = Random.Range(2, 5);
-        int randY = Random.Range(2, 5);
-        Debug.Log("randx: " + randX + " randy: " + randY);
+        int randX = Random.Range(2, 4);
+        int randY = Random.Range(2, 4);
 
         for (int i = posY; i < posY + randY; i++)
         {
@@ -256,12 +254,11 @@ public class MapLoader : MonoBehaviour
             }
         }
         
-        int newPosX = Random.Range(posX, posX + randX);
-        int newPosY = Random.Range(posY, posY + randY);
+        int newPosY = Random.Range(posX, posX + randX);
+        int newPosX = Random.Range(posY, posY + randY);
 
-        int randX2 = Random.Range(2, 5);
-        int randY2 = Random.Range(2, 5);
-        Debug.Log("randx2: " + randX2 + " randy2: " + randY2);
+        int randX2 = Random.Range(2, 4);
+        int randY2 = Random.Range(2, 4);
 
         int offset = Random.Range(-randY + 1, 1);
 
@@ -269,11 +266,11 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = newPosX; j < newPosX + randX2; j++)
             {
-                if (i < 12 && i >= 0 && j < 16 && j >= 0)
+                if (j < 12 && j >= 0 && i < 16 && i >= 0)
                 {
-                    tiles[i, j].GetComponent<MeshRenderer>().materials = m;
-                    tiles[i, j].water = true;
-                    tiles[i, j].alive = false;
+                    tiles[j, i].GetComponent<MeshRenderer>().materials = m;
+                    tiles[j, i].water = true;
+                    tiles[j, i].alive = false;
                 }
             }
         }
@@ -608,7 +605,7 @@ public class MapLoader : MonoBehaviour
         List<Tile> emptyTiles = new List<Tile>();
 
         foreach (Tile t in tiles)
-            if (t.Flower == FlowerType.Empty && !t.HasHive)
+            if (t.Flower == FlowerType.Empty && !t.HasHive && t.alive && !t.water)
                 emptyTiles.Add(t);
 
         return emptyTiles;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
+using System;
 
 public enum GameStates
 {
@@ -49,6 +50,9 @@ public class GameController : MonoBehaviour
     private VisualTreeAsset quotaScreenUI;
 
     [SerializeField]
+    private VisualTreeAsset techTokenScreenUI;
+
+    [SerializeField]
     private NectarScoring nectar;
 
     private ToolManager toolManager;
@@ -59,20 +63,30 @@ public class GameController : MonoBehaviour
     private string season = "spring";
 
     private TemplateContainer quotaContainer;
+    private TemplateContainer doubleQuotaContainer;
 
     private Button newGameButton;
     private Button continueButton;
+    private VisualElement techTreeButton;
 
-    private int quota = 10;
+    private int quota = 0;
     //private float quotaScaling = 1.5f;
-    private int previousQuota = 10;
+    private int previousQuota = 0;
 
     public bool nectarCollectingFinished;
     public bool flowerAdvanceFinished;
     private bool turnAnimationFinished;
     private bool quotaScreenFinished;
+    private bool doubleQuotaScreenFinished;
 
     private int previousMoney;
+
+    private int techPoints = 3;
+    public int TechPoint
+    {
+        get { return techPoints; }
+        set { techPoints = value; }
+    }
 
     public string Season
     {
@@ -96,17 +110,19 @@ public class GameController : MonoBehaviour
         {
             if (value == GameStates.Start)
             {
-                List<int> choiceList = new List<int>() { 3, 3, 3};
+                List<int> choiceList = new List<int>() { 3, 3 };
                 StartCoroutine(choices.GiveChoice(choiceList, true, false));
             }
             currentState = value;
         }
     }
 
-    void Awake()
+    void Start()
     {
         newGameButton = document.rootVisualElement.Q<Button>("NewGame");
         continueButton = document.rootVisualElement.Q<Button>("Continue");
+        techTreeButton = document.rootVisualElement.Q<VisualElement>("TechTree");
+        techTreeButton.AddManipulator(new Clickable((e) => GoToTechTree()));
         newGameButton.clickable = new Clickable(e => NewGame());
         if (!SaveSystem.CheckSaveFile())
             continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
@@ -120,6 +136,20 @@ public class GameController : MonoBehaviour
             SaveSystem.Save();
         if (Input.GetKeyDown(KeyCode.P))
             SaveSystem.Load();
+    }
+
+    private void GoToTechTree()
+    {
+        document.GetComponent<AudioSource>().Play();
+        SceneManager.LoadScene("TechTree");
+        SceneManager.sceneLoaded += OnSceneTechTree;
+    }
+
+    public void BackToMain()
+    {
+        CurrentState = GameStates.Menu;
+        SceneManager.LoadScene("MainMenu");
+        SceneManager.sceneLoaded += OnSceneMain;
     }
 
     private void ContinueGame()
@@ -136,11 +166,36 @@ public class GameController : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoadNew;
     }
 
+    private void OnSceneMain(Scene scene, LoadSceneMode mode)
+    {
+        document.visualTreeAsset = mainMenu;
+        newGameButton = document.rootVisualElement.Q<Button>("NewGame");
+        continueButton = document.rootVisualElement.Q<Button>("Continue");
+        techTreeButton = document.rootVisualElement.Q<VisualElement>("TechTree");
+        techTreeButton.AddManipulator(new Clickable((e) => GoToTechTree()));
+        newGameButton.clickable = new Clickable(e => NewGame());
+        if (!SaveSystem.CheckSaveFile())
+            continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
+        else
+            continueButton.clickable = new Clickable(e => ContinueGame());
+        GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>().stage = 0;
+        year = 1;
+        turn = 1;
+        quota = 0;
+        previousQuota = 0;
+        season = "spring";
+    }
+
+    private void OnSceneTechTree(Scene scene, LoadSceneMode mode)
+    {
+        document.visualTreeAsset = null;
+    }
+
     private void OnSceneLoadNew(Scene scene, LoadSceneMode mode)
     {
         gameObject.GetComponent<QueenChooser>().OnSceneLoaded();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
-        hexMenu = document.gameObject.GetComponent<HexMenu>();
+        hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
         document.visualTreeAsset = gameUI;
@@ -149,7 +204,7 @@ public class GameController : MonoBehaviour
         hexMenu.GameLoaded();
         CurrentState = GameStates.Start;
         ReloadUI();
-        Quota = 10;
+        Quota = 0;
 
         map.GameStart(false);
         nectar.GameStart();
@@ -160,7 +215,7 @@ public class GameController : MonoBehaviour
     {
         gameObject.GetComponent<QueenChooser>().OnSceneLoaded();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
-        hexMenu = document.gameObject.GetComponent<HexMenu>();
+        hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
         document.visualTreeAsset = gameUI;
@@ -183,10 +238,9 @@ public class GameController : MonoBehaviour
 
     private void UpdateLabels()
     {
-        Debug.Log("Updating");
         string adjustedSeason = Season.ToString();
         adjustedSeason = adjustedSeason.Substring(0, 1).ToUpper() + adjustedSeason.Substring(1);
-        document.rootVisualElement.Q<Label>("TurnCount").text = adjustedSeason + " " + year + " Turn " + turn;
+        //document.rootVisualElement.Q<Label>("TurnCount").text = adjustedSeason + " " + year + " Turn " + turn;
         document.rootVisualElement.Q<Label>("Quota").text = "Quota: $" + quota;
         int turns = (season == "winter") ? (2 - ((turn - 1) % 4)) : (4 - ((turn - 1) % 4));
         document.rootVisualElement.Q<Label>("Turns").text = "Due in " + turns + " turns";
@@ -222,7 +276,6 @@ public class GameController : MonoBehaviour
 
         yield return new WaitWhile(() => !nectarCollectingFinished);
         nectarCollectingFinished = false;
-        player.OnTurnIncrement();
 
         document.visualTreeAsset = gameUI;
         ReloadUI();
@@ -231,15 +284,14 @@ public class GameController : MonoBehaviour
         document.GetComponent<Glossary>().GameLoaded();
         honeyMarket.ReloadUI();
         UpdateLabels();
+        player.OnTurnIncrement();
 
-        previousQuota = quota;
         map.AdvanceFlowerStates(); //This should be done after all the animations for GetNectarGains is done.
         yield return new WaitWhile(() => !flowerAdvanceFinished);
         flowerAdvanceFinished = false;
-
+        bool newYear = false;
         if ((turn - 1) % 4 == 0 || (season == "winter" && (turn - 1) % 4 == 2))
         {
-            bool newYear = false;
             switch (season)
             {
                 case "spring":
@@ -259,6 +311,13 @@ public class GameController : MonoBehaviour
                     StartCoroutine(map.GenerateFlowers());
                     //quotaScaling += 0.5f;
                     break;
+            }
+
+            if (player.Money >= Quota * 2 && year != 1 && Quota != 0)
+            {
+                StartCoroutine(DoubleQuotaScreen());
+                yield return new WaitWhile(() => !doubleQuotaScreenFinished);
+                doubleQuotaScreenFinished = false;
             }
 
             map.SeasonRecolor();
@@ -285,7 +344,7 @@ public class GameController : MonoBehaviour
             }
             else
             {
-                StartCoroutine(choices.GiveChoice(2, false, false));
+                StartCoroutine(choices.GiveChoice(3, false, false));
                 yield return new WaitWhile(() => choices.isChoosing);
             }
         }
@@ -295,22 +354,53 @@ public class GameController : MonoBehaviour
         StartCoroutine(NewTurnAnimation());
         yield return new WaitWhile(() => !turnAnimationFinished);
         turnAnimationFinished = false;
-
-        if ((turn - 1) % 4 == 0)
+        int temp = quota;
+        if ((turn - 1) % 4 == 0 || newYear)
         {
-            if (season != "spring")
-                previousQuota = quota; //Avoid looping on 0 quota
-            Quota = Quota * 2;
+            if (newYear)
+                quota = previousQuota; //Avoid looping on 0 quota
+            else
+                previousQuota = quota;
+
+                Quota = Quota * 2;
             //Quota = (int)(quotaScaling * Quota);
         }
         if (season == "winter")
             Quota = 0;
-        if (season == "spring")
-            Quota = previousQuota;
+        if (year == 1 && season == "summer")
+            Quota = 25;
 
         toolManager.TurnReset();
 
         CurrentState = GameStates.Running;
+    }
+
+    private IEnumerator DoubleQuotaScreen()
+    {
+        doubleQuotaContainer = techTokenScreenUI.Instantiate();
+        doubleQuotaContainer.style.position = Position.Absolute;
+        doubleQuotaContainer.style.width = Screen.width;
+        doubleQuotaContainer.style.height = Screen.height;
+        doubleQuotaContainer.Q<Button>("Accept").clicked += AcceptDouble;
+        doubleQuotaContainer.Q<Button>("Decline").clicked += DeclineDouble;
+        doubleQuotaContainer.Q<Label>("QuotaLabel").text = "Quota: $" + Quota + " > $" + Quota * 2;
+        document.rootVisualElement.Q<VisualElement>("Base").Add(doubleQuotaContainer);
+
+        yield return null;
+    }
+
+    private void DeclineDouble()
+    {
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(doubleQuotaContainer);
+        doubleQuotaScreenFinished = true;
+    }
+
+    private void AcceptDouble()
+    {
+        Quota *= 2;
+        TechPoint++;
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(doubleQuotaContainer);
+        doubleQuotaScreenFinished = true;
     }
 
     private IEnumerator QuotaScreen()
@@ -343,7 +433,7 @@ public class GameController : MonoBehaviour
         if (currentState == GameStates.End)
         {
             SaveSystem.DeleteSave();
-            ReturnToMainMenu();
+            BackToMain();
         }
 
         quotaScreenFinished = true;
@@ -380,15 +470,6 @@ public class GameController : MonoBehaviour
         UpdateLabels();
 
         turnAnimationFinished = true;
-    }
-
-    private void ReturnToMainMenu()
-    {
-        currentState = GameStates.Menu;
-        Destroy(map.gameObject);
-        Destroy(document.gameObject);
-        SceneManager.LoadScene("MainMenu");
-        Destroy(gameObject);
     }
 
     public void Save(ref GameSaveData data)

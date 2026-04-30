@@ -53,6 +53,10 @@ PrefabInstance:
       value: Shed
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: e188074901602034b90b41b3d96f6c87, type: 3}
+      propertyPath: m_Layer
+      value: 11
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: e188074901602034b90b41b3d96f6c87, type: 3}
       propertyPath: m_TagString
       value: Shed
       objectReference: {fileID: 0}

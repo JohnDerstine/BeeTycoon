@@ -73,23 +73,26 @@ public class QueenChooser : MonoBehaviour
     private List<VisualTreeAsset> rngOptions;
     private List<string> sizeDirections = new List<string>() { "right", "left", "down"};
 
+    private List<int> usedIds = new List<int>();
+
     public void OnSceneLoaded()
     {
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
         toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
-        hexMenu = document.gameObject.GetComponent<HexMenu>();
+        hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
 
         root = document.rootVisualElement;
         queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
         queenMoveCallback = new EventCallback<PointerMoveEvent>(OnQueenMove);
         quirkExitCallback = new EventCallback<PointerLeaveEvent>(OnQuirkExit);
         quirkEnterCallback = new EventCallback<PointerEnterEvent, string>(OnQuirkEnter);
-        rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI, toolUI};
+        ResetRNGOptions();
     }
 
     public IEnumerator GiveChoice(int choice, bool starter = false, bool modifier = false)
     {
+        ResetRNGOptions();
         isChoosing = true;
         template = choicesContainer.Instantiate();
         container = template.Q<VisualElement>("Container");
@@ -112,6 +115,7 @@ public class QueenChooser : MonoBehaviour
 
     public IEnumerator GiveChoice(List<int> choices, bool starter = false, bool modifier = false)
     {
+        ResetRNGOptions();
         bool wasTrue = starter;
         isChoosing = true;
         template = choicesContainer.Instantiate();
@@ -123,7 +127,7 @@ public class QueenChooser : MonoBehaviour
         document.rootVisualElement.Q<VisualElement>("Base").Add(template);
         for (int i = 0; i < choices.Count; i++)
         {
-            if (wasTrue && i == 2)
+            if (wasTrue && i == 1)
                 modifier = true;
             StartCoroutine(SpawnChoices(choices[i], starter, modifier));
             yield return new WaitForFixedUpdate(); //Wait for selectionActive to be updated
@@ -162,6 +166,9 @@ public class QueenChooser : MonoBehaviour
             //rngChoices.Add(queenUI);
             for (int i = 0; rngChoices.Count < numChoices; i++)
             {
+                if (rngOptions.Count == 0)
+                    ResetRNGOptions();
+
                 int rand = Random.Range(0, rngOptions.Count);
                 rngChoices.Add(rngOptions[rand]);
                 rngOptions.RemoveAt(rand);
@@ -187,7 +194,6 @@ public class QueenChooser : MonoBehaviour
                     popup.Q<Label>("Price").text = "$" + GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().GetPrice(rand) + " / lb.";
                     popup.AddManipulator(new Clickable(e => SelectHoney(rand)));
                 }
-            
                 else if (rngChoices[i] == flowerUI)
                 {
                     FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
@@ -226,7 +232,7 @@ public class QueenChooser : MonoBehaviour
                     {
                         foreach (FlowerType f in tracker.ownedFlowers)
                         {
-                            if (mod.Flowers.Contains(f))
+                            if (mod.Flowers.Contains(f) && !applicableMods.Contains(mod))
                                 applicableMods.Add(mod);
                         }
                     }
@@ -234,22 +240,25 @@ public class QueenChooser : MonoBehaviour
                     {
                         foreach (FlowerType f in tracker.ownedFlowers)
                         {
-                            if (mod.Flower == f)
+                            if (mod.Flower == f && !applicableMods.Contains(mod))
                                 applicableMods.Add(mod);
                         }
                     }
+                    int randID = -999;
+                    while (usedIds.Contains(randID) || randID == -999)
+                        randID = Random.Range(0, applicableMods.Count());
 
-                    int randID = Random.Range(0, applicableMods.Count());
+                    usedIds.Add(randID);
                     popup.Q<VisualElement>("Icon").style.backgroundImage = applicableMods[randID].Sprite;
                     popup.Q<Label>("Title").text = applicableMods[randID].Name;
                     popup.Q<Label>("Description").text = applicableMods[randID].Description;
-
                     popup.AddManipulator(new Clickable(e => SelectModifier(randID))); //Looking back on it, this doesn't make sense. I don't want randID, I want the ID of the mod in applicableMods[randID]
                     //Double check to make sure that the game refelcts this being incorrect
                 }
                     container.Add(temp);
             }
         }
+        usedIds.Clear();
 
         yield return new WaitForFixedUpdate();
 
@@ -257,8 +266,24 @@ public class QueenChooser : MonoBehaviour
         if (!starter)
             template.Q<Label>("Description").text = "This will be added to your shop";
 
-        rngOptions = new List<VisualTreeAsset>() { queenUI, flowerUI, honeyUI, sizeUI, toolUI };
+        ResetRNGOptions();
         selectionActive = true;
+    }
+
+    private void ResetRNGOptions()
+    {
+        rngOptions = new List<VisualTreeAsset>() { };
+        rngOptions.Add(queenUI);
+
+        if (tracker.majorTechs["HoneySelect"])
+            rngOptions.Add(honeyUI);
+        if (tracker.majorTechs["FlowerSelect"])
+            rngOptions.Add(flowerUI);
+        if (tracker.majorTechs["SizeSelect"])
+            rngOptions.Add(sizeUI);
+
+        if (toolManager.GetUnmaxedTools().Count > 0)
+            rngOptions.Add(toolUI);
     }
 
     private IEnumerator SetUpQueens(List<VisualTreeAsset> rngChoices, bool starter)
@@ -309,6 +334,7 @@ public class QueenChooser : MonoBehaviour
             temp.Q<Label>("Species").text = "Species: " + queenOptions[i].species;
             temp.Q<Label>("Age").text = "Radius Type: " + queenOptions[i].radiusType;
             temp.Q<Label>("Grade").text = "Grade: " + queenOptions[i].grade.ToString() + "/10";
+            temp.Q<Label>("Favorite").text = "Favorite Flower: " + queenOptions[i].favorite.ToString();
 
             //Add quirk labels to the queen
             foreach (string s in queenOptions[i].quirks)

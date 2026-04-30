@@ -29,12 +29,11 @@ public class NectarScoring : MonoBehaviour
 
     PlayerController player;
     private HexMenu hexMenu;
-
-    public Dictionary<FlowerType, float> nectarGains = new Dictionary<FlowerType, float>();
     public int populatedHives;
 
+    private List<int> usedSprites = new List<int>();
+
     private int totalAmountGained;
-    private int flowerAmountGained;
     private bool calced;
 
     [SerializeField]
@@ -69,15 +68,8 @@ public class NectarScoring : MonoBehaviour
 
     public void GameStart()
     {
-        hexMenu = GameObject.Find("UIDocument").GetComponent<HexMenu>();
+        hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
-        var values = System.Enum.GetValues(typeof(FlowerType));
-        foreach (var v in values)
-        {
-            FlowerType fType = (FlowerType)v;
-            nectarGains.Add(fType, 0);
-        }
-
         basePitch = source.pitch;
     }
 
@@ -92,13 +84,16 @@ public class NectarScoring : MonoBehaviour
         return newDuration;
     }
 
+    private void AdjustPitch()
+    {
+        source.pitch += 0.05f;
+        if (source.pitch >= 1.75f)
+            source.pitch = 1.75f;
+    }
+
     public IEnumerator GetNectarGains()
     {
         source.clip = audio;
-
-        //Reset all values to 0
-        ResetNectarGains();
-
         total = document.rootVisualElement.Q<VisualElement>("Total");
         totalAmount = total.Q<Label>("Amount");
 
@@ -106,6 +101,7 @@ public class NectarScoring : MonoBehaviour
         {
             float duration = 0.5f;
             source.pitch = basePitch;
+            player.hives[i].ResetNectarGains();
             player.hives[i].DisplayHiveRadius();
             foreach (Tile t in player.hives[i].tileRadius)
             {
@@ -159,8 +155,11 @@ public class NectarScoring : MonoBehaviour
                 }
 
             }
-            yield return new WaitForSeconds(0.1f);
+            yield return new WaitForSeconds(0.5f);
             player.hives[i].HideHiveRadius();
+            document.rootVisualElement.Q<VisualElement>("NectarColumn").Clear();
+            usedSprites.Clear();
+            totalAmountGained = 0;
         }
 
         game.nectarCollectingFinished = true;
@@ -174,22 +173,19 @@ public class NectarScoring : MonoBehaviour
         yield break;
     }
 
-    private void ResetNectarGains()
-    {
-        totalAmountGained = 0;
-        var values = System.Enum.GetValues(typeof(FlowerType));
-        foreach (var v in values)
-        {
-            FlowerType fType = (FlowerType)v;
-            nectarGains[fType] = 0;
-        }
-    }
-
     private void UpdateNectarUI(int spriteIndex)
     {
-        item = nectarItem.Instantiate();
-        item.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[spriteIndex];
-        document.rootVisualElement.Q<VisualElement>("NectarColumn").Insert(0, item);
+        if (usedSprites.Contains(spriteIndex))
+        {
+            item = document.rootVisualElement.Q<VisualElement>("NectarColumn").Q<VisualElement>(spriteIndex.ToString()) as TemplateContainer;
+            return;
+        }
+
+       usedSprites.Add(spriteIndex);
+       item = nectarItem.Instantiate();
+       item.name = spriteIndex.ToString();
+       item.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[spriteIndex];
+       document.rootVisualElement.Q<VisualElement>("NectarColumn").Insert(0, item);
     }
 
     private int ApplyModifierValues(FlowerType flower, List<Tile> adjTiles, List<Tile> diagTiles, int currentGain)
@@ -223,25 +219,35 @@ public class NectarScoring : MonoBehaviour
         return (int)(newGain * mult);
     }
 
-    private void FlowerValueHelper(Tile t, int gain, float duration)
+    private void FlowerValueHelper(Tile t, int gain, float duration, FlowerType f, Hive h)
     {
         t.lastGain = gain;
         popUp.DisplayPopup(t.transform.position, gain, duration);
-        flowerAmountGained += gain;
+        h.personalNectarGains[f] += gain;
         totalAmountGained += gain;
-        if (flowerAmountGained > 999)
+        if (h.personalNectarGains[f] > 999)
             item.Q<Label>("Amount").style.fontSize = 48;
         if (totalAmountGained > 999)
             totalAmount.style.fontSize = 48;
         totalAmount.text = totalAmountGained.ToString();
-        item.Q<Label>("Amount").text = flowerAmountGained.ToString();
+        item.Q<Label>("Amount").text = h.personalNectarGains[f].ToString();
+    }
+
+    private int CalcHiveSharing(Tile t, int gain, Hive h)
+    {
+        int shareCount = 1;
+        foreach (Hive hive in player.hives)
+            if (hive != h)
+                if (hive.tileRadius.Contains(t))
+                    shareCount++;
+
+        return Mathf.FloorToInt(gain / shareCount);
     }
 
     private IEnumerator GetCloverValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(0);
+        UpdateNectarUI(0);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -256,8 +262,8 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Clover, 1, duration, true, source, h));
         int gain = (adjClover.Count + diagClover.Count) * cloverValue;
         gain = ApplyModifierValues(FlowerType.Clover, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Clover, h);
 
         //Animate related flowers
         foreach (Tile adjT in adjClover)
@@ -277,20 +283,14 @@ public class NectarScoring : MonoBehaviour
             adjT.completed = false;
         foreach (Tile diagT in diagClover)
             diagT.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Clover] = count * cloverValue;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetAlfalfaValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(1);
+        UpdateNectarUI(1);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -301,8 +301,8 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Alfalfa, 1, duration, true, source, h));
         int gain = diagAlfalfa.Count * alfalfaValue;
         gain = ApplyModifierValues(FlowerType.Alfalfa, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Alfalfa, h);
 
         //Animate related flowers
         foreach (Tile tDiag in diagAlfalfa)
@@ -312,20 +312,14 @@ public class NectarScoring : MonoBehaviour
         t.completed = false;
         foreach (Tile tDiag in diagAlfalfa)
             tDiag.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Alfalfa] = count * alfalfaValue;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetBuckwheatValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(2);
+        UpdateNectarUI(2);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -334,25 +328,19 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Buckwheat, 1, duration, true, source, h));
         int gain = buckwheatValue;
         gain = ApplyModifierValues(FlowerType.Buckwheat, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Buckwheat, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Buckwheat] = count;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetFireweedValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(4);
+        UpdateNectarUI(4);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -361,25 +349,19 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Fireweed, 1, duration, true, source, h));
         int gain = fireweedValue;
         gain = ApplyModifierValues(FlowerType.Fireweed, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Fireweed, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Fireweed] = count;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetGoldenrodValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(3);
+        UpdateNectarUI(3);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -388,24 +370,19 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Goldenrod, 1, duration, true, source, h));
         int gain = goldenrodValue;
         gain = ApplyModifierValues(FlowerType.Goldenrod, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Goldenrod, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Goldenrod] = count;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetDandelionValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(5);
+        UpdateNectarUI(5);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -414,25 +391,19 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Dandelion, 1, duration, true, source, h));
         int gain = dandelionValue;
         gain = ApplyModifierValues(FlowerType.Dandelion, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Dandelion, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Dandelion] = count;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetSunflowerValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(6);
+        UpdateNectarUI(6);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -445,25 +416,19 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Sunflower, 1, duration, true, source, h));
         int gain = (adjEmpty.Count + diagEmpty.Count) * sunflowerValue;
         gain = ApplyModifierValues(FlowerType.Sunflower, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Sunflower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Sunflower] = count * sunflowerValue;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetOrangeValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(10);
+        UpdateNectarUI(10);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -472,25 +437,19 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Orange, 1, duration, true, source, h));
         int gain = orangeValue;
         gain = ApplyModifierValues(FlowerType.Orange, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Orange, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Orange] = count;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetDaisyValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(7);
+        UpdateNectarUI(7);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -515,25 +474,19 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Daisy, 1, duration, true, source, h));
         int gain = daisyValue * uniqueFlowers;
         gain = ApplyModifierValues(FlowerType.Daisy, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Daisy, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Daisy] = count;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetThistleValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(8);
+        UpdateNectarUI(8);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -557,28 +510,22 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Thistle, 1, duration, true, source, h));
         int gain = randTile.lastGain * 3;
         gain = ApplyModifierValues(FlowerType.Thistle, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Thistle, h);
 
         randTile.lastGain = 0;
         randTile.Flower = FlowerType.Empty;
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Thistle] = count;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetBlueberryValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(9);
+        UpdateNectarUI(9);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -590,27 +537,20 @@ public class NectarScoring : MonoBehaviour
             gain = blueberryValue;
         }
         gain = ApplyModifierValues(FlowerType.Blueberry, adjTiles, diagTiles, gain);
-
+        gain = CalcHiveSharing(t, gain, h);
         StartCoroutine(t.Animate(FlowerType.Blueberry, 1, duration, true, source, h));
-
-        FlowerValueHelper(t, gain, duration);
+        FlowerValueHelper(t, gain, duration, FlowerType.Blueberry, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Blueberry] = count;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
 
     private IEnumerator GetTupeloValue(Tile t, float duration, Hive h)
     {
         int count = 0;
-        if (item == null)
-            UpdateNectarUI(11);
+        UpdateNectarUI(11);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -619,18 +559,12 @@ public class NectarScoring : MonoBehaviour
         StartCoroutine(t.Animate(FlowerType.Tupelo, 1, duration, true, source, h));
         int gain = tupeloValue;
         gain = ApplyModifierValues(FlowerType.Tupelo, adjTiles, diagTiles, gain);
-
-        FlowerValueHelper(t, gain, duration);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, FlowerType.Tupelo, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
-        source.pitch += 0.25f;
-        if (source.pitch >= 3)
-            source.pitch = 3;
-        nectarGains[FlowerType.Tupelo] = count;
-        flowerAmountGained = 0;
+        AdjustPitch();
         calced = true;
-        item = null;
     }
-
 }

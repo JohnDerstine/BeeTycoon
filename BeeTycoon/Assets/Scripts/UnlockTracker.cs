@@ -11,17 +11,37 @@ public class UnlockTracker : MonoBehaviour
         {"Italian", true},
         {"Russian", true},
         {"Japanese", true},
-        {"Carniolan", false}
+        {"Carniolan", false},
+        {"Caucasian", false},
+        {"Himalayan", false},
+        {"Cordovan", false},
+        {"Buckfast", false},
+        {"Killer", false},
     };
 
-    public Dictionary<Tool, bool> toolUpgrades = new Dictionary<Tool, bool>()
+    public Dictionary<string, bool> majorTechs = new Dictionary<string, bool>()
     {
-        {Tool.Smoker, false},
-        {Tool.Shovel, false},
-        {Tool.Dolly, false},
-        {Tool.HiveTool, false},
-        {Tool.BeeSuit, false},
-        {Tool.Extractor, false}
+        {"HoneySelect", false},
+        {"FlowerSelect", false},
+        {"SizeSelect", false},
+        {"Composte", false},
+        {"Orders", false},
+    };
+
+    public Dictionary<string, bool> toolUpgrades = new Dictionary<string, bool>()
+    {
+        {"Smoker1", false},
+        {"Shovel1", false},
+        {"Dolly1", false},
+        {"HiveTool1", false},
+        {"BeeSuit1", false},
+        {"Extractor1", false},
+        {"Smoker2", false},
+        {"Shovel2", false},
+        {"Dolly2", false},
+        {"HiveTool2", false},
+        {"BeeSuit2", false},
+        {"Extractor2", false}
     };
 
     public Dictionary<FlowerType, bool> Stage12Flowers = new Dictionary<FlowerType, bool>()
@@ -42,6 +62,26 @@ public class UnlockTracker : MonoBehaviour
         {FlowerType.Thistle, false},
         {FlowerType.Blueberry, false},
         {FlowerType.Tupelo, false},
+    };
+
+    public Dictionary<FlowerType, bool> Stage12FlowersUnlocked = new Dictionary<FlowerType, bool>()
+    {
+        {FlowerType.Clover, true},
+        {FlowerType.Buckwheat, true},
+        {FlowerType.Alfalfa, true},
+        {FlowerType.Dandelion, true},
+        {FlowerType.Sunflower, true},
+        {FlowerType.Orange, true},
+    };
+
+    public Dictionary<FlowerType, bool> Stage34FlowersUnlocked = new Dictionary<FlowerType, bool>()
+    {
+        {FlowerType.Fireweed, true},
+        {FlowerType.Goldenrod, true},
+        {FlowerType.Daisy, true},
+        {FlowerType.Thistle, true},
+        {FlowerType.Blueberry, true},
+        {FlowerType.Tupelo, true},
     };
 
     //Add negative quirks that are opposite of 5 base
@@ -74,7 +114,21 @@ public class UnlockTracker : MonoBehaviour
 
     public List<FlowerType> ownedFlowers = new List<FlowerType>();
 
-    private int stage = 0;
+    public int stage = 0;
+
+    public List<FlowerType> GetUnlockedFlowers()
+    {
+        List<FlowerType> unlockedFlowers = new List<FlowerType>();
+        foreach(KeyValuePair<FlowerType, bool> kvp in Stage12FlowersUnlocked)
+            if (kvp.Value)
+                unlockedFlowers.Add(kvp.Key);
+
+        foreach (KeyValuePair<FlowerType, bool> kvp in Stage34FlowersUnlocked)
+            if (kvp.Value)
+                unlockedFlowers.Add(kvp.Key);
+
+        return unlockedFlowers;
+    }
 
     public List<int> GetNextFlowers()
     {
@@ -89,7 +143,7 @@ public class UnlockTracker : MonoBehaviour
             List<FlowerType> randFlowerOptions = new List<FlowerType>();
             foreach (KeyValuePair<FlowerType, bool> kvp in Stage12Flowers)
             {
-                if (!kvp.Value)
+                if (!kvp.Value && Stage12FlowersUnlocked[kvp.Key])
                 {
                     if (stage == 2 || (stage == 1 && kvp.Key != FlowerType.Orange))
                         randFlowerOptions.Add(kvp.Key);
@@ -99,21 +153,21 @@ public class UnlockTracker : MonoBehaviour
             for (int i = 0; i < 3; i++)
             {
                 int rand = Random.Range(0, randFlowerOptions.Count);
-                Debug.Log(rand);
-                Debug.Log(randFlowerOptions.Count);
                 availableFlowers.Add((int)randFlowerOptions[rand] - 2);
                 ownedFlowers.Add(randFlowerOptions[rand]);
                 randFlowerOptions.RemoveAt(rand);
             }
 
             foreach (int i in availableFlowers)
-                Stage12Flowers[(FlowerType)i] = true;
+            {
+                Stage12Flowers[(FlowerType)(i + 2)] = true;
+            }
         }
         else
         {
             List<FlowerType> randFlowerOptions = new List<FlowerType>();
             foreach (KeyValuePair<FlowerType, bool> kvp in Stage34Flowers)
-                if (!kvp.Value)
+                if (!kvp.Value && Stage34FlowersUnlocked[kvp.Key])
                     randFlowerOptions.Add(kvp.Key);
 
             for (int i = 0; i < 3; i++)
@@ -125,7 +179,7 @@ public class UnlockTracker : MonoBehaviour
             }
 
             foreach (int i in availableFlowers)
-                Stage34Flowers[(FlowerType)i] = true;
+                Stage34Flowers[(FlowerType)(i + 2)] = true;
         }
 
         GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().AddHoneyCards(availableFlowers);

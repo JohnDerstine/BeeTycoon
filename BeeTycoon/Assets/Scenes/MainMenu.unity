@@ -168,6 +168,64 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &720647227
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 720647230}
+  - component: {fileID: 720647229}
+  - component: {fileID: 720647228}
+  m_Layer: 0
+  m_Name: UnlockTracker
+  m_TagString: unlock
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &720647228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 720647227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73d70675c5e6b664ea0d5b4e71fb67f9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &720647229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 720647227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec5580a6a7b695f4a83614e42f9208f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ownedFlowers: 
+--- !u!4 &720647230
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 720647227}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 26.34833, y: -9.245755, z: 34.316708}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &776987669
 GameObject:
   m_ObjectHideFlags: 0
@@ -370,7 +428,7 @@ GameObject:
   - component: {fileID: 1594075287}
   m_Layer: 0
   m_Name: MapLoader
-  m_TagString: Untagged
+  m_TagString: map
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -501,7 +559,7 @@ AudioSource:
   m_audioClip: {fileID: 8300000, guid: 2bd6a21e5b1a8c9408f50d784fc68b7e, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
-  m_Pitch: 0.5
+  m_Pitch: 0.25
   Loop: 0
   Mute: 0
   Spatialize: 0
@@ -603,7 +661,7 @@ MonoBehaviour:
   popUp: {fileID: 1594075283}
   audio: {fileID: 8300000, guid: c7b12fafb3785974cac5b9d9c7396aee, type: 3}
   populatedHives: 0
-  nectarItem: {fileID: 9197481963319205126, guid: eae199bc25d554646a94fcedd81484dc, type: 3}
+  nectarItem: {fileID: 9197481963319205126, guid: 5ebbc1011549af44d9a30cc9fbeaa0b6, type: 3}
   honeySprite: {fileID: 2800000, guid: 95d9997ccce6aa046898a9e8bd880124, type: 3}
 --- !u!1 &1944616202
 GameObject:
@@ -618,10 +676,9 @@ GameObject:
   - component: {fileID: 1944616205}
   - component: {fileID: 1944616206}
   - component: {fileID: 1944616207}
-  - component: {fileID: 1944616208}
   m_Layer: 5
   m_Name: UIDocument
-  m_TagString: Untagged
+  m_TagString: ui
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -828,88 +885,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &1944616208
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1944616202}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 24c1885b469b50644a985246d9bfc7e5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ui: {fileID: 1944616203}
-  game: {fileID: 2079847517}
-  glossary: {fileID: 1944616206}
-  queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
-  allFlowerSprites:
-  - {fileID: 2800000, guid: f6536d65e190e6645befd9a9a1f699c0, type: 3}
-  - {fileID: 2800000, guid: b491d685800400e449919c2fe034e79c, type: 3}
-  - {fileID: 2800000, guid: 5916f479f74b5074fb8e62ddd8cc6cd1, type: 3}
-  - {fileID: 2800000, guid: 0a26b522cea6ebb468a15ad04bcd1294, type: 3}
-  - {fileID: 2800000, guid: 2d1305930efa4824f9839164ecec76f2, type: 3}
-  - {fileID: 2800000, guid: 903a3b4c041862d46a8ae49aaac2e554, type: 3}
-  - {fileID: 2800000, guid: 477adb8651d3e624fb998bfcd8fb2fa8, type: 3}
-  - {fileID: 2800000, guid: e38c4d711d3b1f54085519d6fd989415, type: 3}
-  - {fileID: 2800000, guid: e7128ff6ecc720f4496f71145f9b4e38, type: 3}
-  - {fileID: 2800000, guid: 7c8f90c06a17fa741b616963527f9848, type: 3}
-  - {fileID: 2800000, guid: 878f8d0ee7015874bbacff3462c0e84a, type: 3}
-  - {fileID: 2800000, guid: e2f0b3b2ce3435d479b677e9378324aa, type: 3}
-  allFlowerObjects:
-  - {fileID: 5001097289351631279, guid: 407c446b3416b60479e542c5882e7183, type: 3}
-  - {fileID: 5460235229074903264, guid: fed9beafd2c9a004691a9871a632f695, type: 3}
-  - {fileID: 822866801568241527, guid: 1b206d71e2a5c6f4f81c30c4a0fd9f57, type: 3}
-  - {fileID: 3628555952956922509, guid: f77ec4dde0553804c9714014218a1e88, type: 3}
-  - {fileID: 5966440394908554401, guid: a258a8b5ac488bb45bbec9eba50d0b92, type: 3}
-  - {fileID: 1587246011406451378, guid: 0d99c39867132e54293b4230b29ccc43, type: 3}
-  - {fileID: 3590226965088670462, guid: c8a32874c7f1e854f8ffe1be1f925cd9, type: 3}
-  - {fileID: 829943951400369715, guid: 833ffbb82cf26f94ab4496ca564b2282, type: 3}
-  - {fileID: 8930039315758396281, guid: ed616d1894526b34aae663b0c80168f5, type: 3}
-  - {fileID: 8871483576634703786, guid: 2e048d65849e18b4f9a66c52762d9b5a, type: 3}
-  - {fileID: 2475174566886137573, guid: 6b30ffde024d12c489e2849c9f1b3fc2, type: 3}
-  - {fileID: 6942034762535838934, guid: cf38f405eeec21345a0aaf75cc4a76f4, type: 3}
-  beeSprites: []
-  beeObjectList: []
-  toolSprites:
-  - {fileID: 2800000, guid: 69483ea25a437774b9d4053ceedaf9ba, type: 3}
-  - {fileID: 2800000, guid: 48d80eb79db0bcf4bad3ff954131b5f0, type: 3}
-  - {fileID: 2800000, guid: 09229c9f1b01bf24fa31dc874d612666, type: 3}
-  - {fileID: 2800000, guid: 35ef3489b5f21434dba1d5a89f79a9ba, type: 3}
-  - {fileID: 2800000, guid: 45e28b1e881dce14e8af892e696fdcd9, type: 3}
-  - {fileID: 2800000, guid: c3eb6e95650e5d34bba34e8c24e709f3, type: 3}
-  toolObjectList: []
-  hiveSprites:
-  - {fileID: 2800000, guid: 0fdacaa9d1051044f8431d7f4eca5167, type: 3}
-  - {fileID: 2800000, guid: cb13e1e9a6d215a4689f4740db577159, type: 3}
-  - {fileID: 2800000, guid: 62032097f8651f9499521cb2b4dffaa0, type: 3}
-  - {fileID: 2800000, guid: 3b4d8149e58230240af6ccaf09f9f689, type: 3}
-  - {fileID: 2800000, guid: 4a564affbebe6cf4b91ed31d0532442e, type: 3}
-  - {fileID: 2800000, guid: b5792b787771c404aac6d024dd7b9964, type: 3}
-  - {fileID: 2800000, guid: b20c04d6f30dbf9458a83cb68dea9cd1, type: 3}
-  - {fileID: 2800000, guid: 01a694a57347d864280c8accd09161d7, type: 3}
-  - {fileID: 2800000, guid: a2d0eec620e7af44a8a353b71b57dd0d, type: 3}
-  hiveObjectList:
-  - {fileID: 8631668248818954614, guid: 6be2c764dfd44a34a86830c656730b1a, type: 3}
-  - {fileID: 9136819131691125964, guid: 5413a77b14b42954b85893985b0183e6, type: 3}
-  - {fileID: 1826703634230087101, guid: 112841a63d627e74cbceda868f630609, type: 3}
-  - {fileID: 6697024670040299877, guid: f2fc76a289fb7bf448a3d8f1a520149e, type: 3}
-  - {fileID: 2605333161088125862, guid: 88ec760728f7c864fb7ac98f00fc6dd1, type: 3}
-  - {fileID: 5928400487421320775, guid: 0bb782064efaea2498b5c32afaa9ca73, type: 3}
-  - {fileID: 1439812673210890876, guid: f48f801561edab94499f7332fedec349, type: 3}
-  - {fileID: 1306624215040400114, guid: f0351031dab54614d84326f54827b98a, type: 3}
-  - {fileID: 2874875940577435135, guid: 8111dbda643228c488889a1201cb3ac4, type: 3}
-  testQueen: {fileID: 6447290488066576997, guid: e59ceae1d5e160344a08b67d62f9d88e, type: 3}
-  testQueenSprite: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
-  nextStage: {fileID: 1381741657326285398, guid: 93e69a5550f98b74ab5d7e0646b3d5ef, type: 3}
-  nextStageSprite: {fileID: 2800000, guid: cb13e1e9a6d215a4689f4740db577159, type: 3}
-  tab1ItemCount: 0
-  hex: {fileID: 2800000, guid: 38522a5f81ab10a4392ffed8ef29445d, type: 3}
-  tabStyle: {fileID: 7433441132597879392, guid: db82af968aa77354d90ac85bca8ba754, type: 3}
-  itemStyle: {fileID: 7433441132597879392, guid: bdf693ba0f0048f4583b9bb0b085768b, type: 3}
-  costStyle: {fileID: 7433441132597879392, guid: 24b5367f1a29d884cbfe6b7a485461d5, type: 3}
-  availableFTypes: 
 --- !u!1 &2079847516
 GameObject:
   m_ObjectHideFlags: 0
@@ -926,7 +901,7 @@ GameObject:
   - component: {fileID: 2079847522}
   m_Layer: 0
   m_Name: GameController
-  m_TagString: Untagged
+  m_TagString: game
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -952,6 +927,7 @@ MonoBehaviour:
   honeyMarket: {fileID: 0}
   newTurnUI: {fileID: 9197481963319205126, guid: 49f28a6cb8817ca40855ba553a8a6a49, type: 3}
   quotaScreenUI: {fileID: 9197481963319205126, guid: 64080b72d1d49f24891b47cd502e34cc, type: 3}
+  techTokenScreenUI: {fileID: 9197481963319205126, guid: e751dba4a6e8bcc40824cb938309f0ed, type: 3}
   nectar: {fileID: 1594075287}
   year: 1
   nectarCollectingFinished: 0
@@ -1165,3 +1141,4 @@ SceneRoots:
   - {fileID: 1944616204}
   - {fileID: 1594075284}
   - {fileID: 154703913}
+  - {fileID: 720647230}

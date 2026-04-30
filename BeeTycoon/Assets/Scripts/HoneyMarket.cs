@@ -141,20 +141,30 @@ public class HoneyMarket : MonoBehaviour
 
     public void ReloadUI()
     {
-        marketButton = document.rootVisualElement.Q<CustomVisualElement>("MarketButton");
-        marketButton.AddManipulator(new Clickable(e => OpenMarket()));
-        marketButton.RegisterCallback<PointerDownEvent>(e => ReferenceGlossary(e));
+        //marketButton = document.rootVisualElement.Q<CustomVisualElement>("MarketButton");
+        //marketButton.AddManipulator(new Clickable(e => OpenMarket()));
+        //marketButton.RegisterCallback<PointerDownEvent>(e => ReferenceGlossary(e));
+    }
+
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0)) //Open market when left clicked
+        {
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out var marketHit, 1000, LayerMask.GetMask("Market")))
+                OpenMarket();
+        }
+        else if (Input.GetMouseButtonDown(1)) //Open glossary when right clicked
+        {
+            var ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+            if (Physics.Raycast(ray, out var marketHit, 1000, LayerMask.GetMask("Market")))
+                document.GetComponent<Glossary>().OpenGlossary("HoneyMarket");
+        }
     }
 
     public float GetPrice(FlowerType f)
     {
         return marketValues[f][0];
-    }
-
-    private void ReferenceGlossary(PointerDownEvent e)
-    {
-        if (e.button == 1)
-            document.GetComponent<Glossary>().OpenGlossary("HoneyMarket");
     }
 
     private void OpenMarket()
@@ -172,7 +182,7 @@ public class HoneyMarket : MonoBehaviour
         
         SetUpMarket();
 
-        document.rootVisualElement.Q<Label>("Money").visible = false;
+        //document.rootVisualElement.Q<Label>("Money").visible = false;
 
         marketOpen = true;
         SetAllLabels();

@@ -36,7 +36,7 @@ public class SaveSystem
         GameObject.Find("PlayerController").GetComponent<PlayerController>().Save(ref _saveData.PlayerData);
         GameObject.Find("MapLoader").GetComponent<MapLoader>().Save(ref _saveData.MapData);
         GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().Save(ref _saveData.MarketData);
-        GameObject.Find("UIDocument").GetComponent<HexMenu>().Save(ref _saveData.HexMenuData);
+        GameObject.Find("HexMenu").GetComponent<HexMenu>().Save(ref _saveData.HexMenuData);
     }
 
     public static void Load()
@@ -53,7 +53,7 @@ public class SaveSystem
         GameObject.Find("MapLoader").GetComponent<MapLoader>().Load(_saveData.MapData);
         GameObject.Find("PlayerController").GetComponent<PlayerController>().Load(_saveData.PlayerData);
         GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().Load(_saveData.MarketData);
-        GameObject.Find("UIDocument").GetComponent<HexMenu>().Load(_saveData.HexMenuData);
+        GameObject.Find("HexMenu").GetComponent<HexMenu>().Load(_saveData.HexMenuData);
     }
 
     public static bool CheckSaveFile()

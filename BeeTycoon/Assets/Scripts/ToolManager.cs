@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public enum Tool
 {
@@ -55,6 +56,9 @@ public class ToolManager : MonoBehaviour
     [SerializeField]
     private MapLoader map;
 
+    [SerializeField]
+    private UnlockTracker unlocks;
+
     private GameObject objectToMove;
     private Vector3 storedPos;
     private Tile storedTile;
@@ -63,6 +67,7 @@ public class ToolManager : MonoBehaviour
     bool pickedUpThisFrame;
 
     private ToolScript activeTool;
+    private PlayerController player;
 
     public GameObject ObjectToMove
     {
@@ -105,6 +110,8 @@ public class ToolManager : MonoBehaviour
     void Awake()
     {
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
+        unlocks = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+        player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
     }
 
     //Logic for tool functionality
@@ -179,9 +186,19 @@ public class ToolManager : MonoBehaviour
     {
         List<Tool> unmaxedTools = new List<Tool>();
         foreach (KeyValuePair<Tool, bool> kvp in toolsMaxed)
-            if (!kvp.Value)
+            if (!kvp.Value && GetToolLevelUnlocked(kvp.Key))
                 unmaxedTools.Add(kvp.Key);
         return unmaxedTools;
+    }
+
+    private bool GetToolLevelUnlocked(Tool t)
+    {
+        ToolScript tool = GetToolFromTag(t.ToString());
+        if (tool.Level > 0 && unlocks.toolUpgrades[t.ToString() + (tool.Level).ToString()])
+            return true;
+        else if (tool.Level == 0)
+            return true;
+        return false;
     }
 
     public void SetActiveTool(GameObject item)
@@ -231,6 +248,7 @@ public class ToolManager : MonoBehaviour
             //If trash is clicked, delete flower
             if (Physics.Raycast(ray, out var trashHit, 1000, LayerMask.GetMask("Trash")) && activeTool == shovel)
             {
+                player.CheckForFavoriteFlowerUpdates();
                 Destroy(objectToMove);
                 shovel.usesLeft--;
                 CleanUpShovel();
@@ -246,6 +264,7 @@ public class ToolManager : MonoBehaviour
                         if (t.Flower == FlowerType.Empty && !t.HasHive)
                         {
                             t.Flower = storedFType;
+                            player.CheckForFavoriteFlowerUpdates();
                             shovel.usesLeft--;
                             CleanUpShovel(t);
                         }
@@ -297,7 +316,11 @@ public class ToolManager : MonoBehaviour
                 if (hiveHit.collider.gameObject.TryGetComponent<Hive>(out Hive h))
                 {
                     if (activeTool == smoker)
+                    {
                         h.CureCondition("Aggrevated");
+                        if (smoker.calming)
+                            h.AddCondition("Relaxed");
+                    }
                     else if (activeTool == hiveTool)
                         h.CureCondition("Glued");
                 }

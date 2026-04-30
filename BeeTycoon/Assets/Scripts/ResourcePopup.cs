@@ -72,26 +72,26 @@ public class ResourcePopup : MonoBehaviour
 
     private IEnumerator AdvancePopup(TemplateContainer popup, Vector3 worldPos, float duration)
     {
-        float adjustAmount = 0.5f;
-        float fadeAmonunt = 0.01f;
-        int cycles = 0;
+        float timeLapsed = 0.0f;
+        float adjustAmount;
+        float fadeAmonunt;
         float yAdjust = 0f;
         VisualElement icon = popup.Q<VisualElement>("Icon");
         Label amount = popup.Q<Label>("Amount");
         Label plus = popup.Q<Label>("plus");
 
         yield return new WaitForFixedUpdate();
-        while (icon.resolvedStyle.unityBackgroundImageTintColor.a > 0)
+        while (timeLapsed < duration * 3)
         {
             Vector3 position = worldPos;
             position = Camera.main.WorldToScreenPoint(position);
             popup.style.top = Screen.height - position.y - yAdjust;
             popup.style.left = position.x;
-            adjustAmount = (0.1f - duration) * 10 * 1.5f; //1.5f is just an arbitrary modifier
+            adjustAmount = 3 - duration; //1.5f is just an arbitrary modifier
             yAdjust += adjustAmount;
-            fadeAmonunt = (0.06f - duration);
+            fadeAmonunt = duration / 3;
 
-            if (cycles > 50)
+            if (timeLapsed > duration * 1.5f)
             {
                 icon.style.unityBackgroundImageTintColor = icon.resolvedStyle.unityBackgroundImageTintColor - new Color(0, 0, 0, fadeAmonunt);
 
@@ -102,8 +102,8 @@ public class ResourcePopup : MonoBehaviour
                 plus.style.unityTextOutlineColor = plus.resolvedStyle.color - new Color(1, 1, 1, fadeAmonunt);
             }
 
-            yield return new WaitForSeconds(0.005f);
-            cycles++;
+            yield return new WaitForSeconds(Time.deltaTime);
+            timeLapsed += Time.deltaTime;
         }
 
         if (document.rootVisualElement.Q().Contains(popup))

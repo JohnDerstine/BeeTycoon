@@ -28,6 +28,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField]
     HoneyMarket honeyMarket;
 
+    [SerializeField]
     HexMenu hexMenu;
 
     [SerializeField]
@@ -64,7 +65,7 @@ public class PlayerController : MonoBehaviour
     private bool pickedUpThisFrame = false;
     private Tile storedTile;
 
-    private int money = 50;
+    private int money = 25;
     public int moneyEarned = 0;
     public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
@@ -164,7 +165,6 @@ public class PlayerController : MonoBehaviour
         game = GameObject.Find("GameController").GetComponent<GameController>();
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
         ui = GameObject.Find("UIDocument").GetComponent<UIDocument>();
-        hexMenu = ui.gameObject.GetComponent<HexMenu>();
         glossary = ui.gameObject.GetComponent<Glossary>();
 
         if (!fromSave)
@@ -208,6 +208,9 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.G))
             glossary.OpenGlossary("Species");
+
+        if (Input.GetKeyDown(KeyCode.Return))
+            game.BackToMain();
 
         pickedUpThisFrame = false;
         //Checks to see if selected item is placed
@@ -276,6 +279,18 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    //Determines whether the conditons for the Indulged affliction are met when the flowers change
+    public void CheckForFavoriteFlowerUpdates()
+    {
+        foreach (Hive hive in hives)
+        {
+            if (hive.queen != null && !hive.conditions.Contains("Indulged") && map.GetAdjacentFlowers(hive.queen.favorite, hive.x, hive.y).Count > 0)
+            {
+                hive.AddCondition("Indulged");
+            }
+        }
+    }
+
     //Check for user clicks on various GameObjects or when an object from the hex menu is selected
     private void checkForClick()
     {
@@ -314,11 +329,13 @@ public class PlayerController : MonoBehaviour
                         {
                             if (c.ftype != FlowerType.Empty && c.ftype != FlowerType.Orange && c.ftype != FlowerType.Tupelo && t.Flower == FlowerType.Empty && !t.HasHive)
                             {
-                                Debug.Log("Money: " + money + " Price: " + c.Price);
                                 if (Money < c.Price)
                                     return;
 
                                 t.Flower = c.ftype;
+
+                                CheckForFavoriteFlowerUpdates();
+
                                 if (hexMenu.flowersOwned[c.ftype] <= 0)
                                 {
                                     Money = -c.Price;
@@ -770,7 +787,6 @@ public class PlayerController : MonoBehaviour
         game = GameObject.Find("GameController").GetComponent<GameController>();
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
         ui = GameObject.Find("UIDocument").GetComponent<UIDocument>();
-        hexMenu = ui.gameObject.GetComponent<HexMenu>();
         money = data.savedMoney;
         var values = System.Enum.GetValues(typeof(FlowerType));
         int k = 0;

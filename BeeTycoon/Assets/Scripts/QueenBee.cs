@@ -19,6 +19,7 @@ public class QueenBee : MonoBehaviour
     public string species;
     public float grade;
     public string radiusType;
+    public FlowerType favorite;
     public List<string> quirks = new List<string>();
 
     private List<string> rTypes = new List<string>() { "Square", "Long", "L-Shaped"};
@@ -50,13 +51,12 @@ public class QueenBee : MonoBehaviour
         List<string> possibilites = new List<string>();
         foreach (KeyValuePair<string, bool> kvp in unlocks.species)
         {
-            if (kvp.Value == true)
+            if (kvp.Value)
                 possibilites.Add(kvp.Key);
         }
         species = possibilites[Random.Range(0, possibilites.Count)];
 
         radiusType = rTypes[Random.Range(0, 3)];
-        Debug.Log(radiusType);
         grade = Mathf.Round((productionMult + constructionMult + collectionMult + resilienceMult + aggressivnessMult) * 10) / 10.0f;
 
         int quirkNum;
@@ -73,7 +73,7 @@ public class QueenBee : MonoBehaviour
         possibilites.Clear();
         foreach (KeyValuePair<string, bool> kvp in unlocks.quirks)
         {
-            if (kvp.Value == true)
+            if (kvp.Value)
                 possibilites.Add(kvp.Key);
         }
 
@@ -83,6 +83,9 @@ public class QueenBee : MonoBehaviour
             quirks.Add(possibilites[index]);
             possibilites.RemoveAt(index);
         }
+
+        List<FlowerType> unlockedFlowers = unlocks.GetUnlockedFlowers();
+        favorite = unlockedFlowers[Random.Range(0, unlockedFlowers.Count)];
 
         //GetComponent<Cost>().Price = (int)grade;
         finishedGenerating = true;
@@ -97,6 +100,7 @@ public class QueenBee : MonoBehaviour
         aggressivnessMult = newQueen.aggressivnessMult;
         resilienceMult = newQueen.resilienceMult;
         radiusType = newQueen.radiusType;
+        favorite = newQueen.favorite;
         species = newQueen.species;
         quirks = newQueen.quirks;
         grade = newQueen.grade;

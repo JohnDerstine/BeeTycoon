@@ -19,6 +19,7 @@ public class RunModifiers : MonoBehaviour
         //All flowers should get one baseBonus modifier and one multBonus modifier
         //Above modifiers work in 1 direction only, flower 1 being the scoring flower.
         //id, sprite, [flower1 flower2], amount of flower 2 required for bonus, direction flower 2 must be in, base, mult
+
         #region mods
         //flower base
         allMods.Add(0, new FlowerModifier("Clover Clover Bias", modSprites[0], new FlowerType[2] { FlowerType.Clover, FlowerType.Clover }, 6, "adjacent or diagonal", 16, 1));
