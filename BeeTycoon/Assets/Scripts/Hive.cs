@@ -124,7 +124,7 @@ public class Hive : MonoBehaviour
     private float resilience = 1;
     private float aggressivness = 4;
 
-    private int stressLevel = 4;
+    private int stressLevel = 0;
     public List<string> conditions = new List<string>();
     private List<string> randConditions = new List<string>() { "Mice", "Mites", "Moths", "Fungus", "Aggrevated", "Glued"};
     private List<string> baseRandConditions = new List<string>() { "Mice", "Mites", "Moths", "Fungus", "Aggrevated", "Glued" };

@@ -832,6 +832,7 @@ MonoBehaviour:
   - {fileID: 5868590835129611709, guid: 443f3301b07a78740b9ebd529a8626c8, type: 3}
   - {fileID: 6644718264640369129, guid: c944c70249516e6438bc999711050927, type: 3}
   - {fileID: 5480952202048627542, guid: a4ee05ef4c6726743adc972b196eb20e, type: 3}
+  - {fileID: 29906008088562972, guid: db0c726e9a116634fb4a800eff453304, type: 3}
   activeEvents: 0
 --- !u!4 &919636343
 Transform:

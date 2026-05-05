@@ -12,6 +12,7 @@ public class Cow : EventObject
     {
         base.Start();
         game.turnCallback += applyEffect;
+        spawnTile.Flower = FlowerType.Empty;
     }
 
     private void applyEffect()
