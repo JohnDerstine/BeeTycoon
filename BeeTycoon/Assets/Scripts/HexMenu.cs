@@ -17,14 +17,29 @@ public class HexMenu : MonoBehaviour
     [SerializeField]
     private ToolManager toolManager;
 
+    [SerializeField]
+    private VisualTreeAsset hexMenuLabel;
+
     private Glossary glossary;
 
     [SerializeField]
     private VisualTreeAsset queenUI;
 
+    private List<List<string>> stringList = new List<List<string>>();
+
     private List<List<Texture2D>> spriteList = new List<List<Texture2D>>();
 
     private List<List<GameObject>> objectList = new List<List<GameObject>>();
+
+    public List<string> beeNames = new List<string>();
+
+    [SerializeField]
+    public List<string> toolNames = new List<string>();
+
+    [SerializeField]
+    public List<string> hiveNames = new List<string>();
+
+    public List<string> flowerNames = new List<string>();
 
     [SerializeField]
     public List<Texture2D> allFlowerSprites = new List<Texture2D>();
@@ -74,7 +89,7 @@ public class HexMenu : MonoBehaviour
     public Manipulator open3;
     public Manipulator open4;
     private EventCallback<PointerUpEvent> endSelectionCallback;
-    private EventCallback<PointerMoveEvent, int> queenMoveCallback;
+    private EventCallback<PointerMoveEvent, int[]> queenMoveCallback;
     private EventCallback<PointerLeaveEvent> queenExitCallback;
 
     private VisualElement left;
@@ -136,6 +151,7 @@ public class HexMenu : MonoBehaviour
 
         flowerObjectList.Add(nextStage);
         flowerSprites.Add(nextStageSprite);
+        flowerNames.Add("Next Stage");
 
         close = new Clickable(close => CloseTab());
         open1 = new Clickable(open => OpenTab(0, open1, false));
@@ -146,7 +162,7 @@ public class HexMenu : MonoBehaviour
         ReloadUI();
 
         queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
-        queenMoveCallback = new EventCallback<PointerMoveEvent, int>(OnQueenMove);
+        queenMoveCallback = new EventCallback<PointerMoveEvent, int[]>(OnQueenMove);
 
         if (!fromSave)
         {
@@ -165,10 +181,44 @@ public class HexMenu : MonoBehaviour
             flowerObjectList.Insert(0, allFlowerObjects[i]);
             flowerObjectList[0].GetComponent<Cost>().ftype = (FlowerType)(i + 2);
             flowerSprites.Insert(0, allFlowerSprites[i]);
+            flowerNames.Insert(0, FTypeToString((FlowerType)(i + 2)));
             tab4ItemCount++;
         }
 
         RefreshMenuLists();
+    }
+
+    private string FTypeToString(FlowerType f)
+    {
+        switch (f)
+        {
+            case FlowerType.Clover:
+                return "Clover";
+            case FlowerType.Alfalfa:
+                return "Alfalfa";
+            case FlowerType.Buckwheat:
+                return "Buckwheat";
+            case FlowerType.Goldenrod:
+                return "Goldenrod";
+            case FlowerType.Fireweed:
+                return "Fireweed";
+            case FlowerType.Sunflower:
+                return "Sunflower";
+            case FlowerType.Dandelion:
+                return "Dandelion";
+            case FlowerType.Thistle:
+                return "Thistle";
+            case FlowerType.Daisy:
+                return "Daisy";
+            case FlowerType.Blueberry:
+                return "Blueberry Blossom";
+            case FlowerType.Orange:
+                return "Orange Blossom";
+            case FlowerType.Tupelo:
+                return "Tupelo";
+            default:
+                return "N/A";
+        }
     }
 
     public void OpenTab(int num, Manipulator open, bool fromHive, Hive hive = null)
@@ -324,12 +374,8 @@ public class HexMenu : MonoBehaviour
         else
             hex.AddManipulator(new Clickable(e => SelectHive(objectList[num][index], spriteList[num][index], cost, selectedHive)));
 
-        if (num == 0)
-        {
-            QueenBee queen = objectList[num][index].GetComponent<QueenBee>();
-            hex.RegisterCallback(queenMoveCallback, index);
-            hex.RegisterCallback(queenExitCallback);
-        }
+        hex.RegisterCallback(queenMoveCallback, new int[2] { num, index });
+        hex.RegisterCallback(queenExitCallback);
     }
 
     //This shouldn't be needed, but I've used it in case this is ever a problem. (Testing purposes)
@@ -339,6 +385,7 @@ public class HexMenu : MonoBehaviour
         tabItemCounts.Clear();
         spriteList.Clear();
         objectList.Clear();
+        stringList.Clear();
 
         tabItemCounts.Add(tab1ItemCount);
         tabItemCounts.Add(tab2ItemCount);
@@ -354,6 +401,11 @@ public class HexMenu : MonoBehaviour
         objectList.Add(toolObjectList);
         objectList.Add(hiveObjectList);
         objectList.Add(flowerObjectList);
+
+        stringList.Add(beeNames);
+        stringList.Add(toolNames);
+        stringList.Add(hiveNames);
+        stringList.Add(flowerNames);
     }
 
     //Close Tabs
@@ -416,6 +468,7 @@ public class HexMenu : MonoBehaviour
             {
                 flowerObjectList.Insert(0, allFlowerObjects[i]);
                 flowerSprites.Insert(0, allFlowerSprites[i]);
+                flowerNames.Insert(0, FTypeToString((FlowerType)i));
                 tab4ItemCount++;
             }
             item.GetComponent<Cost>().Price *= 2;
@@ -462,7 +515,7 @@ public class HexMenu : MonoBehaviour
     }
 
     //Check to see if a Queen was selected from the shop, after clicking on the HiveUI queen button
-    private void SelectHive(GameObject item, Texture2D sprite, int cost, Hive hive)
+    public void SelectHive(GameObject item, Texture2D sprite, int cost, Hive hive)
     {
         if (player.Money < cost)
             return;
@@ -493,58 +546,77 @@ public class HexMenu : MonoBehaviour
     }
 
     //Add hover template
-    private void OnQueenMove(PointerMoveEvent e, int num)
+    private void OnQueenMove(PointerMoveEvent e, int[] ints)
     {
-        QueenBee queen = objectList[0][num].GetComponent<QueenBee>();
-        Texture2D sprite = spriteList[0][num];
-
+        int num = ints[0];
+        int index = ints[1];
         CustomVisualElement target = e.currentTarget as CustomVisualElement;
-        if (target.ContainsPoint(e.localPosition))
+
+        if (num == 0)
         {
-            if (hoverTemplate == null)
+            QueenBee queen = objectList[num][index].GetComponent<QueenBee>();
+            Texture2D sprite = spriteList[num][index];
+            if (target.ContainsPoint(e.localPosition))
             {
-                hoverTemplate = queenUI.Instantiate();
-                document.rootVisualElement.Q("Base").Add(hoverTemplate);
-                VisualElement popup = hoverTemplate.Q<VisualElement>("Popup");
-
-                //Resolved style is NaN until updated
-                popup.RegisterCallback((GeometryChangedEvent evt) => {
-                    hoverTemplate.style.position = Position.Absolute;
-                    hoverTemplate.style.left = e.position.x;
-                    hoverTemplate.style.top = e.position.y - popup.resolvedStyle.height / 2f;
-                    //Make sure the popup isn't off-screen
-                    if (e.position.y - popup.resolvedStyle.height / 2f < 0)
-                    {
-                        hoverTemplate.style.top = 0;
-                    }
-                    else if (e.position.y + popup.resolvedStyle.height - popup.resolvedStyle.height / 2f > Screen.height)
-                    {
-                        hoverTemplate.style.bottom = Screen.height;
-                        hoverTemplate.style.top = Screen.height - popup.resolvedStyle.height;
-                    }
-                });
-
-                //Update tooltip text to reflect queen stats
-                popup.Q<VisualElement>("Icon").style.backgroundImage = sprite;
-                popup.Q<Label>("Species").text = "Species: " + queen.species;
-                popup.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
-                popup.Q<Label>("Grade").text = "Grade: " + queen.grade.ToString() + "/10";
-                VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");
-                foreach (string s in queen.quirks)
+                if (hoverTemplate == null)
                 {
-                    Label quirk = new Label();
-                    quirk.text = s;
-                    quirk.AddToClassList("Quirk2");
-                    quirkContainer.Add(quirk);
+                    hoverTemplate = queenUI.Instantiate();
+                    document.rootVisualElement.Q("Base").Add(hoverTemplate);
+                    VisualElement popup = hoverTemplate.Q<VisualElement>("Popup");
+
+                    //Resolved style is NaN until updated
+                    popup.RegisterCallback((GeometryChangedEvent evt) =>
+                    {
+                        hoverTemplate.style.position = Position.Absolute;
+                        hoverTemplate.style.left = e.position.x;
+                        hoverTemplate.style.top = e.position.y - popup.resolvedStyle.height / 2f;
+                        //Make sure the popup isn't off-screen
+                        if (e.position.y - popup.resolvedStyle.height / 2f < 0)
+                        {
+                            hoverTemplate.style.top = 0;
+                        }
+                        else if (e.position.y + popup.resolvedStyle.height - popup.resolvedStyle.height / 2f > Screen.height)
+                        {
+                            hoverTemplate.style.bottom = Screen.height;
+                            hoverTemplate.style.top = Screen.height - popup.resolvedStyle.height;
+                        }
+                    });
+
+                    //Update tooltip text to reflect queen stats
+                    popup.Q<VisualElement>("Icon").style.backgroundImage = sprite;
+                    popup.Q<Label>("Species").text = "Species: " + queen.species;
+                    popup.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
+                    popup.Q<Label>("Grade").text = "Grade: " + queen.grade.ToString() + "/10";
+                    VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");
+                    foreach (string s in queen.quirks)
+                    {
+                        Label quirk = new Label();
+                        quirk.text = s;
+                        quirk.AddToClassList("Quirk2");
+                        quirkContainer.Add(quirk);
+                    }
+                }
+            }
+            else
+            {
+                if (hoverTemplate != null)
+                {
+                    document.rootVisualElement.Q("Base").Remove(hoverTemplate);
+                    hoverTemplate = null;
                 }
             }
         }
-        else
+        else if (hoverTemplate == null)
         {
-            if (hoverTemplate != null)
+            if (target.ContainsPoint(e.localPosition))
             {
-                document.rootVisualElement.Q("Base").Remove(hoverTemplate);
-                hoverTemplate = null;
+                hoverTemplate = hexMenuLabel.Instantiate();
+                hoverTemplate.pickingMode = PickingMode.Ignore;
+                hoverTemplate.style.position = Position.Absolute;
+                hoverTemplate.style.left = e.position.x;
+                hoverTemplate.style.top = e.position.y;
+                hoverTemplate.Q<Label>().text = stringList[num][index];
+                document.rootVisualElement.Q("Base").Add(hoverTemplate);
             }
         }
     }

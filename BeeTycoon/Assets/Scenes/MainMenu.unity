@@ -211,6 +211,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ownedFlowers: 
+  stage: 0
 --- !u!4 &720647230
 Transform:
   m_ObjectHideFlags: 0

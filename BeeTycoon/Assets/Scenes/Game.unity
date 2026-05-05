@@ -550,6 +550,9 @@ MonoBehaviour:
   greenHolo: {fileID: 2100000, guid: dfaad3ab82e289348929b3458ad7212a, type: 2}
   map: {fileID: 0}
   unlocks: {fileID: 0}
+  peppermintTile: {fileID: 0}
+  peppermint: {fileID: 0}
+  mice: {fileID: 0}
 --- !u!4 &522247319
 Transform:
   m_ObjectHideFlags: 0
@@ -690,7 +693,26 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player: {fileID: 1759206122}
   toolManager: {fileID: 522247318}
+  hexMenuLabel: {fileID: 9197481963319205126, guid: 25cb2297d0ca0af4eb0e6c308b2f835d, type: 3}
   queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
+  beeNames: []
+  toolNames:
+  - Hive Tool
+  - Smoker
+  - Shovel
+  - Dolly
+  - Bee Suit
+  - Honey Extractor
+  hiveNames:
+  - New Hive
+  - Add Super
+  - Add Frame
+  - Hive Stand
+  - Enterance Reducer
+  - Sugar Water
+  - Insulation
+  - Mite Repellant
+  flowerNames: []
   allFlowerSprites:
   - {fileID: 2800000, guid: f6536d65e190e6645befd9a9a1f699c0, type: 3}
   - {fileID: 2800000, guid: b491d685800400e449919c2fe034e79c, type: 3}
@@ -771,6 +793,56 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 9.771632, y: -3.8494644, z: 13.005313}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &919636341
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 919636343}
+  - component: {fileID: 919636342}
+  m_Layer: 0
+  m_Name: EventController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &919636342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919636341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31455f1d84569c847b6eeed3019cb253, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  eventObjects:
+  - {fileID: 5153101387694941404, guid: 00ca3af71abbda946be6840fe4b1a3d9, type: 3}
+  - {fileID: 5868590835129611709, guid: 443f3301b07a78740b9ebd529a8626c8, type: 3}
+  - {fileID: 6644718264640369129, guid: c944c70249516e6438bc999711050927, type: 3}
+  - {fileID: 5480952202048627542, guid: a4ee05ef4c6726743adc972b196eb20e, type: 3}
+  activeEvents: 0
+--- !u!4 &919636343
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919636341}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 35.058205, y: -16.006708, z: 9.272767}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -988,6 +1060,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ShovelTool
       objectReference: {fileID: 0}
+    - target: {fileID: 5284842937724581207, guid: 07f0f132247a45245bcb8c66dc4ee83c, type: 3}
+      propertyPath: Price
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1141,6 +1217,10 @@ PrefabInstance:
     - target: {fileID: 189369262378926041, guid: 401492005a5d02c45a29ae103aa545b3, type: 3}
       propertyPath: m_Name
       value: DollyTool
+      objectReference: {fileID: 0}
+    - target: {fileID: 2441321522037535983, guid: 401492005a5d02c45a29ae103aa545b3, type: 3}
+      propertyPath: Price
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7631786745347422314, guid: 401492005a5d02c45a29ae103aa545b3, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1590,3 +1670,4 @@ SceneRoots:
   - {fileID: 3921509521645674252}
   - {fileID: 522247319}
   - {fileID: 731927994}
+  - {fileID: 919636343}

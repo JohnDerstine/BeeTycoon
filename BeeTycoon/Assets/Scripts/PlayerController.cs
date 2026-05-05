@@ -301,7 +301,7 @@ public class PlayerController : MonoBehaviour
             //If a tile is clicked while holding a placeable object, place the object
             if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
             {
-                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t) && t.alive && !t.water)
+                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t) && t.alive && !t.water && !t.special)
                 {
                     if (hoverObject != null && hoverObject.tag == "Placeable")
                     {
@@ -394,7 +394,6 @@ public class PlayerController : MonoBehaviour
                         Money = -cost;
                         if (selectedItem.TryGetComponent(out QueenBee queen))
                         {
-                            Debug.Log("Trying to assign queen");
                             StartCoroutine(h.Populate(queen));
                             //Money = -hoverObject.GetComponent<Cost>().Price;
                             hexMenu.beeObjectList.Remove(SelectedItem);

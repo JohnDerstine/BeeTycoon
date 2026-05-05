@@ -48,11 +48,11 @@ public class NectarScoring : MonoBehaviour
 
     const int cloverValue = 10;
     const int alfalfaValue = 20;
-    const int buckwheatValue = 15;
+    const int buckwheatValue = 10;
     const int fireweedValue = 30;
     const int goldenrodValue = 50;
     const int dandelionValue = 20;
-    const int sunflowerValue = 10;
+    const int sunflowerValue = 5;
     const int orangeValue = 50;
     const int daisyValue = 50;
     const int thistleValue = 0;

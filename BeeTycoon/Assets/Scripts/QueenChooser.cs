@@ -167,7 +167,7 @@ public class QueenChooser : MonoBehaviour
             for (int i = 0; rngChoices.Count < numChoices; i++)
             {
                 if (rngOptions.Count == 0)
-                    ResetRNGOptions();
+                    rngOptions.Add(queenUI);
 
                 int rand = Random.Range(0, rngOptions.Count);
                 rngChoices.Add(rngOptions[rand]);

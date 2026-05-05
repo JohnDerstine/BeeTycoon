@@ -8,6 +8,7 @@ public class Tile : MonoBehaviour
 
     public bool alive = false;
     public bool water = false;
+    public bool special = false;
     public GameObject tree;
     private FlowerType flower = FlowerType.Empty;
     private GameObject flowerObject;
@@ -137,7 +138,7 @@ public class Tile : MonoBehaviour
     {
         List<Tile> tiles234 = new List<Tile>() { map.tiles[x + 1, y], map.tiles[x, y + 1], map.tiles[x + 1, y + 1] };
         foreach (Tile t in tiles234)
-            if (t.hasHive || t.flower != FlowerType.Empty)
+            if (t.hasHive || t.flower != FlowerType.Empty || !t.alive)
                 return false;
         return true;
     }

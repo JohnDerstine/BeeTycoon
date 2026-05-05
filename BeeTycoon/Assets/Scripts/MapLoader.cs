@@ -214,7 +214,9 @@ public class MapLoader : MonoBehaviour
 
     private void GenerateBuildings()
     {
-        trashObject = Instantiate(trash, new Vector3(-3, 0, 11), Quaternion.Euler(0, 90, 0));
+        if (GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>().majorTechs["Composte"])
+            trashObject = Instantiate(trash, new Vector3(-3, 0, 11), Quaternion.Euler(0, 90, 0));
+
         marketObject = Instantiate(market, new Vector3(-6, 0.5f, 15.125f), Quaternion.Euler(0, 0, 0));
         marketObject.name = "Truck";
         shedObject = Instantiate(shed, new Vector3(-2.5f, 0, 19), Quaternion.Euler(270, 180, 0));
@@ -282,7 +284,7 @@ public class MapLoader : MonoBehaviour
 
         foreach (GameObject tree in trees)
         {
-            if (tree.GetComponent<Collider>().bounds.Intersects(trashObject.GetComponent<Collider>().bounds))
+            if (trashObject != null && tree.GetComponent<Collider>().bounds.Intersects(trashObject.GetComponent<Collider>().bounds))
                 toRemove.Add(tree);
             if (tree.GetComponent<Collider>().bounds.Intersects(shedObject.GetComponent<Collider>().bounds) && !toRemove.Contains(tree))
                 toRemove.Add(tree);
@@ -611,6 +613,21 @@ public class MapLoader : MonoBehaviour
         return emptyTiles;
     }
 
+    public bool IsOnBorder(Tile t)
+    {
+        List<Tile> adj = GetAdjacentTiles(t.x, t.y);
+        if (adj.Count < 4)
+            return true;
+
+        foreach (Tile tile in adj)
+        {
+            if (!tile.alive && !tile.water)
+                return true;
+        }
+
+        return false;
+    }
+
     #endregion
 
     #region AdvanceFlowers
@@ -649,7 +666,7 @@ public class MapLoader : MonoBehaviour
             for (int j = 0; j < mapHeight; j++)
                 if (tiles[i, j].Flower == FlowerType.Buckwheat)
                         validTiles.Add(tiles[i, j]);
-        SpreadToAdjacentTiles(validTiles, FlowerType.Buckwheat, 5);
+        SpreadToAdjacentTiles(validTiles, FlowerType.Buckwheat, 7);
     }
 
     private void AdvanceDandelion()

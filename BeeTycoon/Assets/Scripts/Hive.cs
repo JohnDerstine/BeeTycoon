@@ -124,7 +124,7 @@ public class Hive : MonoBehaviour
     private float resilience = 1;
     private float aggressivness = 4;
 
-    private int stressLevel = 0;
+    private int stressLevel = 4;
     public List<string> conditions = new List<string>();
     private List<string> randConditions = new List<string>() { "Mice", "Mites", "Moths", "Fungus", "Aggrevated", "Glued"};
     private List<string> baseRandConditions = new List<string>() { "Mice", "Mites", "Moths", "Fungus", "Aggrevated", "Glued" };
@@ -132,13 +132,14 @@ public class Hive : MonoBehaviour
     {
         { "Mice", 2},
         { "Mites", 3},
-        { "Moths", 2},
+        { "Moths", 1},
         { "Fungus", 1},
         { "Aggrevated", 1},
         { "Glued", 1},
         { "Freezing", 4},
         { "Starving", 4},
         { "Defending", 1 },
+        { "Swarmed", 1 },
         { "Undisturbed", -1},
         { "Relaxed", -1},
         { "Indulged", -1}
@@ -318,7 +319,27 @@ public class Hive : MonoBehaviour
             }
 
             if (stressLevel >= 5) //Kill hive if stress >= 5
-                queen = null;
+            {
+                empty = true;
+
+                if (activePopup != null)
+                {
+                    activePopup.RemoveFromHierarchy();
+                    activePopup = null;
+                }
+
+                activePopup = afflictionPopupUI.Instantiate();
+                activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[5];
+                AdjustPopupTransform();
+                activePopup.style.position = Position.Absolute;
+                activePopup.style.flexGrow = 0;
+                document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
+                activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
+
+                queenHex.style.backgroundImage = deadSprite;
+                queenClick.UnregisterCallback<PointerMoveEvent>(OnQueenMove);
+
+            }
         }
     }
 
@@ -431,6 +452,14 @@ public class Hive : MonoBehaviour
             }
         }
 
+        if (Input.GetMouseButtonDown(1) && isOpen)
+        {
+            if (stressContainer != null)
+                CloseStressWindow();
+            else
+                player.CloseHiveUI(this);
+        }
+
         if (Input.GetKeyDown(KeyCode.L))
             StressLevel = 3;
 
@@ -470,6 +499,7 @@ public class Hive : MonoBehaviour
             queenClick.AddManipulator(assignQueen);
             queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
             hexMenu.CloseTab();
+            player.SelectedItem = null;
         }
     }
 
@@ -559,11 +589,10 @@ public class Hive : MonoBehaviour
         CalcHoneyStats();
         if (template != null)
             UpdateMeters();
-        //if (Condition != "Healthy" && queen.species == "Japanese" && Random.Range(0, 3) == 0)
-        //    CureCondition();
+        if (conditions.Count > 0 && queen.species == "Japanese" && Random.Range(0, 3) == 0)
+            CureRandomNegativeCondition();
 
         TryAddCondition();
-        //Condition = "Glued";
         hasSugar = false;
 
         turnsSinceLastHarvest++;
@@ -856,6 +885,10 @@ public class Hive : MonoBehaviour
 
         yield return new WaitWhile(() => !queen.transferComplete);
 
+        while (conditions.Count > 0)
+            CureCondition(conditions[0]);
+
+        HideHiveRadius();
         GetTileRadius(x, y);
         DisplayHiveRadius();
         EnableHarvestButtons();
@@ -925,9 +958,9 @@ public class Hive : MonoBehaviour
             if ((!hasInsulation || population <= popCap / (Size * 2)))
                 AddCondition("Freezing");
         }
-        else if (Random.Range(0, 20) <= 4)
+        else if (Random.Range(0, 20) <= 4 && game.year != 1)
         {
-            AddCondition(randConditions[Random.Range(0, randConditions.Count)]);
+            AddCondition("Mites");
         }
 
         int aggrevatedChance = Random.Range(0, (int)(aggressivness * queen.aggressivnessMult));
@@ -942,6 +975,15 @@ public class Hive : MonoBehaviour
 
         if (baseRandConditions.Contains(con))
             randConditions.Add(con);
+    }
+
+    private void CureRandomNegativeCondition()
+    {
+        List<string> possible = new List<string>();
+        foreach (string con in conditions)
+            if (conditionValues[con] < 0)
+                possible.Add(con);
+        CureCondition(possible[Random.Range(0, possible.Count)]);
     }
 
     public void AddSugarWater()
@@ -997,9 +1039,11 @@ public class Hive : MonoBehaviour
         smallHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
         mediumHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
         largeHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
+
+        harvestActive = false;
     }
 
-    private void EnableHarvestButtons()
+    public void EnableHarvestButtons()
     {
         smallHarvest.AddManipulator(smallHarvestClick);
         mediumHarvest.AddManipulator(mediumHarvestClick);
@@ -1016,6 +1060,8 @@ public class Hive : MonoBehaviour
         smallHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
         mediumHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
         largeHarvest.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = lightTint;
+
+        harvestActive = true;
     }
 
     public void SetUpTemplate()
@@ -1167,7 +1213,7 @@ public class Hive : MonoBehaviour
                 numVE.Q<Label>("desc").style.color = Color.white;
             }
         }
-        else if (stressLevel == -1)
+        else if (stressLevel <= -1)
         {
             VisualElement numVE = stressContainer.Q<VisualElement>("-1");
             numVE.Q<Label>("num").style.color = Color.white;
@@ -1178,7 +1224,11 @@ public class Hive : MonoBehaviour
         for (int i = 0; i < conditions.Count; i++)
         {
             Label label = new Label();
-            label.text = conditions[i].ToString() + " +" + conditionValues[conditions[i]];
+            if (conditionValues[conditions[i]] < 0)
+                label.text = conditions[i].ToString() + " " + conditionValues[conditions[i]];
+            else
+                label.text = conditions[i].ToString() + " +" + conditionValues[conditions[i]];
+
             if (i < 3)
                 stressContainer.Q<VisualElement>("Afflictions1").Add(label);
             else
@@ -1206,7 +1256,10 @@ public class Hive : MonoBehaviour
         queenClick.RemoveManipulator(assignQueen);
         selectingQueen = true;
         queenClick.Q<VisualElement>("Tint").style.unityBackgroundImageTintColor = darkTint;
-        hexMenu.OpenTab(0, hexMenu.open1, true, this);
+        if (player.SelectedItem != null && player.SelectedItem.tag == "Bee")
+            hexMenu.SelectHive(player.SelectedItem, queenSprite, 0, this);
+        else
+            hexMenu.OpenTab(0, hexMenu.open1, true, this);
     }
 
     private void OnMove(PointerMoveEvent e)

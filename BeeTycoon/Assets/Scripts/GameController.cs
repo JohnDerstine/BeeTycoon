@@ -57,6 +57,11 @@ public class GameController : MonoBehaviour
 
     private ToolManager toolManager;
 
+    private GameEventController eventController;
+
+    public delegate void OnTurnNextCalback();
+    public event OnTurnNextCalback turnCallback;
+
     private int turn = 1;
     public int year = 1;
     private CustomVisualElement turnButton;
@@ -198,6 +203,7 @@ public class GameController : MonoBehaviour
         hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
+        eventController = GameObject.Find("EventController").GetComponent<GameEventController>();
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
         honeyMarket.GameLoaded();
@@ -218,6 +224,7 @@ public class GameController : MonoBehaviour
         hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
+        eventController = GameObject.Find("EventController").GetComponent<GameEventController>();
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
         honeyMarket.GameLoaded();
@@ -373,6 +380,11 @@ public class GameController : MonoBehaviour
         toolManager.TurnReset();
 
         CurrentState = GameStates.Running;
+
+        if (turnCallback != null)
+            turnCallback();
+
+        eventController.SpawnMapEvent();
     }
 
     private IEnumerator DoubleQuotaScreen()
@@ -459,7 +471,7 @@ public class GameController : MonoBehaviour
             yield return new WaitForSeconds(0.01f);
         }
 
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(0.8f);
 
         while (label.resolvedStyle.fontSize > 24)
         {
