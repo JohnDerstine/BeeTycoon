@@ -1,0 +1,14 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI%20Toolkit/runModifierUSS.uss?fileID=7433441132597879392&amp;guid=da642a0df13e7484db42c1ac54490919&amp;type=3#runModifierUSS" />
+    <ui:VisualElement name="Modlist" style="flex-grow: 1; width: 900px; height: 700px; background-color: rgb(141, 112, 173); border-left-color: rgb(78, 14, 132); border-right-color: rgb(78, 14, 132); border-top-color: rgb(78, 14, 132); border-bottom-color: rgb(78, 14, 132); border-top-width: 10px; border-right-width: 10px; border-bottom-width: 10px; border-left-width: 10px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; justify-content: flex-start; align-items: center; position: relative; padding-right: 0; padding-left: 0;">
+        <ui:Label tabindex="-1" text="Accquired Modifiers" parse-escape-sequences="true" display-tooltip-when-elided="true" style="font-size: 64px; -unity-text-align: middle-center; color: rgb(255, 255, 255); -unity-font-style: bold; border-top-width: 10px; border-right-width: 10px; border-bottom-width: 10px; border-left-width: 10px; border-bottom-color: rgb(78, 14, 132); width: 900px; padding-bottom: 10px;" />
+        <ui:VisualElement name="ModContainer" style="flex-grow: 0; flex-direction: row; margin-top: 10px; flex-wrap: wrap; height: 100%; width: 100%;">
+            <ui:VisualElement name="List" style="flex-grow: 1; flex-direction: row; flex-basis: 65%;" />
+            <ui:VisualElement name="Focus" style="flex-grow: 1; flex-basis: 35%; height: 103%; border-top-width: 0; border-right-width: 0; border-bottom-width: 0; border-left-width: 10px; border-left-color: rgb(78, 14, 132); top: -12px;">
+                <ui:VisualElement name="HexUI" style="flex-grow: 0; background-image: none; -unity-background-scale-mode: scale-to-fit; height: 400px;" />
+                <ui:Label tabindex="-1" text="# of Triggers:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="1" style="color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 24px; -unity-text-align: middle-center; margin-top: 30px;" />
+                <ui:Label tabindex="-1" text="Impact:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="2" style="color: rgb(255, 255, 255); -unity-font-style: bold; font-size: 24px; -unity-text-align: middle-center; margin-top: 30px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

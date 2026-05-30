@@ -341,7 +341,7 @@ public class ToolManager : MonoBehaviour
                     if (activeTool == smoker)
                     {
                         h.CureCondition("Aggrevated");
-                        if (smoker.calming)
+                        if (smoker.calming && !h.conditions.Contains("Relaxed"))
                             h.AddCondition("Relaxed");
                     }
                     else if (activeTool == hiveTool)

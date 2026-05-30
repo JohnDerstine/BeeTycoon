@@ -194,26 +194,26 @@ public class NectarScoring : MonoBehaviour
         float mult = 1f;
         foreach (FlowerModifier m in mods.GetArchetypeAccquired<FlowerModifier>()) //Clover modifiers
         {
-            if (m.Flowers[0] != FlowerType.Clover)
-                break;
-
-            int amountCheck = 0;
-            if (m.Direction.Contains("adjacent"))
-                foreach (Tile t in adjTiles)
-                    if (t.Flower == m.Flowers[1])
-                        amountCheck++;
-
-            if (m.Direction.Contains("diagonal"))
-                foreach (Tile t in diagTiles)
-                    if (t.Flower == m.Flowers[1])
-                        amountCheck++;
-
-            if (amountCheck >= m.Amount)
+            if (m.Flowers[0] == flower)
             {
-                if (m.BaseMod != 0)
-                    newGain += m.BaseMod;
-                else
-                    mult = m.MultMod;
+                int amountCheck = 0;
+                if (m.Direction.Contains("adjacent"))
+                    foreach (Tile t in adjTiles)
+                        if (t.Flower == m.Flowers[1])
+                            amountCheck++;
+
+                if (m.Direction.Contains("diagonal"))
+                    foreach (Tile t in diagTiles)
+                        if (t.Flower == m.Flowers[1])
+                            amountCheck++;
+
+                if (amountCheck >= m.Amount)
+                {
+                    if (m.BaseMod != 0)
+                        newGain += m.BaseMod;
+                    else
+                        mult = m.MultMod;
+                }
             }
         }
         return (int)(newGain * mult);

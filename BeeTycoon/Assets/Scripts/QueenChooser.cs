@@ -36,6 +36,8 @@ public class QueenChooser : MonoBehaviour
     [SerializeField]
     private UIDocument document;
 
+    private Shed modifierList;
+
     private PlayerController player;
     private ToolManager toolManager;
     private HexMenu hexMenu;
@@ -252,7 +254,8 @@ public class QueenChooser : MonoBehaviour
                     popup.Q<VisualElement>("Icon").style.backgroundImage = applicableMods[randID].Sprite;
                     popup.Q<Label>("Title").text = applicableMods[randID].Name;
                     popup.Q<Label>("Description").text = applicableMods[randID].Description;
-                    popup.AddManipulator(new Clickable(e => SelectModifier(randID))); //Looking back on it, this doesn't make sense. I don't want randID, I want the ID of the mod in applicableMods[randID]
+                    int actualID = applicableMods[randID].ID;
+                    popup.AddManipulator(new Clickable(e => SelectModifier(actualID))); //Looking back on it, this doesn't make sense. I don't want randID, I want the ID of the mod in applicableMods[randID]
                     //Double check to make sure that the game refelcts this being incorrect
                 }
                     container.Add(temp);
@@ -394,6 +397,9 @@ public class QueenChooser : MonoBehaviour
     {
         selectionActive = false;
         mods.AddMod(id);
+        if (modifierList == null)
+            modifierList = GameObject.Find("Shed(Clone)").GetComponent<Shed>();
+        modifierList.AddModifier(id);
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }

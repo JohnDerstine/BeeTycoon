@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UIElements;
 
 public class HoneyMarket : MonoBehaviour
@@ -21,6 +22,9 @@ public class HoneyMarket : MonoBehaviour
     [SerializeField]
     VisualTreeAsset marketCard;
 
+    [SerializeField]
+    private RunModifiers mods;
+
     private CustomVisualElement marketButton;
     public TemplateContainer marketTemplate;
 
@@ -31,7 +35,7 @@ public class HoneyMarket : MonoBehaviour
 
     public bool marketOpen;
 
-    private VisualElement selectedElement;
+    private VisualElement selectedElement = null;
     private FlowerType selectedType = FlowerType.Empty;
     private float inventory; //Get from player
     private float price;
@@ -223,6 +227,9 @@ public class HoneyMarket : MonoBehaviour
         buy50.clickable = new Clickable(e => Buy(50));
 
         marketTemplate.Q<Label>("MoneyLabel").text = "$" + player.Money;
+
+        if (selectedElement != null)
+            SelectHoney(selectedElement, selectedType);
     }
 
     private void SetAllLabels()
@@ -355,6 +362,18 @@ public class HoneyMarket : MonoBehaviour
         SetAmountLabel();
     }
 
+    private float ApplyModifiers(float money)
+    {
+        foreach (HoneyModifier m in mods.GetArchetypeAccquired<HoneyModifier>())
+        {
+            if (m.Flower == selectedType)
+            {
+                return (money + m.BaseMod) * m.MultMod;
+            }
+        }
+        return money;
+    }
+
     private void Sell(float amount)
     {
         if (selectedElement == null)
@@ -363,7 +382,7 @@ public class HoneyMarket : MonoBehaviour
         document.GetComponent<AudioSource>().Play();
         if (player.inventory[selectedType][0] < amount)
             amount = player.inventory[selectedType][0];
-        player.Money = Mathf.RoundToInt(amount * price);
+        //player.Money = Mathf.RoundToInt(amount * price);
         float toBePaid = amount;
 
         toBePaid = SellLow(toBePaid);
@@ -372,10 +391,7 @@ public class HoneyMarket : MonoBehaviour
         if (toBePaid > 0)
             toBePaid = SellHigh(toBePaid);
 
-        Debug.Log("Amount: " + amount + " toBePaid: " + toBePaid);
-        Debug.Log("Subtracting " + (amount - toBePaid));
         player.inventory[selectedType][0] -= amount - toBePaid;
-
 
         //implement bar ratio calculation for player honey purities
 
@@ -385,14 +401,19 @@ public class HoneyMarket : MonoBehaviour
 
     private float SellLow(float amount)
     {
+        float money;
         if (player.inventory[selectedType][1] < amount)
         {
             amount -= player.inventory[selectedType][1];
+            money = player.inventory[selectedType][1] * price * 0.75f;
+            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
             player.inventory[selectedType][1] = 0;
         }
         else
         {
             player.inventory[selectedType][1] -= amount;
+            money = amount * price * 0.75f;
+            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
             amount = 0;
         }
 
@@ -400,14 +421,19 @@ public class HoneyMarket : MonoBehaviour
     }
     private float SellMedium(float amount)
     {
+        float money;
         if (player.inventory[selectedType][2] < amount)
         {
             amount -= player.inventory[selectedType][2];
+            money = player.inventory[selectedType][2] * price;
+            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
             player.inventory[selectedType][2] = 0;
         }
         else
         {
             player.inventory[selectedType][2] -= amount;
+            money = amount * price;
+            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
             amount = 0;
         }
 
@@ -416,14 +442,19 @@ public class HoneyMarket : MonoBehaviour
 
     private float SellHigh(float amount)
     {
+        float money;
         if (player.inventory[selectedType][3] < amount)
         {
             amount -= player.inventory[selectedType][3];
+            money = player.inventory[selectedType][3] * price * 1.25f;
+            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
             player.inventory[selectedType][3] = 0;
         }
         else
         {
             player.inventory[selectedType][3] -= amount;
+            money = amount * price * 1.25f;
+            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
             amount = 0;
         }
 

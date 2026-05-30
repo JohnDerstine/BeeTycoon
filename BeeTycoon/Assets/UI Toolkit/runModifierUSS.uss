@@ -1,0 +1,9 @@
+.modifier {
+    flex-grow: 0;
+    -unity-background-image-tint-color: rgb(255, 255, 255);
+    background-image: url("project://database/Assets/Sprites/ModifierHex.png?fileID=2800000&guid=33887784234d458448cfd601b69d3d9f&type=3#ModifierHex");
+    width: 128px;
+    height: 128px;
+    justify-content: center;
+    align-items: center;
+}
