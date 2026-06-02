@@ -157,16 +157,16 @@ public class Tile : MonoBehaviour
 
 
 
-            if (!primary)
-            {
-                yield return new WaitForSeconds(Random.Range(0.025f, 0.049f));
-                audio.PlayOneShot(audio.clip, 0.5f);
-            }
-            else
-            {
-                yield return new WaitForSeconds(Random.Range(0.05f, 0.075f));
-                audio.PlayOneShot(audio.clip);
-            }
+            //if (!primary)
+            //{
+            //    yield return new WaitForSeconds(Random.Range(0.025f, 0.049f));
+            //    //audio.PlayOneShot(audio.clip, 0.5f);
+            //}
+            //else
+            //{
+            //    yield return new WaitForSeconds(Random.Range(0.05f, 0.075f));
+            //    //audio.PlayOneShot(audio.clip);
+            //}
 
             duration /= 2; //To account for grow and shrink
 

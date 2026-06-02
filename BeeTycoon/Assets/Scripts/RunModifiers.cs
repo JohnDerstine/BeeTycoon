@@ -198,8 +198,8 @@ public struct FlowerModifier : Modifier
         string mod = (multMod == 1) ? baseMod + "" : multMod + "x";
         string modType = (multMod == 1) ? "increase" : "multiply";
 
-        description = "When " + amount + " " + flowers[0].ToString() + "s are " + direction + " to a " 
-            + flowers[1].ToString() + ", " + modType + " the nectar gain by " + mod;
+        description = "When " + amount + " " + flowers[1].ToString() + "s are " + direction + " to a " 
+            + flowers[0].ToString() + ", " + modType + " the nectar gain of the " + flowers[0].ToString() + " by " + mod;
     }
 }
 

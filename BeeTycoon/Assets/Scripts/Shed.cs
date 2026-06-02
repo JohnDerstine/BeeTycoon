@@ -35,7 +35,7 @@ public class Shed : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(1))
+        if (Input.GetMouseButtonDown(1) && ui.rootVisualElement.Q("Base").Contains(modTemplate))
             ui.rootVisualElement.Q("Base").Remove(modTemplate);
     }
 

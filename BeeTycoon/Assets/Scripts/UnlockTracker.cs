@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.VisualScripting;
 using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
@@ -184,5 +185,15 @@ public class UnlockTracker : MonoBehaviour
 
         GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().AddHoneyCards(availableFlowers);
         return availableFlowers;
+    }
+
+    public void ResetToStart()
+    {
+        stage = 0;
+        ownedFlowers.Clear();
+        foreach (FlowerType key in Stage12Flowers.Keys.ToList())
+            Stage12Flowers[key] = false;
+        foreach (FlowerType key in Stage34Flowers.Keys.ToList())
+            Stage34Flowers[key] = false;
     }
 }

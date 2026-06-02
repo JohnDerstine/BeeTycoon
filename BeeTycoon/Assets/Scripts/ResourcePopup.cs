@@ -1,7 +1,10 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
+using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static Unity.VisualScripting.Member;
 
 public class ResourcePopup : MonoBehaviour
 {
@@ -11,7 +14,23 @@ public class ResourcePopup : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset elementToSpawn;
 
-    public void DisplayPopup(Vector3 position, int amount, float duration)
+    [SerializeField]
+    private VisualTreeAsset honeyGlobIcon;
+
+    public bool complete;
+
+    [SerializeField]
+    AudioSource source;
+
+    [SerializeField]
+    AudioClip audio;
+
+    [SerializeField]
+    AudioClip modifierSound;
+
+    bool timeComplete;
+
+    public void DisplayPopup(Vector3 position, int amount, float duration, Hive h, Vector3 tPos)
     {
         position.z -= 1.5f;
         position.x -= 1f;
@@ -21,85 +40,48 @@ public class ResourcePopup : MonoBehaviour
         activePopup.style.top = Screen.height - position.y;
         activePopup.style.left = position.x;
 
+        VisualElement hex = activePopup.Q<VisualElement>("Hex");
         VisualElement icon = activePopup.Q<VisualElement>("Icon");
-        Label amountLabel = activePopup.Q<Label>("Amount");
-        Label plus = activePopup.Q<Label>("plus");
-        amountLabel.text = amount.ToString();
-        //icon.style.width = amount * 2.4f * (20 / amount); //Attempts at scaling by amount perfectly
-        //icon.style.height = amount * 2.4f * (20 / amount);
-        //icon.style.marginRight = -8 + (amount / 10);
-        //plus.style.fontSize = amount * 1.8f;
-        //amountLabel.style.fontSize = amount * 1.8f;
 
-        if (amount < 10)
-        {
-            icon.style.width = 36;
-            icon.style.height = 36;
-            icon.style.marginRight = -8;
-            plus.style.fontSize = 24;
-            amountLabel.style.fontSize = 24;
-        }
-        else if (amount >= 10 && amount < 20)
-        {
-            icon.style.width = 48;
-            icon.style.height = 48;
-            icon.style.marginRight = -10;
-            plus.style.fontSize = 32;
-            amountLabel.style.fontSize = 32;
-        }
-        else if (amount >= 20 && amount < 30)
-        {
-            icon.style.width = 64;
-            icon.style.height = 64;
-            icon.style.marginRight = -12;
-            plus.style.fontSize = 36;
-            amountLabel.style.fontSize = 36;
-        }
-        else if (amount >= 30)
-        {
-            icon.style.width = 80;
-            icon.style.height = 80;
-            icon.style.marginRight = -14;
-            plus.style.fontSize = 40;
-            amountLabel.style.fontSize = 40;
-        }
+        hex.style.width = 96;
+        hex.style.height = 96;
+        icon.style.width = 64;
+        icon.style.height = 64;
         activePopup.style.position = Position.Absolute;
-        
 
         document.rootVisualElement.Q().Add(activePopup);
-        StartCoroutine(AdvancePopup(activePopup, worldPos, duration));
+
+        AudioSource modifierSource = GameObject.Find("UnlockTracker").GetComponent<AudioSource>();
+        modifierSource.pitch = 2f;
+        modifierSource.PlayOneShot(modifierSound);
+
+        StartCoroutine(AdvancePopup(activePopup, worldPos, duration, amount, h, tPos));
     }
 
-    private IEnumerator AdvancePopup(TemplateContainer popup, Vector3 worldPos, float duration)
+    private IEnumerator AdvancePopup(TemplateContainer popup, Vector3 worldPos, float duration, float amount, Hive h, Vector3 tPos)
     {
         float timeLapsed = 0.0f;
-        float adjustAmount;
+        //float adjustAmount;
         float fadeAmonunt;
-        float yAdjust = 0f;
+        //float yAdjust = 0f;
+        VisualElement hex = popup.Q<VisualElement>("Hex");
         VisualElement icon = popup.Q<VisualElement>("Icon");
-        Label amount = popup.Q<Label>("Amount");
-        Label plus = popup.Q<Label>("plus");
 
         yield return new WaitForFixedUpdate();
-        while (timeLapsed < duration * 3)
+        while (timeLapsed < duration * 1.5f)
         {
             Vector3 position = worldPos;
             position = Camera.main.WorldToScreenPoint(position);
-            popup.style.top = Screen.height - position.y - yAdjust;
-            popup.style.left = position.x;
-            adjustAmount = 3 - duration; //1.5f is just an arbitrary modifier
-            yAdjust += adjustAmount;
-            fadeAmonunt = duration / 3;
+            popup.style.top = Screen.height - position.y;// - yAdjust;
+            popup.style.left = position.x + 18;
+            //adjustAmount = 0.75f / duration; //1.5f is just an arbitrary modifier
+            //yAdjust += adjustAmount;
+            fadeAmonunt = 0.05f / duration;
 
-            if (timeLapsed > duration * 1.5f)
+            if (timeLapsed > duration * 0.75f)
             {
                 icon.style.unityBackgroundImageTintColor = icon.resolvedStyle.unityBackgroundImageTintColor - new Color(0, 0, 0, fadeAmonunt);
-
-                amount.style.color = amount.resolvedStyle.color - new Color(0, 0, 0, fadeAmonunt);
-                amount.style.unityTextOutlineColor = amount.resolvedStyle.color - new Color(1, 1, 1, fadeAmonunt);
-
-                plus.style.color = plus.resolvedStyle.color - new Color(0, 0, 0, fadeAmonunt);
-                plus.style.unityTextOutlineColor = plus.resolvedStyle.color - new Color(1, 1, 1, fadeAmonunt);
+                hex.style.unityBackgroundImageTintColor = hex.resolvedStyle.unityBackgroundImageTintColor - new Color(0, 0, 0, fadeAmonunt);
             }
 
             yield return new WaitForSeconds(Time.deltaTime);
@@ -108,5 +90,111 @@ public class ResourcePopup : MonoBehaviour
 
         if (document.rootVisualElement.Q().Contains(popup))
             document.rootVisualElement.Q().Remove(popup);
+
+        StartCoroutine(AnimateNectar(amount, h, tPos, duration));
+    }
+
+    public IEnumerator AnimateNectar(float amount, Hive h, Vector3 worldPos, float duration)
+    {
+        List<TemplateContainer> globs = new List<TemplateContainer>();
+        source.clip = audio;
+
+        //source.pitch = 0.5f;
+        int rounded = Mathf.CeilToInt(amount / 10);
+
+        for (int i = 0; i < rounded; i++)
+        {
+            TemplateContainer glob = honeyGlobIcon.Instantiate();
+            glob.style.position = Position.Absolute;
+            glob.style.visibility = Visibility.Hidden;
+            glob.Q("Glob").style.width = 52;
+            glob.Q("Glob").style.height = 52;
+            document.rootVisualElement.Q<VisualElement>("Base").Add(glob);
+            globs.Add(glob);
+
+            Vector3 position = worldPos;
+            position = Camera.main.WorldToScreenPoint(position);
+            float startTop = Screen.height - position.y;
+            float startLeft = position.x;
+
+            source.Play();
+
+            yield return new WaitForEndOfFrame(); //let resolved style update
+
+            float dir = Random.Range(0, 359);
+            float radius = Random.Range(25, 50);
+            float xOffset = 36;
+            float yOffset = 48;
+
+            float top = startTop - yOffset + Mathf.Sin(dir) * radius;
+            float left = startLeft - xOffset + Mathf.Cos(dir) * radius;
+            glob.style.visibility = Visibility.Visible;
+
+            glob.style.top = startTop;
+            glob.style.left = startLeft;
+
+            yield return new WaitForEndOfFrame(); //let resolved style update
+
+            StartCoroutine(ToPoint(glob, top, left, 0.5f, false, h));
+
+            StartCoroutine(WaitDeltaTime(0.05f));
+            yield return new WaitWhile(() => !timeComplete);
+            timeComplete = false;
+        }
+
+        StartCoroutine(WaitDeltaTime(0.75f * duration));
+        yield return new WaitWhile(() => !timeComplete);
+        timeComplete = false;
+
+        //source.pitch = 0.25f;
+        foreach (TemplateContainer glob in globs)
+        {
+            Vector3 pos = Camera.main.WorldToScreenPoint(h.transform.position);
+            float xOffset = 36;
+            float yOffset = 48;
+            float top = Screen.height - pos.y - yOffset;
+            float left = pos.x - xOffset;
+            StartCoroutine(ToPoint(glob, top, left, 0.5f, true, h));
+            StartCoroutine(WaitDeltaTime(0.075f));
+            yield return new WaitWhile(() => !timeComplete);
+            timeComplete = false;
+
+            //if (activePulse != null)
+            //    StopCoroutine(activePulse);
+            //activePulse = StartCoroutine(Pulse());
+        }
+
+        globs.Clear();
+        complete = true;
+    }
+
+    private IEnumerator ToPoint(TemplateContainer glob, float top, float left, float t, bool destroyOnEnd, Hive h)
+    {
+        while (Mathf.Abs(glob.resolvedStyle.left - left) >= 10 || Mathf.Abs(glob.resolvedStyle.top - top) >= 10)
+        {
+            glob.style.left = Mathf.Lerp(glob.resolvedStyle.left, left, t);
+            glob.style.top = Mathf.Lerp(glob.resolvedStyle.top, top, t);
+            yield return new WaitForSeconds(0.05f);
+        }
+
+        if (destroyOnEnd)
+        {
+            AudioSource hiveSource = h.GetComponent<AudioSource>();
+            hiveSource.pitch = 0.25f;
+            hiveSource.PlayOneShot(audio, 0.4f);
+            if (document.rootVisualElement.Q<VisualElement>("Base").Contains(glob))
+                document.rootVisualElement.Q<VisualElement>("Base").Remove(glob);
+        }
+    }
+
+    public IEnumerator WaitDeltaTime(float time)
+    {
+        float timeLapsed = 0.0f;
+        while (timeLapsed < time)
+        {
+            timeLapsed += Time.deltaTime;
+            yield return new WaitForSeconds(Time.deltaTime);
+        }
+        timeComplete = true;
     }
 }

@@ -183,7 +183,7 @@ public class GameController : MonoBehaviour
             continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
         else
             continueButton.clickable = new Clickable(e => ContinueGame());
-        GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>().stage = 0;
+        GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>().ResetToStart();
         year = 1;
         turn = 1;
         quota = 0;

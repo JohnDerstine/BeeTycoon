@@ -25,6 +25,8 @@ public class NectarScoring : MonoBehaviour
 
     [SerializeField]
     private AudioClip audio;
+
+    [SerializeField]
     AudioSource source;
 
     PlayerController player;
@@ -61,10 +63,7 @@ public class NectarScoring : MonoBehaviour
 
     float basePitch;
 
-    void Awake()
-    {
-        source = GetComponent<AudioSource>();
-    }
+    List<Modifier> appliedMods = new List<Modifier>();
 
     public void GameStart()
     {
@@ -96,7 +95,6 @@ public class NectarScoring : MonoBehaviour
         source.clip = audio;
         total = document.rootVisualElement.Q<VisualElement>("Total");
         totalAmount = total.Q<Label>("Amount");
-
         for (int i = 0; i < populatedHives; i++)
         {
             float duration = 0.5f;
@@ -149,13 +147,15 @@ public class NectarScoring : MonoBehaviour
 
                 if (t.Flower != FlowerType.Empty)
                 {
+                    yield return new WaitWhile(() => !popUp.complete);
+                    popUp.complete = false;
+
                     yield return new WaitWhile(() => !calced);
                     calced = false;
                     duration = DurationCalc(duration);
                 }
-
             }
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(1.5f);//give time for globs to finish going to hive
             player.hives[i].HideHiveRadius();
             document.rootVisualElement.Q<VisualElement>("NectarColumn").Clear();
             usedSprites.Clear();
@@ -190,9 +190,10 @@ public class NectarScoring : MonoBehaviour
 
     private int ApplyModifierValues(FlowerType flower, List<Tile> adjTiles, List<Tile> diagTiles, int currentGain)
     {
+        appliedMods.Clear();
         int newGain = currentGain;
         float mult = 1f;
-        foreach (FlowerModifier m in mods.GetArchetypeAccquired<FlowerModifier>()) //Clover modifiers
+        foreach (FlowerModifier m in mods.GetArchetypeAccquired<FlowerModifier>())
         {
             if (m.Flowers[0] == flower)
             {
@@ -213,6 +214,7 @@ public class NectarScoring : MonoBehaviour
                         newGain += m.BaseMod;
                     else
                         mult = m.MultMod;
+                    appliedMods.Add(m);
                 }
             }
         }
@@ -222,7 +224,10 @@ public class NectarScoring : MonoBehaviour
     private void FlowerValueHelper(Tile t, int gain, float duration, FlowerType f, Hive h)
     {
         t.lastGain = gain;
-        popUp.DisplayPopup(t.transform.position, gain, duration);
+        //if (appliedMods.Count > 0)
+        popUp.DisplayPopup(t.transform.position, gain, duration, h, t.transform.position);
+        //else 
+        //StartCoroutine(popUp.AnimateNectar(gain, h, t.transform.position));
         h.personalNectarGains[f] += gain;
         totalAmountGained += gain;
         if (h.personalNectarGains[f] > 999)
@@ -267,15 +272,9 @@ public class NectarScoring : MonoBehaviour
 
         //Animate related flowers
         foreach (Tile adjT in adjClover)
-        {
             StartCoroutine(adjT.Animate(FlowerType.Clover, 0.3f, duration, false, source, h));
-            //source.Play();
-        }
         foreach (Tile diagT in diagClover)
-        {
             StartCoroutine(diagT.Animate(FlowerType.Clover, 0.3f, duration, false, source, h));
-            //source.Play();
-        }
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
