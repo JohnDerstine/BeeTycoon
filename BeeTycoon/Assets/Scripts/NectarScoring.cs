@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +29,9 @@ public class NectarScoring : MonoBehaviour
 
     [SerializeField]
     AudioSource source;
+
+    [SerializeField]
+    private VisualTreeAsset modIcon;
 
     PlayerController player;
     private HexMenu hexMenu;
@@ -64,6 +68,7 @@ public class NectarScoring : MonoBehaviour
     float basePitch;
 
     List<Modifier> appliedMods = new List<Modifier>();
+    Dictionary<Modifier, VisualElement> modElems = new Dictionary<Modifier, VisualElement>();
 
     public void GameStart()
     {
@@ -95,6 +100,26 @@ public class NectarScoring : MonoBehaviour
         source.clip = audio;
         total = document.rootVisualElement.Q<VisualElement>("Total");
         totalAmount = total.Q<Label>("Amount");
+
+        //Display modifier icons for flower modifiers on left side of screen
+        foreach (Modifier m in mods.accquiredMods)
+        {
+            if (m is FlowerModifier)
+            {
+                TemplateContainer container = modIcon.Instantiate();
+                VisualElement hex = container.Q<VisualElement>("Hex");
+                VisualElement icon = container.Q<VisualElement>("Icon");
+                hex.style.width = 256;
+                hex.style.height = 256;
+                icon.style.width = 150;
+                icon.style.height = 150;
+                icon.style.backgroundImage = m.Sprite;
+                document.rootVisualElement.Q<VisualElement>("Modifiers").Add(container);
+
+                modElems.Add(m, container);
+            }
+        }
+
         for (int i = 0; i < populatedHives; i++)
         {
             float duration = 0.5f;
@@ -158,7 +183,9 @@ public class NectarScoring : MonoBehaviour
             yield return new WaitForSeconds(1.5f);//give time for globs to finish going to hive
             player.hives[i].HideHiveRadius();
             document.rootVisualElement.Q<VisualElement>("NectarColumn").Clear();
+            document.rootVisualElement.Q<VisualElement>("Modifiers").Clear();
             usedSprites.Clear();
+            modElems.Clear();
             totalAmountGained = 0;
         }
 
@@ -224,10 +251,11 @@ public class NectarScoring : MonoBehaviour
     private void FlowerValueHelper(Tile t, int gain, float duration, FlowerType f, Hive h)
     {
         t.lastGain = gain;
-        //if (appliedMods.Count > 0)
-        popUp.DisplayPopup(t.transform.position, gain, duration, h, t.transform.position);
-        //else 
-        //StartCoroutine(popUp.AnimateNectar(gain, h, t.transform.position));
+        for (int i = 0; i < appliedMods.Count; i++)
+            StartCoroutine(popUp.ShakeModifier(modElems[appliedMods[i]], duration));//popUp.DisplayPopup(t.transform.position, gain, duration, h, t.transform.position);
+
+        StartCoroutine(popUp.AnimateNectar(gain, h, t.transform.position, duration));
+
         h.personalNectarGains[f] += gain;
         totalAmountGained += gain;
         if (h.personalNectarGains[f] > 999)

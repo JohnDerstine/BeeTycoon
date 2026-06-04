@@ -1,5 +1,7 @@
 <ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
     <ui:VisualElement name="Base" style="flex-grow: 1; flex-direction: row; justify-content: flex-end;">
+        <ui:VisualElement name="Modifiers" style="flex-grow: 0; width: auto; flex-basis: 15%; justify-content: center; align-items: center; background-color: rgba(0, 0, 0, 0.6);" />
+        <ui:VisualElement name="Buffer" style="flex-grow: 1;" />
         <ui:VisualElement name="container" style="flex-grow: 0; flex-direction: column;">
             <ui:VisualElement name="NectarColumn" style="flex-grow: 0; width: 300px; align-items: center; justify-content: center; background-color: rgba(0, 0, 0, 0.6); height: auto; flex-basis: 88%;" />
             <ui:VisualElement name="Total" style="flex-grow: 1; flex-direction: row; background-color: rgba(0, 0, 0, 0.6); justify-content: center; border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 8px;">

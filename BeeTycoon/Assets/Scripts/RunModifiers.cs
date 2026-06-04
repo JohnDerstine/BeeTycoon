@@ -79,7 +79,7 @@ public class RunModifiers : MonoBehaviour
 
     public void AddMod(int id)
     {
-        accquiredMods.Add(allMods[id]);
+        accquiredMods.Add(allMods[0]);
     }
 
     public List<T> GetArchetypeAccquired<T>() where T : struct

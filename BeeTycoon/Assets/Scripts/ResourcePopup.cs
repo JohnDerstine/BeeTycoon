@@ -30,68 +30,94 @@ public class ResourcePopup : MonoBehaviour
 
     bool timeComplete;
 
-    public void DisplayPopup(Vector3 position, int amount, float duration, Hive h, Vector3 tPos)
-    {
-        position.z -= 1.5f;
-        position.x -= 1f;
-        Vector3 worldPos = position;
-        TemplateContainer activePopup = elementToSpawn.Instantiate();
-        position = Camera.main.WorldToScreenPoint(position);
-        activePopup.style.top = Screen.height - position.y;
-        activePopup.style.left = position.x;
+    //public void DisplayPopup(Vector3 position, int amount, float duration, Hive h, Vector3 tPos)
+    //{
+    //    position.z -= 1.5f;
+    //    position.x -= 1f;
+    //    Vector3 worldPos = position;
+    //    TemplateContainer activePopup = elementToSpawn.Instantiate();
+    //    position = Camera.main.WorldToScreenPoint(position);
+    //    activePopup.style.top = Screen.height - position.y;
+    //    activePopup.style.left = position.x;
 
-        VisualElement hex = activePopup.Q<VisualElement>("Hex");
-        VisualElement icon = activePopup.Q<VisualElement>("Icon");
+    //    VisualElement hex = activePopup.Q<VisualElement>("Hex");
+    //    VisualElement icon = activePopup.Q<VisualElement>("Icon");
 
-        hex.style.width = 96;
-        hex.style.height = 96;
-        icon.style.width = 64;
-        icon.style.height = 64;
-        activePopup.style.position = Position.Absolute;
+    //    hex.style.width = 96;
+    //    hex.style.height = 96;
+    //    icon.style.width = 64;
+    //    icon.style.height = 64;
+    //    activePopup.style.position = Position.Absolute;
 
-        document.rootVisualElement.Q().Add(activePopup);
+    //    document.rootVisualElement.Q().Add(activePopup);
 
-        AudioSource modifierSource = GameObject.Find("UnlockTracker").GetComponent<AudioSource>();
-        modifierSource.pitch = 2f;
-        modifierSource.PlayOneShot(modifierSound);
+    //    AudioSource modifierSource = GameObject.Find("UnlockTracker").GetComponent<AudioSource>();
+    //    modifierSource.pitch = 2f;
+    //    modifierSource.PlayOneShot(modifierSound);
 
-        StartCoroutine(AdvancePopup(activePopup, worldPos, duration, amount, h, tPos));
-    }
+    //    StartCoroutine(AdvancePopup(activePopup, worldPos, duration, amount, h, tPos));
+    //}
 
-    private IEnumerator AdvancePopup(TemplateContainer popup, Vector3 worldPos, float duration, float amount, Hive h, Vector3 tPos)
+    //private IEnumerator AdvancePopup(TemplateContainer popup, Vector3 worldPos, float duration, float amount, Hive h, Vector3 tPos)
+    //{
+    //    float timeLapsed = 0.0f;
+    //    //float adjustAmount;
+    //    float fadeAmonunt;
+    //    //float yAdjust = 0f;
+    //    VisualElement hex = popup.Q<VisualElement>("Hex");
+    //    VisualElement icon = popup.Q<VisualElement>("Icon");
+
+    //    yield return new WaitForFixedUpdate();
+    //    while (timeLapsed < duration * 1.5f)
+    //    {
+    //        Vector3 position = worldPos;
+    //        position = Camera.main.WorldToScreenPoint(position);
+    //        popup.style.top = Screen.height - position.y;// - yAdjust;
+    //        popup.style.left = position.x + 18;
+    //        //adjustAmount = 0.75f / duration; //1.5f is just an arbitrary modifier
+    //        //yAdjust += adjustAmount;
+    //        fadeAmonunt = 0.05f / duration;
+
+    //        if (timeLapsed > duration * 0.75f)
+    //        {
+    //            icon.style.unityBackgroundImageTintColor = icon.resolvedStyle.unityBackgroundImageTintColor - new Color(0, 0, 0, fadeAmonunt);
+    //            hex.style.unityBackgroundImageTintColor = hex.resolvedStyle.unityBackgroundImageTintColor - new Color(0, 0, 0, fadeAmonunt);
+    //        }
+
+    //        yield return new WaitForSeconds(Time.deltaTime);
+    //        timeLapsed += Time.deltaTime;
+    //    }
+
+    //    if (document.rootVisualElement.Q().Contains(popup))
+    //        document.rootVisualElement.Q().Remove(popup);
+
+    //    StartCoroutine(AnimateNectar(amount, h, tPos, duration));
+    //}
+
+    public IEnumerator ShakeModifier(VisualElement modifierElement, float duration)
     {
         float timeLapsed = 0.0f;
-        //float adjustAmount;
-        float fadeAmonunt;
-        //float yAdjust = 0f;
-        VisualElement hex = popup.Q<VisualElement>("Hex");
-        VisualElement icon = popup.Q<VisualElement>("Icon");
+        VisualElement hex = modifierElement.Q<VisualElement>("Hex");
+        VisualElement icon = modifierElement.Q<VisualElement>("Icon");
+        float adjustAmount = 3;
+        int degrees = 29;
 
-        yield return new WaitForFixedUpdate();
-        while (timeLapsed < duration * 1.5f)
+        while (timeLapsed < duration * 3f)
         {
-            Vector3 position = worldPos;
-            position = Camera.main.WorldToScreenPoint(position);
-            popup.style.top = Screen.height - position.y;// - yAdjust;
-            popup.style.left = position.x + 18;
-            //adjustAmount = 0.75f / duration; //1.5f is just an arbitrary modifier
-            //yAdjust += adjustAmount;
-            fadeAmonunt = 0.05f / duration;
-
-            if (timeLapsed > duration * 0.75f)
+            Vector3 iconEuler = icon.transform.rotation.eulerAngles;
+            Vector3 hexEuler = hex.transform.rotation.eulerAngles;
+            if ((iconEuler.z > degrees && adjustAmount > 0) || (iconEuler.z < -degrees && adjustAmount < 0))
             {
-                icon.style.unityBackgroundImageTintColor = icon.resolvedStyle.unityBackgroundImageTintColor - new Color(0, 0, 0, fadeAmonunt);
-                hex.style.unityBackgroundImageTintColor = hex.resolvedStyle.unityBackgroundImageTintColor - new Color(0, 0, 0, fadeAmonunt);
+                adjustAmount *= -1;
+                degrees -= 3;
             }
+
+            icon.transform.rotation = Quaternion.Euler(iconEuler.x, iconEuler.y, iconEuler.z + adjustAmount);
+            hex.transform.rotation = Quaternion.Euler(hexEuler.x, hexEuler.y, hexEuler.z + adjustAmount);
 
             yield return new WaitForSeconds(Time.deltaTime);
             timeLapsed += Time.deltaTime;
         }
-
-        if (document.rootVisualElement.Q().Contains(popup))
-            document.rootVisualElement.Q().Remove(popup);
-
-        StartCoroutine(AnimateNectar(amount, h, tPos, duration));
     }
 
     public IEnumerator AnimateNectar(float amount, Hive h, Vector3 worldPos, float duration)
