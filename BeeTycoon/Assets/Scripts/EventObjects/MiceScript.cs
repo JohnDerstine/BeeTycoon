@@ -58,6 +58,7 @@ public class MiceScript : EventObject
             spawnTile.special = false;
             Destroy(gameObject);
             eventController.activeEvents--;
+            eventController.eventObjectDict[eventController.eventObjects[index]] = false;
         }
     }
 

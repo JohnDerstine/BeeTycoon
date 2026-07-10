@@ -1,0 +1,15 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" xsi="http://www.w3.org/2001/XMLSchema-instance" engine="UnityEngine.UIElements" editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <ui:VisualElement name="All" style="flex-grow: 1;">
+        <ui:VisualElement name="Top" style="flex-grow: 1; flex-basis: 20%; flex-direction: row; justify-content: center; align-items: center;">
+            <ui:VisualElement name="TitleBox" style="flex-grow: 0; width: 50%; height: 80%; background-color: rgba(0, 0, 0, 0.62); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 10px; border-right-width: 10px; border-bottom-width: 10px; border-left-width: 10px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; justify-content: center; align-items: center;">
+                <ui:Label tabindex="-1" text="Wild Cow" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Title" style="-unity-font-style: bold; font-size: 72px; color: rgb(255, 255, 255); -unity-text-align: middle-center;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+        <ui:VisualElement name="Mid" style="flex-grow: 1; flex-basis: 40%;" />
+        <ui:VisualElement name="Bot" style="flex-grow: 1; flex-basis: 40%; flex-direction: row; justify-content: center; align-items: center;">
+            <ui:VisualElement name="Description" style="flex-grow: 0; height: 80%; width: 75%; background-color: rgba(0, 0, 0, 0.67); border-left-color: rgb(0, 0, 0); border-right-color: rgb(0, 0, 0); border-top-color: rgb(0, 0, 0); border-bottom-color: rgb(0, 0, 0); border-top-width: 10px; border-right-width: 10px; border-bottom-width: 10px; border-left-width: 10px; border-top-left-radius: 20px; border-top-right-radius: 20px; border-bottom-right-radius: 20px; border-bottom-left-radius: 20px; justify-content: center; align-items: center;">
+                <ui:Label tabindex="-1" text="A cow that eats flowers surrounding it&#10;every turn. Will disappear in 3 turns." parse-escape-sequences="true" display-tooltip-when-elided="true" name="Desc" style="-unity-font-style: bold; color: rgb(255, 255, 255); font-size: 48px;" />
+            </ui:VisualElement>
+        </ui:VisualElement>
+    </ui:VisualElement>
+</ui:UXML>

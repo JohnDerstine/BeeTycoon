@@ -106,6 +106,7 @@ public class MapLoader : MonoBehaviour
                 Material[] m = new Material[1] { tileMats[1] };
                 temp.GetComponent<MeshRenderer>().materials = m;
                 tiles[i, j].map = this;
+                tiles[i, j].controller = game;
                 tiles[i, j].Flower = (FlowerType)0;
                 tiles[i, j].x = i;
                 tiles[i, j].y = j;

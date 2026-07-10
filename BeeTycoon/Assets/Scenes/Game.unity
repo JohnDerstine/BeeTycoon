@@ -833,7 +833,9 @@ MonoBehaviour:
   - {fileID: 6644718264640369129, guid: c944c70249516e6438bc999711050927, type: 3}
   - {fileID: 5480952202048627542, guid: a4ee05ef4c6726743adc972b196eb20e, type: 3}
   - {fileID: 29906008088562972, guid: db0c726e9a116634fb4a800eff453304, type: 3}
+  eventText: {fileID: 9197481963319205126, guid: f4d23bdadfbe38a42b7edc046526907c, type: 3}
   activeEvents: 0
+  allComplete: 0
 --- !u!4 &919636343
 Transform:
   m_ObjectHideFlags: 0
@@ -1190,6 +1192,7 @@ MonoBehaviour:
   player: {fileID: 1759206122}
   controller: {fileID: 0}
   marketCard: {fileID: 9197481963319205126, guid: d2f8a8f459e0b9943ab5871b46cef378, type: 3}
+  mods: {fileID: 0}
   marketOpen: 0
   fromSave: 0
 --- !u!4 &2020842570

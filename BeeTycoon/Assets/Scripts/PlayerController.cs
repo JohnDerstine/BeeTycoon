@@ -184,6 +184,9 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (game.CurrentState != GameStates.Running)
+            return;
+
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             if (glossary.open)
@@ -260,6 +263,7 @@ public class PlayerController : MonoBehaviour
                     hoverObject.transform.position = hit.point + new Vector3(0, 1.5f, 0);
             }
         }
+
         //Map Controls
         CheckZoom();
         PanCamera();
@@ -642,6 +646,7 @@ public class PlayerController : MonoBehaviour
         //int offset = (map.mapHeight % 2 == 0) ? 2 : 3;
         //Camera.main.transform.position = new Vector3(map.mapWidth + (0.15f * Mathf.Pow(map.mapWidth, 1.75f)), 2.25f * map.mapWidth, (map.mapWidth / 2) + offset);
         Camera.main.transform.position = new Vector3(14.5f, 20, 13.5f);
+        Camera.main.transform.rotation = Quaternion.Euler(70, 270, 0);
     }
     #endregion
 
@@ -665,7 +670,7 @@ public class PlayerController : MonoBehaviour
         List<int> combSizeCap = new List<int>();
         List<float> nectar = new List<float>();
         List<float> nectarGain = new List<float>();
-        List<float> possibleNectar = new List<float>();
+        List<float> multipliedNectar = new List<float>();
         List<float> population = new List<float>();
         List<int> size = new List<int>();
         List<string> condition = new List<string>();
@@ -703,9 +708,8 @@ public class PlayerController : MonoBehaviour
             honeyType.Add(h.honeyType);
             comb.Add(h.comb);
             combSizeCap.Add(h.combSizeCap);
-            nectar.Add(h.nectar);
             nectarGain.Add(h.nectarGain);
-            possibleNectar.Add(h.nectarGain);
+            multipliedNectar.Add(h.multipliedNectar);
             population.Add(h.population);
             size.Add(h.Size);
             //condition.Add(h.Condition);
@@ -756,7 +760,7 @@ public class PlayerController : MonoBehaviour
         data.combSizeCap = combSizeCap;
         data.nectar = nectar;
         data.nectarGain = nectarGain;
-        data.possibleNectar = possibleNectar;
+        data.multipliedNectar = multipliedNectar;
         data.population = population;
         data.size = size;
         data.condition = condition;
@@ -817,9 +821,8 @@ public class PlayerController : MonoBehaviour
                 hive.honeyType = data.honeyType[i];
                 hive.comb = data.comb[i];
                 hive.combSizeCap = data.combSizeCap[i];
-                hive.nectar = data.nectar[i];
                 hive.nectarGain = data.nectarGain[i];
-                hive.possibleNectar = data.possibleNectar[i];
+                hive.multipliedNectar = data.multipliedNectar[i];
                 hive.population = data.population[i];
                 hive.Size = data.size[i];
                 //hive.Condition = data.condition[i];
@@ -910,7 +913,7 @@ public struct PlayerSaveData
     public List<int> combSizeCap;
     public List<float> nectar;
     public List<float> nectarGain;
-    public List<float> possibleNectar;
+    public List<float> multipliedNectar;
     public List<float> population;
     public List<int> size;
     public List<string> condition;

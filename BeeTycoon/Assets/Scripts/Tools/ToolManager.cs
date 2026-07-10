@@ -228,7 +228,7 @@ public class ToolManager : MonoBehaviour
                     {
                         storedTile = t;
                         storedFType = t.Flower;
-                        t.FlowerFixed = FlowerType.Empty;
+                        t.FlowerNoAnimation(FlowerType.Empty, true);
                         ObjectToMove = t.FlowerObject;
                     }
                     else if (activeTool == dolly && dolly.usesLeft > 0 && t.HasHive)
@@ -243,7 +243,7 @@ public class ToolManager : MonoBehaviour
                         Debug.Log("Picking up peppermint");
                         storedTile = t;
                         storedFType = t.Flower;
-                        t.FlowerFixed = FlowerType.Empty;
+                        t.Flower = FlowerType.Empty;
                         ObjectToMove = peppermint;
                     }
                 }
@@ -275,7 +275,9 @@ public class ToolManager : MonoBehaviour
                     {
                         if (t.Flower == FlowerType.Empty && !t.HasHive && objectToMove.tag != "Peppermint")
                         {
-                            t.Flower = storedFType;
+                            t.FlowerNoAnimation(storedFType, true);
+                            t.FlowerObject = storedTile.FlowerObject;
+                            storedTile.FlowerObject = null;
                             player.CheckForFavoriteFlowerUpdates();
                             shovel.usesLeft--;
                             CleanUpShovel(t);
@@ -285,7 +287,9 @@ public class ToolManager : MonoBehaviour
                             ObjectToMove.transform.position = t.transform.position;
                             peppermintTile = t;
                             mice.pepperTile = t;
-                            t.Flower = FlowerType.Empty;
+                            t.FlowerNoAnimation(storedFType, true);
+                            t.FlowerObject = storedTile.FlowerObject;
+                            storedTile.FlowerObject = null;
                             t.special = true;
                             storedTile.special = false;
                             shovel.usesLeft--;

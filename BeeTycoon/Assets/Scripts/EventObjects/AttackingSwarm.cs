@@ -16,6 +16,17 @@ public class AttackingSwarm : EventObject
     protected virtual void applyEffect()
     {
         turnsActive++;
+
+        foreach (Tile t in map.GetAdjacentTiles(spawnTile.x, spawnTile.y))
+        {
+            if (t.HasHive && t.hive.queen == null)
+            {
+                //GIVE HIVE QUEEN
+
+                RemoveSwarm();
+            }
+        }
+
         foreach (Hive h in player.hives)
         {
             if (h.tileRadius.Contains(spawnTile) && !CheckHiveOverlap(h))
@@ -23,19 +34,23 @@ public class AttackingSwarm : EventObject
                 h.AddCondition("Swarmed");
             }
         }
+
         if (turnsActive >= turnMax)
+            RemoveSwarm();
+    }
+
+    private void RemoveSwarm()
+    {
+        foreach (Hive h in player.hives)
         {
-            foreach (Hive h in player.hives)
-            {
-                if (h.conditions.Contains("Swarmed"))
-                    h.CureCondition("Swarmed");
-            }
-            spawnTile.special = false;
-            eventController.activeEvents--;
-            eventController.eventObjectDict[eventController.eventObjects[index]] = false;
-            game.turnCallback -= applyEffect;
-            Destroy(gameObject);
+            if (h.conditions.Contains("Swarmed"))
+                h.CureCondition("Swarmed");
         }
+        spawnTile.special = false;
+        eventController.activeEvents--;
+        eventController.eventObjectDict[eventController.eventObjects[index]] = false;
+        game.turnCallback -= applyEffect;
+        Destroy(gameObject);
     }
 
     private bool CheckHiveOverlap(Hive thisHive)

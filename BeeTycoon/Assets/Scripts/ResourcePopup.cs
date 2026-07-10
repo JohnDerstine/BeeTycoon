@@ -30,86 +30,25 @@ public class ResourcePopup : MonoBehaviour
 
     bool timeComplete;
 
-    //public void DisplayPopup(Vector3 position, int amount, float duration, Hive h, Vector3 tPos)
-    //{
-    //    position.z -= 1.5f;
-    //    position.x -= 1f;
-    //    Vector3 worldPos = position;
-    //    TemplateContainer activePopup = elementToSpawn.Instantiate();
-    //    position = Camera.main.WorldToScreenPoint(position);
-    //    activePopup.style.top = Screen.height - position.y;
-    //    activePopup.style.left = position.x;
-
-    //    VisualElement hex = activePopup.Q<VisualElement>("Hex");
-    //    VisualElement icon = activePopup.Q<VisualElement>("Icon");
-
-    //    hex.style.width = 96;
-    //    hex.style.height = 96;
-    //    icon.style.width = 64;
-    //    icon.style.height = 64;
-    //    activePopup.style.position = Position.Absolute;
-
-    //    document.rootVisualElement.Q().Add(activePopup);
-
-    //    AudioSource modifierSource = GameObject.Find("UnlockTracker").GetComponent<AudioSource>();
-    //    modifierSource.pitch = 2f;
-    //    modifierSource.PlayOneShot(modifierSound);
-
-    //    StartCoroutine(AdvancePopup(activePopup, worldPos, duration, amount, h, tPos));
-    //}
-
-    //private IEnumerator AdvancePopup(TemplateContainer popup, Vector3 worldPos, float duration, float amount, Hive h, Vector3 tPos)
-    //{
-    //    float timeLapsed = 0.0f;
-    //    //float adjustAmount;
-    //    float fadeAmonunt;
-    //    //float yAdjust = 0f;
-    //    VisualElement hex = popup.Q<VisualElement>("Hex");
-    //    VisualElement icon = popup.Q<VisualElement>("Icon");
-
-    //    yield return new WaitForFixedUpdate();
-    //    while (timeLapsed < duration * 1.5f)
-    //    {
-    //        Vector3 position = worldPos;
-    //        position = Camera.main.WorldToScreenPoint(position);
-    //        popup.style.top = Screen.height - position.y;// - yAdjust;
-    //        popup.style.left = position.x + 18;
-    //        //adjustAmount = 0.75f / duration; //1.5f is just an arbitrary modifier
-    //        //yAdjust += adjustAmount;
-    //        fadeAmonunt = 0.05f / duration;
-
-    //        if (timeLapsed > duration * 0.75f)
-    //        {
-    //            icon.style.unityBackgroundImageTintColor = icon.resolvedStyle.unityBackgroundImageTintColor - new Color(0, 0, 0, fadeAmonunt);
-    //            hex.style.unityBackgroundImageTintColor = hex.resolvedStyle.unityBackgroundImageTintColor - new Color(0, 0, 0, fadeAmonunt);
-    //        }
-
-    //        yield return new WaitForSeconds(Time.deltaTime);
-    //        timeLapsed += Time.deltaTime;
-    //    }
-
-    //    if (document.rootVisualElement.Q().Contains(popup))
-    //        document.rootVisualElement.Q().Remove(popup);
-
-    //    StartCoroutine(AnimateNectar(amount, h, tPos, duration));
-    //}
-
     public IEnumerator ShakeModifier(VisualElement modifierElement, float duration)
     {
         float timeLapsed = 0.0f;
         VisualElement hex = modifierElement.Q<VisualElement>("Hex");
         VisualElement icon = modifierElement.Q<VisualElement>("Icon");
-        float adjustAmount = 3;
+        float adjustAmount = 5;
         int degrees = 29;
 
         while (timeLapsed < duration * 3f)
         {
             Vector3 iconEuler = icon.transform.rotation.eulerAngles;
             Vector3 hexEuler = hex.transform.rotation.eulerAngles;
+            if (iconEuler.z > 180)
+                iconEuler.z = iconEuler.z - 360;
+
             if ((iconEuler.z > degrees && adjustAmount > 0) || (iconEuler.z < -degrees && adjustAmount < 0))
             {
                 adjustAmount *= -1;
-                degrees -= 3;
+                degrees -= 5;
             }
 
             icon.transform.rotation = Quaternion.Euler(iconEuler.x, iconEuler.y, iconEuler.z + adjustAmount);
@@ -118,6 +57,11 @@ public class ResourcePopup : MonoBehaviour
             yield return new WaitForSeconds(Time.deltaTime);
             timeLapsed += Time.deltaTime;
         }
+
+        Vector3 iconEuler2 = icon.transform.rotation.eulerAngles;
+        Vector3 hexEuler2 = hex.transform.rotation.eulerAngles;
+        icon.transform.rotation = Quaternion.Euler(iconEuler2.x, iconEuler2.y, 0);
+        hex.transform.rotation = Quaternion.Euler(hexEuler2.x, hexEuler2.y, 0);
     }
 
     public IEnumerator AnimateNectar(float amount, Hive h, Vector3 worldPos, float duration)
@@ -168,7 +112,7 @@ public class ResourcePopup : MonoBehaviour
             timeComplete = false;
         }
 
-        StartCoroutine(WaitDeltaTime(0.75f * duration));
+        StartCoroutine(WaitDeltaTime(0.6f * duration));
         yield return new WaitWhile(() => !timeComplete);
         timeComplete = false;
 
@@ -180,7 +124,7 @@ public class ResourcePopup : MonoBehaviour
             float yOffset = 48;
             float top = Screen.height - pos.y - yOffset;
             float left = pos.x - xOffset;
-            StartCoroutine(ToPoint(glob, top, left, 0.5f, true, h));
+            StartCoroutine(ToPoint(glob, top, left, 1 - duration, true, h));
             StartCoroutine(WaitDeltaTime(0.075f));
             yield return new WaitWhile(() => !timeComplete);
             timeComplete = false;

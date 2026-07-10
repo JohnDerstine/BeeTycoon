@@ -112,7 +112,7 @@ public class QueenChooser : MonoBehaviour
         template = null;
         container = null;
         isChoosing = false;
-        GameObject.Find("GameController").GetComponent<GameController>().CurrentState = GameStates.Running;
+        //GameObject.Find("GameController").GetComponent<GameController>().CurrentState = GameStates.Running;
     }
 
     public IEnumerator GiveChoice(List<int> choices, bool starter = false, bool modifier = false)

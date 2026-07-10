@@ -70,6 +70,11 @@ public class NectarScoring : MonoBehaviour
     List<Modifier> appliedMods = new List<Modifier>();
     Dictionary<Modifier, VisualElement> modElems = new Dictionary<Modifier, VisualElement>();
 
+    [SerializeField]
+    VisualTreeAsset multiplierLabel;
+
+    TemplateContainer multiplierContainer;
+
     public void GameStart()
     {
         hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
@@ -94,6 +99,22 @@ public class NectarScoring : MonoBehaviour
         if (source.pitch >= 1.75f)
             source.pitch = 1.75f;
     }
+
+    //private void DisplayHiveMultiplier(Hive h)
+    //{
+    //    VisualElement baseElem = document.rootVisualElement.Q<VisualElement>("Base");
+    //    if (multiplierContainer != null && baseElem.Contains(multiplierContainer))
+    //    {
+    //        baseElem.Remove(multiplierContainer);
+    //        multiplierContainer = null;
+    //    }
+
+    //    multiplierContainer = multiplierLabel.Instantiate();
+    //    multiplierContainer.Q<Label>().text = h.GetNectarMultiplier();
+
+    //    baseElem.Add(multiplierContainer);
+
+    //}
 
     public IEnumerator GetNectarGains()
     {
@@ -126,6 +147,7 @@ public class NectarScoring : MonoBehaviour
             source.pitch = basePitch;
             player.hives[i].ResetNectarGains();
             player.hives[i].DisplayHiveRadius();
+            //DisplayHiveMultiplier(player.hives[i]);
             foreach (Tile t in player.hives[i].tileRadius)
             {
                 switch (t.Flower)
@@ -197,7 +219,9 @@ public class NectarScoring : MonoBehaviour
                 populatedHives++;
 
         yield return new WaitForSeconds(0.25f);
-        yield break;
+
+        usedSprites.Clear();
+        modElems.Clear();
     }
 
     private void UpdateNectarUI(int spriteIndex)
@@ -252,7 +276,7 @@ public class NectarScoring : MonoBehaviour
     {
         t.lastGain = gain;
         for (int i = 0; i < appliedMods.Count; i++)
-            StartCoroutine(popUp.ShakeModifier(modElems[appliedMods[i]], duration));//popUp.DisplayPopup(t.transform.position, gain, duration, h, t.transform.position);
+            StartCoroutine(popUp.ShakeModifier(modElems[appliedMods[i]], duration));
 
         StartCoroutine(popUp.AnimateNectar(gain, h, t.transform.position, duration));
 
@@ -274,7 +298,7 @@ public class NectarScoring : MonoBehaviour
                 if (hive.tileRadius.Contains(t))
                     shareCount++;
 
-        return Mathf.FloorToInt(gain / shareCount);
+        return Mathf.FloorToInt((gain / shareCount) + (0.5f * (gain / shareCount)));
     }
 
     private IEnumerator GetCloverValue(Tile t, float duration, Hive h)

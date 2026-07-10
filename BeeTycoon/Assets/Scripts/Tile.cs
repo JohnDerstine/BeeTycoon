@@ -1,10 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
     public MapLoader map;
+    public GameController controller;
 
     public bool alive = false;
     public bool water = false;
@@ -35,6 +37,9 @@ public class Tile : MonoBehaviour
     public int lastGain;
     Tile original;
 
+    private bool disappearComplete;
+    private bool appearComplete;
+
     public Tile Original
     {
         get { return original; }
@@ -50,22 +55,6 @@ public class Tile : MonoBehaviour
         }
     }
 
-    public FlowerType FlowerFixed
-    {
-        get { return flower; }
-        set
-        {
-            if ((flower == FlowerType.Orange || flower == FlowerType.Tupelo) && this != original)
-            {
-                original.FlowerFixed = value;
-                return;
-            }
-
-            SetFlower(FlowerType.Empty);
-
-            flower = value;
-        }
-    }
     public FlowerType Flower
     {
         get { return flower; }
@@ -77,12 +66,75 @@ public class Tile : MonoBehaviour
                 return;
             }
 
-            Destroy(flowerObject);
-
-            SetFlower(value);
-
-            flower = value;
+            if (controller.CurrentState != GameStates.Menu)
+            {
+                if (flower != FlowerType.Empty)
+                    StartCoroutine(RemoveFlower(value));
+                else if (flower == FlowerType.Empty && value != FlowerType.Empty)
+                    StartCoroutine(PlaceFlower(value));
+            }
+            else
+            {
+                FlowerNoAnimation(value, false);
+            }
         }
+    }
+
+    public void FlowerNoAnimation(FlowerType f, bool shovel)
+    {
+        if (!shovel)
+        {
+            Destroy(flowerObject);
+            SetFlower(f);
+        }
+        flower = f;
+    }
+
+    private IEnumerator PlaceFlower(FlowerType f)
+    {
+        SetFlower(f);
+        StartCoroutine(FlowerAppear(f));
+        yield return new WaitWhile(() => !appearComplete);
+        appearComplete = false;
+
+        flower = f;
+        yield return null;
+    }
+
+    private IEnumerator RemoveFlower(FlowerType f)
+    {
+        StartCoroutine(FlowerDisappear(f));
+        yield return new WaitWhile(() => !disappearComplete);
+        disappearComplete = false;
+
+        Destroy(flowerObject);
+        flower = f;
+        yield return null;
+    }
+
+    private IEnumerator FlowerDisappear(FlowerType f)
+    {
+        for (int i = 0; i < 19; i++)
+        {
+            flowerObject.transform.localScale -= new Vector3(0.05f, 0.05f, 0.05f);
+            yield return new WaitForSeconds(0.5f / 20);
+        }
+
+        disappearComplete = true;
+        yield return null;
+    }
+
+    private IEnumerator FlowerAppear(FlowerType f)
+    {
+        for (int i = 0; i < 20; i++)
+        {
+            flowerObject.transform.localScale += new Vector3(0.05f, 0.05f, 0.05f);
+            yield return new WaitForSeconds(0.5f / 20);
+        }
+
+
+        appearComplete = true;
+        yield return null;
     }
 
     private void SetFlower(FlowerType current)
@@ -117,6 +169,9 @@ public class Tile : MonoBehaviour
             map.tiles[x, y + 1].flowerObject = null;
             map.tiles[x + 1, y + 1].flowerObject = null;
         }
+
+        if (controller.CurrentState != GameStates.Menu && current != FlowerType.Empty)
+            flowerObject.transform.localScale = new Vector3(0, 0, 0);
     }
 
     public GameObject FlowerObject
@@ -127,6 +182,7 @@ public class Tile : MonoBehaviour
                 return original.flowerObject;
             return flowerObject; 
         }
+        set { flowerObject = value; }
     }
 
     void Start()

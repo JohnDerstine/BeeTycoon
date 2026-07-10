@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
 using System;
+using JetBrains.Annotations;
 
 public enum GameStates
 {
@@ -12,7 +13,8 @@ public enum GameStates
     Running,
     TurnEnd,
     Paused,
-    End
+    End,
+    Win
 }
 
 public class GameController : MonoBehaviour
@@ -32,7 +34,13 @@ public class GameController : MonoBehaviour
     private VisualTreeAsset gameUI;
 
     [SerializeField]
+    private VisualTreeAsset blankUI;
+
+    [SerializeField]
     private VisualTreeAsset nectarUI;
+
+    [SerializeField]
+    private VisualTreeAsset deckUI;
 
     private PlayerController player;
     private HexMenu hexMenu;
@@ -87,6 +95,27 @@ public class GameController : MonoBehaviour
     private int previousMoney;
 
     private int techPoints = 3;
+
+    private Label description;
+    private Label title;
+    private int selectedDifficulty = 1;
+    private int gameDifficulty = 0;
+    private string deck = "Longevity";
+    private WinCondition winCon;
+
+    private List<string> Titles = new List<string>()
+    {
+        "Longevity"
+    };
+    private Dictionary<string, string> Descriptions = new Dictionary<string, string>()
+    {
+        {"Longevity", "Reach year *"}
+    };
+    private Dictionary<string, List<string>> Levels = new Dictionary<string, List<string>>()
+    {
+        { "Longevity", new List<string>(){ "5", "7", "9" } }
+    };
+
     public int TechPoint
     {
         get { return techPoints; }
@@ -123,12 +152,12 @@ public class GameController : MonoBehaviour
     }
 
     void Start()
-    {
+    { 
         newGameButton = document.rootVisualElement.Q<Button>("NewGame");
         continueButton = document.rootVisualElement.Q<Button>("Continue");
         techTreeButton = document.rootVisualElement.Q<VisualElement>("TechTree");
         techTreeButton.AddManipulator(new Clickable((e) => GoToTechTree()));
-        newGameButton.clickable = new Clickable(e => NewGame());
+        newGameButton.clickable = new Clickable(e => ChooseDeck());
         if (!SaveSystem.CheckSaveFile())
             continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
         else
@@ -164,21 +193,65 @@ public class GameController : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoadContinue;
     }
 
-    private void NewGame()
+    private void ChooseDeck()
     {
-        document.GetComponent<AudioSource>().Play();
-        SceneManager.LoadScene("Game");
-        SceneManager.sceneLoaded += OnSceneLoadNew;
+        selectedDifficulty = 1;
+        document.visualTreeAsset = deckUI;
+        description = document.rootVisualElement.Q<Label>("Description");
+        title = document.rootVisualElement.Q<Label>("Title");
+        document.rootVisualElement.Q<Label>("Back").AddManipulator(new Clickable((e) => ResetMainMenu()));
+        document.rootVisualElement.Q<Label>("Start").AddManipulator(new Clickable((e) => NewGame()));
+        document.rootVisualElement.Q<VisualElement>("Hard").AddManipulator(new Clickable((e) => SelectHard()));
+        document.rootVisualElement.Q<VisualElement>("Medium").AddManipulator(new Clickable((e) => SelectMedium()));
+        document.rootVisualElement.Q<VisualElement>("Easy").AddManipulator(new Clickable((e) => SelectEasy()));
     }
 
-    private void OnSceneMain(Scene scene, LoadSceneMode mode)
+    private void Deselect()
+    {
+        description.text = Descriptions[title.text];
+        document.rootVisualElement.Q<VisualElement>("Hard").style.unityBackgroundImageTintColor = new Color(0.53f, 0.53f, 0.53f);
+        document.rootVisualElement.Q<VisualElement>("Hard1").style.unityBackgroundImageTintColor = new Color(0.53f, 0.53f, 0.53f);
+        document.rootVisualElement.Q<VisualElement>("Hard2").style.unityBackgroundImageTintColor = new Color(0.53f, 0.53f, 0.53f);
+        document.rootVisualElement.Q<VisualElement>("Medium").style.unityBackgroundImageTintColor = new Color(0.53f, 0.53f, 0.53f);
+        document.rootVisualElement.Q<VisualElement>("Medium1").style.unityBackgroundImageTintColor = new Color(0.53f, 0.53f, 0.53f);
+        document.rootVisualElement.Q<VisualElement>("Easy").style.unityBackgroundImageTintColor = new Color(0.53f, 0.53f, 0.53f);
+    }
+
+    private void SelectHard()
+    {
+        Deselect();
+        document.rootVisualElement.Q<VisualElement>("Hard").style.unityBackgroundImageTintColor = Color.white;
+        document.rootVisualElement.Q<VisualElement>("Hard1").style.unityBackgroundImageTintColor = Color.white;
+        document.rootVisualElement.Q<VisualElement>("Hard2").style.unityBackgroundImageTintColor = Color.white;
+        selectedDifficulty = 3;
+        description.text = description.text.Replace("*", Levels[title.text][selectedDifficulty - 1]);
+    }
+
+    private void SelectMedium()
+    {
+        Deselect();
+        document.rootVisualElement.Q<VisualElement>("Medium").style.unityBackgroundImageTintColor = Color.white;
+        document.rootVisualElement.Q<VisualElement>("Medium1").style.unityBackgroundImageTintColor = Color.white;
+        selectedDifficulty = 2;
+        description.text = description.text.Replace("*", Levels[title.text][selectedDifficulty - 1]);
+    }
+
+    private void SelectEasy()
+    {
+        Deselect();
+        document.rootVisualElement.Q<VisualElement>("Easy").style.unityBackgroundImageTintColor = Color.white;
+        selectedDifficulty = 1;
+        description.text = description.text.Replace("*", Levels[title.text][selectedDifficulty - 1]);
+    }
+
+    private void ResetMainMenu()
     {
         document.visualTreeAsset = mainMenu;
         newGameButton = document.rootVisualElement.Q<Button>("NewGame");
         continueButton = document.rootVisualElement.Q<Button>("Continue");
         techTreeButton = document.rootVisualElement.Q<VisualElement>("TechTree");
         techTreeButton.AddManipulator(new Clickable((e) => GoToTechTree()));
-        newGameButton.clickable = new Clickable(e => NewGame());
+        newGameButton.clickable = new Clickable(e => ChooseDeck());
         if (!SaveSystem.CheckSaveFile())
             continueButton.style.backgroundColor = new Color(0.4f, 0.4f, 0.4f);
         else
@@ -189,6 +262,31 @@ public class GameController : MonoBehaviour
         quota = 0;
         previousQuota = 0;
         season = "spring";
+    }
+
+    private void NewGame()
+    {
+        gameDifficulty = selectedDifficulty;
+        deck = title.text;
+        SetWinCondition();
+        document.GetComponent<AudioSource>().Play();
+        SceneManager.LoadScene("Game");
+        SceneManager.sceneLoaded += OnSceneLoadNew;
+    }
+
+    private void SetWinCondition()
+    {
+        switch (deck)
+        {
+            case "Longevity":
+                winCon = new WinCondition(() => year == int.Parse(Levels[deck][selectedDifficulty]));
+                break;
+        }
+    }
+
+    private void OnSceneMain(Scene scene, LoadSceneMode mode)
+    {
+        ResetMainMenu();
     }
 
     private void OnSceneTechTree(Scene scene, LoadSceneMode mode)
@@ -245,6 +343,9 @@ public class GameController : MonoBehaviour
 
     private void UpdateLabels()
     {
+        if (document.visualTreeAsset != gameUI)
+            return;
+
         string adjustedSeason = Season.ToString();
         adjustedSeason = adjustedSeason.Substring(0, 1).ToUpper() + adjustedSeason.Substring(1);
         //document.rootVisualElement.Q<Label>("TurnCount").text = adjustedSeason + " " + year + " Turn " + turn;
@@ -284,18 +385,8 @@ public class GameController : MonoBehaviour
         yield return new WaitWhile(() => !nectarCollectingFinished);
         nectarCollectingFinished = false;
 
-        document.visualTreeAsset = gameUI;
-        ReloadUI();
-        player.ReloadUI();
-        hexMenu.ReloadUI();
-        document.GetComponent<Glossary>().GameLoaded();
-        honeyMarket.ReloadUI();
-        UpdateLabels();
-        player.OnTurnIncrement();
+        document.visualTreeAsset = blankUI;
 
-        map.AdvanceFlowerStates(); //This should be done after all the animations for GetNectarGains is done.
-        yield return new WaitWhile(() => !flowerAdvanceFinished);
-        flowerAdvanceFinished = false;
         bool newYear = false;
         if ((turn - 1) % 4 == 0 || (season == "winter" && (turn - 1) % 4 == 2))
         {
@@ -329,28 +420,37 @@ public class GameController : MonoBehaviour
 
             map.SeasonRecolor();
             previousMoney = player.Money;
-            player.Money = -Quota;
+            player.Money = -Quota / 2;
             if (player.Money < 0)
             {
                 CurrentState = GameStates.End;
                 StartCoroutine(QuotaScreen());
                 yield break;
             }
+            else if (winCon.Condition())
+            {
+                CurrentState = GameStates.Win;
+                StartCoroutine(QuotaScreen());
+                yield break;
+            }
 
-            StartCoroutine(QuotaScreen());
+                StartCoroutine(QuotaScreen());
             yield return new WaitWhile(() => !quotaScreenFinished);
             quotaScreenFinished = false;
 
             if (newYear)
             {
+                choices.isChoosing = true;
                 StartCoroutine(choices.GiveChoice(3, false, false)); //Normal choices
                 yield return new WaitWhile(() => choices.isChoosing);
 
+                choices.isChoosing = true;
                 StartCoroutine(choices.GiveChoice(3, false, true)); //modifier choices
                 yield return new WaitWhile(() => choices.isChoosing);
             }
             else
             {
+                choices.isChoosing = true;
                 StartCoroutine(choices.GiveChoice(3, false, false));
                 yield return new WaitWhile(() => choices.isChoosing);
             }
@@ -379,12 +479,32 @@ public class GameController : MonoBehaviour
 
         toolManager.TurnReset();
 
-        CurrentState = GameStates.Running;
-
         if (turnCallback != null)
             turnCallback();
 
-        eventController.SpawnMapEvent();
+        StartCoroutine(eventController.SpawnMapEvent());
+        yield return new WaitWhile(() => !eventController.allComplete);
+        eventController.allComplete = false;
+
+        player.CenterCamera();
+
+        //Here is where I should do the animations on flower advance saved tiles
+        //first do flowers dying
+        //then do flower growing
+        map.AdvanceFlowerStates();
+        yield return new WaitWhile(() => !flowerAdvanceFinished);
+        flowerAdvanceFinished = false;
+
+        document.visualTreeAsset = gameUI;
+        ReloadUI();
+        player.ReloadUI();
+        hexMenu.ReloadUI();
+        document.GetComponent<Glossary>().GameLoaded();
+        honeyMarket.ReloadUI();
+        UpdateLabels();
+        player.OnTurnIncrement();
+
+        CurrentState = GameStates.Running;
     }
 
     private IEnumerator DoubleQuotaScreen()
@@ -417,22 +537,39 @@ public class GameController : MonoBehaviour
 
     private IEnumerator QuotaScreen()
     {
+
         quotaContainer = quotaScreenUI.Instantiate();
         quotaContainer.style.position = Position.Absolute;
         quotaContainer.style.width = Screen.width;
         quotaContainer.style.height = Screen.height;
         quotaContainer.Q<Button>().clicked += NextButton;
-        string outcome = (CurrentState == GameStates.End) ? "<color=white><gradient=\"Failure\">Failed</gradient></color>" : "<color=white><gradient=\"TurnText\">Reached!</gradient></color>";
-        quotaContainer.Q<Label>("Outcome").text = outcome;
-        quotaContainer.Q<Label>("QuotaResult").text = "<color=green>$" + previousMoney + "</color> / <color=yellow>$" + previousQuota;
-        quotaContainer.Q<Label>("MoneyEarned").text = "Money Earned: <indent=80%>$" + player.moneyEarned;
-        quotaContainer.Q<Label>("MoneySpent").text = "Money Spent: <indent=80%>$" + Mathf.Abs(player.moneySpent);
-        quotaContainer.Q<Label>("HoneySold").text = "Honey Sold: <indent=80%>" + player.Money + " lbs.";
-        quotaContainer.Q<Label>("Hives").text = "Hives: <indent=80%>" + player.HivesCount;
-        string nextText = (CurrentState == GameStates.End) ? "End Run" : "Choose Reward";
-        quotaContainer.Q<Button>().text = nextText;
-        Color color = (CurrentState == GameStates.End) ? new Color(0.68f, 0.31f, 0.13f) : new Color(0.37f, 0.68f, 0.13f);
-        quotaContainer.Q<Button>().style.backgroundColor = color;
+
+        if (currentState == GameStates.Win)
+        {
+            quotaContainer.Q<Label>("Outcome").text = "<color=white><gradient=\"TurnText\">You Win!</gradient></color>";
+            quotaContainer.Q<Label>("QuotaResult").text = "<color=green>$" + previousMoney + "</color> / <color=yellow>$" + previousQuota;
+            quotaContainer.Q<Label>("MoneyEarned").text = "Money Earned: <indent=80%>$" + player.moneyEarned;
+            quotaContainer.Q<Label>("MoneySpent").text = "Money Spent: <indent=80%>$" + Mathf.Abs(player.moneySpent);
+            quotaContainer.Q<Label>("HoneySold").text = "Honey Sold: <indent=80%>" + player.Money + " lbs.";
+            quotaContainer.Q<Label>("Hives").text = "Hives: <indent=80%>" + player.HivesCount;
+            quotaContainer.Q<Button>().text = "End Run";
+            quotaContainer.Q<Button>().style.backgroundColor = new Color(0.37f, 0.68f, 0.13f);
+        }
+        else
+        {
+            string outcome = (CurrentState == GameStates.End) ? "<color=white><gradient=\"Failure\">Failed</gradient></color>" : "<color=white><gradient=\"TurnText\">Reached!</gradient></color>";
+            quotaContainer.Q<Label>("Outcome").text = outcome;
+            quotaContainer.Q<Label>("QuotaResult").text = "<color=green>$" + previousMoney + "</color> / <color=yellow>$" + previousQuota;
+            quotaContainer.Q<Label>("MoneyEarned").text = "Money Earned: <indent=80%>$" + player.moneyEarned;
+            quotaContainer.Q<Label>("MoneySpent").text = "Money Spent: <indent=80%>$" + Mathf.Abs(player.moneySpent);
+            quotaContainer.Q<Label>("HoneySold").text = "Honey Sold: <indent=80%>" + player.Money + " lbs.";
+            quotaContainer.Q<Label>("Hives").text = "Hives: <indent=80%>" + player.HivesCount;
+            string nextText = (CurrentState == GameStates.End) ? "End Run" : "Choose Reward";
+            quotaContainer.Q<Button>().text = nextText;
+            Color color = (CurrentState == GameStates.End) ? new Color(0.68f, 0.31f, 0.13f) : new Color(0.37f, 0.68f, 0.13f);
+            quotaContainer.Q<Button>().style.backgroundColor = color;
+        }
+
         document.rootVisualElement.Q<VisualElement>("Base").Add(quotaContainer);
         player.moneyEarned = 0;
         player.moneySpent = 0;
@@ -442,7 +579,7 @@ public class GameController : MonoBehaviour
     private void NextButton()
     {
         document.GetComponent<AudioSource>().Play();
-        if (currentState == GameStates.End)
+        if (currentState == GameStates.End || currentState == GameStates.Win)
         {
             SaveSystem.DeleteSave();
             BackToMain();
@@ -474,7 +611,7 @@ public class GameController : MonoBehaviour
         yield return new WaitForSeconds(0.8f);
 
         while (label.resolvedStyle.fontSize > 24)
-        {
+        { 
             label.style.fontSize = label.resolvedStyle.fontSize - 12;
             yield return new WaitForSeconds(0.01f);
         }
@@ -509,4 +646,15 @@ public struct GameSaveData
     public int turn;
     public int year;
     public string season;
+}
+
+//Stores the condition to re-evaluate every turn, and determine if the user has won.
+public class WinCondition
+{
+    public WinCondition(Func<bool> condition)
+    {
+        this.Condition = condition;
+    }
+
+    public Func<bool> Condition { get; }
 }

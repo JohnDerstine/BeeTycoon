@@ -768,6 +768,7 @@ MonoBehaviour:
   populatedHives: 0
   nectarItem: {fileID: 9197481963319205126, guid: 5ebbc1011549af44d9a30cc9fbeaa0b6, type: 3}
   honeySprite: {fileID: 2800000, guid: 95d9997ccce6aa046898a9e8bd880124, type: 3}
+  multiplierLabel: {fileID: 0}
 --- !u!1 &1944616202
 GameObject:
   m_ObjectHideFlags: 0
@@ -1027,7 +1028,9 @@ MonoBehaviour:
   document: {fileID: 1944616203}
   mainMenu: {fileID: 9197481963319205126, guid: 645eea9f8abf4f74e8d9fe66a1028f15, type: 3}
   gameUI: {fileID: 9197481963319205126, guid: de2cb53b0aae3304eaed27a3de471fc8, type: 3}
+  blankUI: {fileID: 9197481963319205126, guid: 71fbe7bb29e57ab438d406ea04b0338b, type: 3}
   nectarUI: {fileID: 9197481963319205126, guid: 520111991f3a2594eb086fb8a1394a60, type: 3}
+  deckUI: {fileID: 9197481963319205126, guid: 3572e95feb70f854f8af4e5fb2a569fa, type: 3}
   map: {fileID: 1594075282}
   honeyMarket: {fileID: 0}
   newTurnUI: {fileID: 9197481963319205126, guid: 49f28a6cb8817ca40855ba553a8a6a49, type: 3}
