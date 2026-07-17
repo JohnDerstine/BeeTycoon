@@ -19,9 +19,10 @@ public class AttackingSwarm : EventObject
 
         foreach (Tile t in map.GetAdjacentTiles(spawnTile.x, spawnTile.y))
         {
-            if (t.HasHive && t.hive.queen == null)
+            if (t.HasHive && !t.hive.queen.nullQueen)
             {
-                //GIVE HIVE QUEEN
+                QueenBee queen = Instantiate(eventController.queenBee, new Vector3(-100, -100, -100), Quaternion.identity).GetComponent<QueenBee>();
+                t.hive.Populate(queen);
 
                 RemoveSwarm();
             }

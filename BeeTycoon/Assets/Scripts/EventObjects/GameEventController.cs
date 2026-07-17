@@ -45,6 +45,9 @@ public class GameEventController : MonoBehaviour
     private bool animationComplete = false;
     public bool allComplete = false;
 
+    [SerializeField]
+    public GameObject queenBee;
+
     void Start()
     {
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
@@ -79,9 +82,9 @@ public class GameEventController : MonoBehaviour
         int chance = 2;
         foreach (Hive h in GameObject.Find("PlayerController").GetComponent<PlayerController>().hives)
         {
-            if (h.queen != null && h.population > h.PopCap * .90f)
+            if (!h.queen.nullQueen && h.population > h.PopCap * .90f)
                 chance += 10;
-            else if (h.queen == null)
+            else if (h.queen.nullQueen)
                 chance += 5;
         }
 

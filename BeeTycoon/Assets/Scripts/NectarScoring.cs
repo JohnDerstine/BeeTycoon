@@ -239,6 +239,12 @@ public class NectarScoring : MonoBehaviour
        document.rootVisualElement.Q<VisualElement>("NectarColumn").Insert(0, item);
     }
 
+    private void TrackModifierStats(float original, float updated, FlowerModifier mod)
+    {
+        mod.Stat1++;
+        mod.Stat2 += updated - original;
+    }
+
     private int ApplyModifierValues(FlowerType flower, List<Tile> adjTiles, List<Tile> diagTiles, int currentGain)
     {
         appliedMods.Clear();
@@ -264,10 +270,11 @@ public class NectarScoring : MonoBehaviour
                     if (m.BaseMod != 0)
                         newGain += m.BaseMod;
                     else
-                        mult = m.MultMod;
+                        mult *= m.MultMod;
                     appliedMods.Add(m);
                 }
             }
+            TrackModifierStats(currentGain, newGain, m);
         }
         return (int)(newGain * mult);
     }

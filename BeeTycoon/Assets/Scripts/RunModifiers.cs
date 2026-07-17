@@ -13,6 +13,15 @@ public class RunModifiers : MonoBehaviour
     [SerializeField]
     public List<Texture2D> modSprites = new List<Texture2D>();
 
+    //EXPIRAMENTAL WIP
+    //public Dictionary<int, (string, int)> modStats1 = new Dictionary<int, (string, int)>()
+    //{
+    //    {0, ("# Of Triggers: ", 0) },
+    //    {1, ("# Of Triggers: ", 0) },
+    //    {2, ("# Of Triggers: ", 0) },
+    //    {3, ("# Of Triggers: ", 0) },
+    //};
+
     void Start()
     {
         //Create modifiers
@@ -79,7 +88,7 @@ public class RunModifiers : MonoBehaviour
 
     public void AddMod(int id)
     {
-        accquiredMods.Add(allMods[0]);
+        accquiredMods.Add(allMods[0]); //CHANGE THIS WHEN DONE TESTING
     }
 
     public List<T> GetArchetypeAccquired<T>() where T : struct
@@ -184,7 +193,21 @@ public struct FlowerModifier : Modifier
         get {  return multMod; }
     }
 
-    public FlowerModifier(string name, Texture2D sprite, int id, FlowerType[] flowers, int amount, string direction, int baseMod, float multMod)
+    private float stat1;
+    public float Stat1
+    {
+        get { return stat1; }
+        set { stat1 = value; }
+    }
+
+    private float stat2;
+    public float Stat2
+    {
+        get { return stat2; }
+        set { stat2 = value; }
+    }
+
+    public FlowerModifier(string name, Texture2D sprite, int id, FlowerType[] flowers, int amount, string direction, int baseMod, float multMod, int stat1 = 0, int stat2 = 0)
     {
         this.name = name;
         this.sprite = sprite;
@@ -194,6 +217,8 @@ public struct FlowerModifier : Modifier
         this.direction = direction;
         this.baseMod = baseMod;
         this.multMod = multMod;
+        this.stat1 = stat1;
+        this.stat2 = stat2;
 
         string mod = (multMod == 1) ? baseMod + "" : multMod + "x";
         string modType = (multMod == 1) ? "increase" : "multiply";
@@ -247,7 +272,14 @@ public struct HoneyModifier : Modifier
         get { return multMod; }
     }
 
-    public HoneyModifier(string name, Texture2D sprite, int id, FlowerType flower, float baseMod, float multMod)
+    private float stat1;
+    public float Stat1
+    {
+        get { return stat1; }
+        set { stat1 = value; }
+    }
+
+    public HoneyModifier(string name, Texture2D sprite, int id, FlowerType flower, float baseMod, float multMod, float stat1 = 0)
     {
         this.name = name;
         this.sprite = sprite;
@@ -255,10 +287,11 @@ public struct HoneyModifier : Modifier
         this.flower = flower;
         this.baseMod = baseMod;
         this.multMod = multMod;
+        this.stat1 = stat1;
 
         string mod = (multMod == 1) ? baseMod + "" : multMod + "x";
         string modType = (multMod == 1) ? "Increase" : "Multiply";
 
-        description = modType + " selling price of " + flower.ToString() + " honey by " + mod;
+        description = modType + " selling price of high quality " + flower.ToString() + " honey by " + mod;
     }
 }

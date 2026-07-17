@@ -53,6 +53,16 @@ public class Shed : MonoBehaviour
             modHover.Q("Icon").style.backgroundImage = runModifiers.modSprites[modID];
             modHover.Q<Label>("Title").text = runModifiers.allMods[modID].Name;
             modHover.Q<Label>("Description").text = runModifiers.allMods[modID].Description;
+            if (runModifiers.allMods[modID] is FlowerModifier)
+            {
+                modTemplate.Q<Label>("1").text = "# of Triggers: 0";
+                modTemplate.Q<Label>("2").text = "Bonus Nectar: 0 lbs";
+            }
+            else if (runModifiers.allMods[modID] is HoneyModifier)
+            {
+                modTemplate.Q<Label>("1").text = "Bonus Money: $0";
+                modTemplate.Q<Label>("2").text = "";
+            }
 
             modTemplate.Q("HexUI").Add(modHover);
         }
@@ -95,6 +105,20 @@ public class Shed : MonoBehaviour
         modHover.Q<Label>("Title").text = runModifiers.allMods[modID].Name;
         modHover.Q<Label>("Description").text = runModifiers.allMods[modID].Description;
 
-        modTemplate.Q("HexUI").Add(modHover);
+        if (runModifiers.allMods[modID] is FlowerModifier)
+        {
+            FlowerModifier thisMod = (FlowerModifier)runModifiers.allMods[modID];
+            modTemplate.Q<Label>("1").text = "# of Triggers: " + thisMod.Stat1;
+            modTemplate.Q<Label>("2").text = "Bonus Nectar: " + thisMod.Stat2 + " lbs";
+        }
+        else if (runModifiers.allMods[modID] is HoneyModifier)
+        {
+            HoneyModifier thisMod = (HoneyModifier)runModifiers.allMods[modID];
+            modTemplate.Q<Label>("1").text = "Bonus Money: $" + thisMod.Stat1;
+            modTemplate.Q<Label>("2").text = "";
+        }
+
+
+        modTemplate.Q("HexUI").Add(modHover); 
     }
 }

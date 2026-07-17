@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static UnityEngine.GridBrushBase;
 
 public class HexMenu : MonoBehaviour
 {
@@ -186,6 +187,18 @@ public class HexMenu : MonoBehaviour
         }
 
         RefreshMenuLists();
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+            ActivateTool(toolObjectList[2], toolSprites[2]);
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+            ActivateTool(toolObjectList[3], toolSprites[3]);
+        if (Input.GetKeyDown(KeyCode.Alpha3))
+            ActivateTool(toolObjectList[1], toolSprites[1]);
+        if (Input.GetKeyDown(KeyCode.Alpha4))
+            ActivateTool(toolObjectList[0], toolSprites[0]);
     }
 
     private string FTypeToString(FlowerType f)
@@ -477,14 +490,9 @@ public class HexMenu : MonoBehaviour
             OpenTab(3, open4, false);
             return;
         }
-        
+
         if (item.tag != "Placeable" && item.tag != "BeeSuit" && item.tag != "Extractor")
-        {
-            UnityEngine.Cursor.SetCursor(sprite, new Vector2(sprite.width / 2, sprite.height / 2), CursorMode.Auto);
-            player.SelectedItem = item;
-            player.selectedItemSprite = sprite;
-            toolManager.SetActiveTool(item);
-        }
+            ActivateTool(item, sprite);
 
         if (item.tag == "Placeable")
         {
@@ -499,9 +507,13 @@ public class HexMenu : MonoBehaviour
             {
                 player.Money = -cost;
                 toolManager.GetToolFromTag(item.tag).Upgrade();
+                UpdateToolUIOnPurschase(item);
             }
             costLabel.text = "Owned";
             item.GetComponent<Cost>().Price = 0;
+            RefreshMenuLists();
+            CloseTab();
+            OpenTab(1, open2, false);
         }
 
         hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 1f);
@@ -655,6 +667,91 @@ public class HexMenu : MonoBehaviour
             glossary.OpenGlossary(keyword);
     }
 
+    private void UpdateToolUIOnPurschase(GameObject tool)
+    {
+        switch (tool.tag)
+        {
+            case "Shovel":
+                if (tool.GetComponent<ShovelTool>().usesLeft > 0)
+                {
+                    VisualElement shovelElem = document.rootVisualElement.Q("Shovel");
+                    shovelElem.Q<Label>("Uses").text = tool.GetComponent<ShovelTool>().usesPerTurn.ToString();
+                    shovelElem.style.unityBackgroundImageTintColor = Color.white;
+                    shovelElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                }
+                break;
+            case "Dolly":
+                if (tool.GetComponent<DollyTool>().usesLeft > 0)
+                {
+                    VisualElement dollyElem = document.rootVisualElement.Q("Dolly");
+                    dollyElem.Q<Label>("Uses").text = tool.GetComponent<DollyTool>().usesPerTurn.ToString();
+                    dollyElem.style.unityBackgroundImageTintColor = Color.white;
+                    dollyElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                }
+                break;
+            case "Smoker":
+                if (tool.GetComponent<SmokerTool>().usesLeft > 0)
+                {
+                    VisualElement smokerElem = document.rootVisualElement.Q("Smoker");
+                    smokerElem.Q<Label>("Uses").text = tool.GetComponent<SmokerTool>().usesPerTurn.ToString();
+                    smokerElem.style.unityBackgroundImageTintColor = Color.white;
+                    smokerElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                }
+                break;
+            case "HiveTool":
+                if (tool.GetComponent<HiveTool>().usesLeft > 0)
+                {
+                    VisualElement hiveToolElem = document.rootVisualElement.Q("Hivetool");
+                    hiveToolElem.Q<Label>("Uses").text = tool.GetComponent<HiveTool>().usesPerTurn.ToString();
+                    hiveToolElem.style.unityBackgroundImageTintColor = Color.white;
+                    hiveToolElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                }
+                break;
+        }
+    }
+
+    private void ActivateTool(GameObject item, Texture2D sprite)
+    {
+        if (player.SelectedItem == item)
+        {
+            UnityEngine.Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+            player.SelectedItem = null;
+            player.selectedItemSprite = null;
+            toolManager.SetToolNull();
+        }
+        else if (item.GetComponent<ToolScript>().Level != 0 && CheckUses(item))
+        {
+            UnityEngine.Cursor.SetCursor(sprite, new Vector2(sprite.width / 2, sprite.height / 2), CursorMode.Auto);
+            player.SelectedItem = item;
+            player.selectedItemSprite = sprite;
+            toolManager.SetActiveTool(item);
+        }
+    }
+
+    private bool CheckUses(GameObject tool)
+    {
+        switch (tool.tag)
+        {
+            case "Shovel":
+                if (tool.GetComponent<ShovelTool>().usesLeft > 0)
+                    return true;
+                break;
+            case "Dolly":
+                if (tool.GetComponent<DollyTool>().usesLeft > 0)
+                    return true;
+                break;
+            case "Smoker":
+                if (tool.GetComponent<SmokerTool>().usesLeft > 0)
+                    return true;
+                break;
+            case "HiveTool":
+                if (tool.GetComponent<HiveTool>().usesLeft > 0)
+                    return true;
+                break;
+        }
+        return false;
+    }
+
     public void ReloadUI()
     {
         tabs.Clear();
@@ -679,6 +776,11 @@ public class HexMenu : MonoBehaviour
         tab2.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Tools"));
         tab3.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Hive"));
         tab4.RegisterCallback<PointerDownEvent>(e => ReferToGlossary(e, "Flowers"));
+
+        document.rootVisualElement.Q<VisualElement>("Shovel").AddManipulator(new Clickable(e => ActivateTool(toolObjectList[2] , toolSprites[2])));
+        document.rootVisualElement.Q<VisualElement>("Dolly").AddManipulator(new Clickable(e => ActivateTool(toolObjectList[3], toolSprites[3])));
+        document.rootVisualElement.Q<VisualElement>("Smoker").AddManipulator(new Clickable(e => ActivateTool(toolObjectList[1], toolSprites[1])));
+        document.rootVisualElement.Q<VisualElement>("Hivetool").AddManipulator(new Clickable(e => ActivateTool(toolObjectList[0], toolSprites[0])));
 
         RefreshMenuLists();
     }

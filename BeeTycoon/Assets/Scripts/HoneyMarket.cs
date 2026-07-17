@@ -74,6 +74,7 @@ public class HoneyMarket : MonoBehaviour
     {
         document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
         controller = GameObject.Find("GameController").GetComponent<GameController>();
+        mods = controller.GetComponent<RunModifiers>();
         ReloadUI();
 
         if (!fromSave)
@@ -362,12 +363,20 @@ public class HoneyMarket : MonoBehaviour
         SetAmountLabel();
     }
 
+    private void TrackModifierStats(float money, HoneyModifier mod)
+    {
+        mod.Stat1 += ((money + mod.BaseMod) * mod.MultMod) - money;
+    }
+
     private float ApplyModifiers(float money)
     {
         foreach (HoneyModifier m in mods.GetArchetypeAccquired<HoneyModifier>())
         {
+            Debug.Log(m.Flower + " " + selectedType);
             if (m.Flower == selectedType)
             {
+                Debug.Log("calced mod");
+                TrackModifierStats(money, m);
                 return (money + m.BaseMod) * m.MultMod;
             }
         }
@@ -382,6 +391,7 @@ public class HoneyMarket : MonoBehaviour
         document.GetComponent<AudioSource>().Play();
         if (player.inventory[selectedType][0] < amount)
             amount = player.inventory[selectedType][0];
+        amountSold[selectedType] += amount;
         //player.Money = Mathf.RoundToInt(amount * price);
         float toBePaid = amount;
 
@@ -406,14 +416,14 @@ public class HoneyMarket : MonoBehaviour
         {
             amount -= player.inventory[selectedType][1];
             money = player.inventory[selectedType][1] * price * 0.75f;
-            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
+            player.Money = Mathf.RoundToInt(money);
             player.inventory[selectedType][1] = 0;
         }
         else
         {
             player.inventory[selectedType][1] -= amount;
             money = amount * price * 0.75f;
-            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
+            player.Money = Mathf.RoundToInt(money);
             amount = 0;
         }
 
@@ -426,14 +436,14 @@ public class HoneyMarket : MonoBehaviour
         {
             amount -= player.inventory[selectedType][2];
             money = player.inventory[selectedType][2] * price;
-            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
+            player.Money = Mathf.RoundToInt(money);
             player.inventory[selectedType][2] = 0;
         }
         else
         {
             player.inventory[selectedType][2] -= amount;
             money = amount * price;
-            player.Money = Mathf.RoundToInt(ApplyModifiers(money));
+            player.Money = Mathf.RoundToInt(money);
             amount = 0;
         }
 
@@ -532,6 +542,15 @@ public class HoneyMarket : MonoBehaviour
             marketValues[fType][1] = marketValues[fType][2] - marketValues[fType][0];
             marketValues[fType][0] = marketValues[fType][2];
         }
+    }
+
+    public float GetHoneySold()
+    {
+        float lbsSold = 0;
+        foreach (KeyValuePair<FlowerType, float> kvp in amountSold)
+            lbsSold += kvp.Value;
+
+        return lbsSold;
     }
 
     private void LogValues()

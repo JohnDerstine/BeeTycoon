@@ -29,7 +29,7 @@ public class SmokerTool : ToolScript
         }
         else if (level == 2)
             usesPerTurn += 1;
-        else
+        else if (level == 3)
             calming = true;
 
         base.Upgrade();

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.UIElements;
 
 public enum Tool
 {
@@ -58,6 +59,9 @@ public class ToolManager : MonoBehaviour
 
     [SerializeField]
     private UnlockTracker unlocks;
+
+    [SerializeField]
+    private UIDocument document;
 
     private GameObject objectToMove;
     private Vector3 storedPos;
@@ -116,6 +120,7 @@ public class ToolManager : MonoBehaviour
         map = GameObject.Find("MapLoader").GetComponent<MapLoader>();
         unlocks = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
+        document = GameObject.Find("UIDocument").GetComponent<UIDocument>();
     }
 
     //Logic for tool functionality
@@ -262,7 +267,13 @@ public class ToolManager : MonoBehaviour
             {
                 player.CheckForFavoriteFlowerUpdates();
                 Destroy(objectToMove);
+
                 shovel.usesLeft--;
+                VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
+                shovelElem.Q<Label>("Uses").text = shovel.usesLeft.ToString();
+                if (shovel.usesLeft == 0)
+                    SetDepletedUI(shovelElem);
+
                 CleanUpShovel();
                 return;
             }
@@ -279,7 +290,13 @@ public class ToolManager : MonoBehaviour
                             t.FlowerObject = storedTile.FlowerObject;
                             storedTile.FlowerObject = null;
                             player.CheckForFavoriteFlowerUpdates();
+
                             shovel.usesLeft--;
+                            VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
+                            shovelElem.Q<Label>("Uses").text = shovel.usesLeft.ToString();
+                            if (shovel.usesLeft == 0)
+                                SetDepletedUI(shovelElem);
+
                             CleanUpShovel(t);
                         }
                         else if (t.Flower == FlowerType.Empty && !t.HasHive && objectToMove.tag == "Peppermint")
@@ -292,7 +309,13 @@ public class ToolManager : MonoBehaviour
                             storedTile.FlowerObject = null;
                             t.special = true;
                             storedTile.special = false;
+
                             shovel.usesLeft--;
+                            VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
+                            shovelElem.Q<Label>("Uses").text = shovel.usesLeft.ToString();
+                            if (shovel.usesLeft == 0)
+                                SetDepletedUI(shovelElem);
+
                             CleanUpShovel(t);
                         }
                     }
@@ -306,7 +329,13 @@ public class ToolManager : MonoBehaviour
                         h.y = t.y;
                         h.transform.position = t.transform.position;
                         h.transform.position += new Vector3(0, 0.5f, 0);
+
                         dolly.usesLeft--;
+                        VisualElement dollyElem = document.rootVisualElement.Q<VisualElement>("Dolly");
+                        dollyElem.Q<Label>("Uses").text = dolly.usesLeft.ToString();
+                        if (dolly.usesLeft == 0)
+                            SetDepletedUI(dollyElem);
+
                         CleanUpDolly(t);
                         h.GetTileRadius(h.x, h.y);
                         if (!h.isOpen)
@@ -347,12 +376,33 @@ public class ToolManager : MonoBehaviour
                         h.CureCondition("Aggrevated");
                         if (smoker.calming && !h.conditions.Contains("Relaxed"))
                             h.AddCondition("Relaxed");
+
+                        smoker.usesLeft--;
+                        VisualElement smokerlElem = document.rootVisualElement.Q<VisualElement>("Smoker");
+                        smokerlElem.Q<Label>("Uses").text = smoker.usesLeft.ToString();
+                        if (smoker.usesLeft == 0)
+                            SetDepletedUI(smokerlElem);
                     }
                     else if (activeTool == hiveTool)
+                    {
                         h.CureCondition("Glued");
+
+                        hiveTool.usesLeft--;
+                        VisualElement hiveToolElem = document.rootVisualElement.Q<VisualElement>("Hivetool");
+                        hiveToolElem.Q<Label>("Uses").text = hiveTool.usesLeft.ToString();
+                        if (hiveTool.usesLeft == 0)
+                            SetDepletedUI(hiveToolElem);
+                    }
                 }
             }
         }
+    }
+
+    private void SetDepletedUI(VisualElement elem)
+    {
+        elem.Q<Label>("Uses").text = "";
+        elem.style.unityBackgroundImageTintColor = new Color(0.57f, 0.57f, 0.57f);
+        elem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(0.57f, 0.57f, 0.57f);
     }
 
     private void CleanUpShovel(Tile t = null)

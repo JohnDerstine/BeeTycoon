@@ -1,10 +1,11 @@
+using JetBrains.Annotations;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UIElements;
 using UnityEngine.SceneManagement;
-using System;
-using JetBrains.Annotations;
+using UnityEngine.UIElements;
+using static UnityEngine.GridBrushBase;
 
 public enum GameStates
 {
@@ -308,6 +309,8 @@ public class GameController : MonoBehaviour
         hexMenu.GameLoaded();
         CurrentState = GameStates.Start;
         ReloadUI();
+        SetToolUsesLabels();
+
         Quota = 0;
 
         map.GameStart(false);
@@ -350,7 +353,7 @@ public class GameController : MonoBehaviour
         adjustedSeason = adjustedSeason.Substring(0, 1).ToUpper() + adjustedSeason.Substring(1);
         //document.rootVisualElement.Q<Label>("TurnCount").text = adjustedSeason + " " + year + " Turn " + turn;
         document.rootVisualElement.Q<Label>("Quota").text = "Quota: $" + quota;
-        int turns = (season == "winter") ? (2 - ((turn - 1) % 4)) : (4 - ((turn - 1) % 4));
+        int turns = (season == "winter") ? (1 - ((turn - 1) % 4)) : (4 - ((turn - 1) % 4));
         document.rootVisualElement.Q<Label>("Turns").text = "Due in " + turns + " turns";
     }
 
@@ -388,7 +391,7 @@ public class GameController : MonoBehaviour
         document.visualTreeAsset = blankUI;
 
         bool newYear = false;
-        if ((turn - 1) % 4 == 0 || (season == "winter" && (turn - 1) % 4 == 2))
+        if ((turn - 1) % 4 == 0 || (season == "winter" && (turn - 1) % 4 == 1))
         {
             switch (season)
             {
@@ -503,8 +506,44 @@ public class GameController : MonoBehaviour
         honeyMarket.ReloadUI();
         UpdateLabels();
         player.OnTurnIncrement();
+        SetToolUsesLabels();
 
         CurrentState = GameStates.Running;
+    }
+
+    private void SetToolUsesLabels()
+    {
+        VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
+        VisualElement dollyElem = document.rootVisualElement.Q<VisualElement>("Dolly");
+        VisualElement smokerElem = document.rootVisualElement.Q<VisualElement>("Smoker");
+        VisualElement hiveToolElem = document.rootVisualElement.Q<VisualElement>("Hivetool");
+
+        VisualElement[] toolElems = new VisualElement[4] { shovelElem, dollyElem, smokerElem, hiveToolElem };
+        ToolScript[] tools = new ToolScript[4] { toolManager.shovel, toolManager.dolly, toolManager.smoker, toolManager.hiveTool};
+
+        for (int i = 0; i < toolElems.Length; i++)
+        {
+            if (tools[i].Level > 0)
+            {
+                if (i == 0)
+                    toolElems[i].Q<Label>("Uses").text = toolManager.shovel.usesPerTurn.ToString();
+                else if (i == 1)
+                    toolElems[i].Q<Label>("Uses").text = toolManager.dolly.usesPerTurn.ToString();
+                else if (i == 2)
+                    toolElems[i].Q<Label>("Uses").text = toolManager.smoker.usesPerTurn.ToString();
+                else if (i == 3)
+                    toolElems[i].Q<Label>("Uses").text = toolManager.hiveTool.usesPerTurn.ToString();
+
+                toolElems[i].style.unityBackgroundImageTintColor = Color.white;
+                toolElems[i].Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+            }
+            else
+            {
+                toolElems[i].Q<Label>("Uses").text = "";
+                toolElems[i].style.unityBackgroundImageTintColor = new Color(0.57f, 0.57f, 0.57f);
+                toolElems[i].Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(0.57f, 0.57f, 0.57f);
+            }
+        }
     }
 
     private IEnumerator DoubleQuotaScreen()
@@ -550,8 +589,8 @@ public class GameController : MonoBehaviour
             quotaContainer.Q<Label>("QuotaResult").text = "<color=green>$" + previousMoney + "</color> / <color=yellow>$" + previousQuota;
             quotaContainer.Q<Label>("MoneyEarned").text = "Money Earned: <indent=80%>$" + player.moneyEarned;
             quotaContainer.Q<Label>("MoneySpent").text = "Money Spent: <indent=80%>$" + Mathf.Abs(player.moneySpent);
-            quotaContainer.Q<Label>("HoneySold").text = "Honey Sold: <indent=80%>" + player.Money + " lbs.";
-            quotaContainer.Q<Label>("Hives").text = "Hives: <indent=80%>" + player.HivesCount;
+            quotaContainer.Q<Label>("HoneySold").text = "Honey Sold: <indent=80%>" + honeyMarket.GetHoneySold() + " lbs.";
+            quotaContainer.Q<Label>("Hives").text = "Hives: <indent=80%>" + player.PopulatedHives;
             quotaContainer.Q<Button>().text = "End Run";
             quotaContainer.Q<Button>().style.backgroundColor = new Color(0.37f, 0.68f, 0.13f);
         }
@@ -562,8 +601,8 @@ public class GameController : MonoBehaviour
             quotaContainer.Q<Label>("QuotaResult").text = "<color=green>$" + previousMoney + "</color> / <color=yellow>$" + previousQuota;
             quotaContainer.Q<Label>("MoneyEarned").text = "Money Earned: <indent=80%>$" + player.moneyEarned;
             quotaContainer.Q<Label>("MoneySpent").text = "Money Spent: <indent=80%>$" + Mathf.Abs(player.moneySpent);
-            quotaContainer.Q<Label>("HoneySold").text = "Honey Sold: <indent=80%>" + player.Money + " lbs.";
-            quotaContainer.Q<Label>("Hives").text = "Hives: <indent=80%>" + player.HivesCount;
+            quotaContainer.Q<Label>("HoneySold").text = "Honey Sold: <indent=80%>" + honeyMarket.GetHoneySold() + " lbs.";
+            quotaContainer.Q<Label>("Hives").text = "Hives: <indent=80%>" + player.PopulatedHives;
             string nextText = (CurrentState == GameStates.End) ? "End Run" : "Choose Reward";
             quotaContainer.Q<Button>().text = nextText;
             Color color = (CurrentState == GameStates.End) ? new Color(0.68f, 0.31f, 0.13f) : new Color(0.37f, 0.68f, 0.13f);

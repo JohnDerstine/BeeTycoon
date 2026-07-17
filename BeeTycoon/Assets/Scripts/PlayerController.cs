@@ -154,9 +154,16 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    public int HivesCount
+    public int PopulatedHives
     {
-        get { return hives.Count; }
+        get 
+        {
+            int count = 0;
+            foreach (Hive h in hives)
+                if (!h.queen.nullQueen)
+                    count++;
+            return count;
+        }
     }
 
     // Start is called before the first frame update
