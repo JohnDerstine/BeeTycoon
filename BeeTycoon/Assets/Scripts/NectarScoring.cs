@@ -52,7 +52,7 @@ public class NectarScoring : MonoBehaviour
     VisualElement total;
     Label totalAmount;
 
-    const int cloverValue = 10;
+    const int cloverValue = 200;
     const int alfalfaValue = 20;
     const int buckwheatValue = 10;
     const int fireweedValue = 30;
@@ -147,6 +147,7 @@ public class NectarScoring : MonoBehaviour
             source.pitch = basePitch;
             player.hives[i].ResetNectarGains();
             player.hives[i].DisplayHiveRadius();
+            popUp.DisplayPercent(player.hives[i]);
             //DisplayHiveMultiplier(player.hives[i]);
             foreach (Tile t in player.hives[i].tileRadius)
             {
@@ -286,7 +287,6 @@ public class NectarScoring : MonoBehaviour
             StartCoroutine(popUp.ShakeModifier(modElems[appliedMods[i]], duration));
 
         StartCoroutine(popUp.AnimateNectar(gain, h, t.transform.position, duration));
-
         h.personalNectarGains[f] += gain;
         totalAmountGained += gain;
         if (h.personalNectarGains[f] > 999)

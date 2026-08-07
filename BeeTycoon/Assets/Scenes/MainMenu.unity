@@ -618,9 +618,11 @@ MonoBehaviour:
   document: {fileID: 1944616203}
   elementToSpawn: {fileID: 9197481963319205126, guid: bd1f03253491e4249a49c9dceb3fd401, type: 3}
   honeyGlobIcon: {fileID: 9197481963319205126, guid: cb6fa5757dbca154fb4659cc8b885381, type: 3}
+  percentLabel: {fileID: 9197481963319205126, guid: 87ee7370f8c92024ca4a265d4c2ebcc0, type: 3}
   complete: 0
   source: {fileID: 1594075286}
   audio: {fileID: 8300000, guid: c7b12fafb3785974cac5b9d9c7396aee, type: 3}
+  percentAudio: {fileID: 8300000, guid: 188b991560801bb458c130ef5099285f, type: 3}
   modifierSound: {fileID: 8300000, guid: 3fe259b3f52a5c24c9f2f486f5574f00, type: 3}
 --- !u!4 &1594075284
 Transform:

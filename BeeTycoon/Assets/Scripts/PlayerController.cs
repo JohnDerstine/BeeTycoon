@@ -66,6 +66,7 @@ public class PlayerController : MonoBehaviour
     private Tile storedTile;
 
     private int money = 25;
+    private int royalJelly = 3;
     public int moneyEarned = 0;
     public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
@@ -154,6 +155,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    public int RoyalJelly
+    {
+        get { return royalJelly; }
+        set
+        {
+            royalJelly = value;
+        }
+    }
     public int PopulatedHives
     {
         get 

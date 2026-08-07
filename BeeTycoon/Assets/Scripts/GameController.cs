@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
-using static UnityEngine.GridBrushBase;
 
 public enum GameStates
 {
@@ -153,7 +152,7 @@ public class GameController : MonoBehaviour
     }
 
     void Start()
-    { 
+    {
         newGameButton = document.rootVisualElement.Q<Button>("NewGame");
         continueButton = document.rootVisualElement.Q<Button>("Continue");
         techTreeButton = document.rootVisualElement.Q<VisualElement>("TechTree");

@@ -85,7 +85,7 @@ public class Hive : MonoBehaviour
     public int y;
     public Tile hiveTile;
 
-    private const float conversionRate = 0.01f; //0.006f;
+    public const float conversionRate = 0.01f; //0.006f;
 
     private int size = 1;
     public float population = 5000;
@@ -96,16 +96,16 @@ public class Hive : MonoBehaviour
     public int combSizeCap = 6; //how much each level of size changes the combCap
     public float honey;
 
-    private float italian;
-    private float russianEff;
-    float spring;
-    float summer;
-    float fall;
-    float greedy;
-    float industrious;
-    float agile;
-    float hiveStandBonus;
-    float stressMod;
+    private float italian = 1;
+    private float russianEff = 1;
+    float spring = 1;
+    float summer = 1;
+    float fall = 1;
+    float greedy = 1;
+    float industrious = 1;
+    float agile = 1;
+    float hiveStandBonus = 1;
+    float stressMod = 1;
 
     private float addedNectar = 0;
 
@@ -157,14 +157,18 @@ public class Hive : MonoBehaviour
     public Dictionary<FlowerType, float> personalNectarGains = new Dictionary<FlowerType, float>();
 
     //UI
+    private CustomVisualElement infoHover;
+    private VisualElement infoHoverTint;
+    private VisualElement infoTint;
+    private VisualElement infoIcon;
     private Label honeyPurityLabel;
     private Label honeyTypeLabel;
     private VisualElement smallHarvest;
     private VisualElement mediumHarvest;
     private VisualElement largeHarvest;
-    private ProgressBar combMeter;
-    private ProgressBar nectarMeter;
-    private ProgressBar honeyMeter;
+    private VisualElement combMeter;
+    private VisualElement nectarMeter;
+    private VisualElement honeyMeter;
     private CustomVisualElement stressClick;
     private TemplateContainer stressContainer;
     private Clickable openWindow;
@@ -181,6 +185,8 @@ public class Hive : MonoBehaviour
     EventCallback<PointerLeaveEvent> queenExitCallback;
     EventCallback<PointerEnterEvent> harvestEnterCallback;
     EventCallback<PointerLeaveEvent> harvestLeaveCallback;
+    EventCallback<PointerEnterEvent> infoEnterCallback;
+    EventCallback<PointerLeaveEvent> infoLeaveCallback;
     Clickable smallHarvestClick;
     Clickable mediumHarvestClick;
     Clickable largeHarvestClick;
@@ -426,6 +432,20 @@ public class Hive : MonoBehaviour
         activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
     }
 
+    public void SetStatsModifiers()
+    {
+        spring = (game.Season == "spring") ? 1.5f : 1;
+        summer = (game.Season == "summer") ? 1.5f : 1;
+        fall = (game.Season == "fall") ? 1.5f : 1;
+        greedy = (queen.quirks.Contains("Greedy")) ? tracker.quirkValues["Greedy"] : 1;
+        industrious = (queen.quirks.Contains("Industrious")) ? tracker.quirkValues["Industrious"] : 1;
+        agile = (queen.quirks.Contains("Agile")) ? tracker.quirkValues["Agile"] : 1;
+        hiveStandBonus = (hasStand) ? 1.1f : 1;
+        stressMod = (stressLevel <= -1) ? 1.1f : 0.67f;
+        if (stressLevel == 0)
+            stressMod = 1f;
+    }
+
     public void ResetNectarGains()
     {
         var values = System.Enum.GetValues(typeof(FlowerType));
@@ -554,16 +574,7 @@ public class Hive : MonoBehaviour
         if (stressLevel < 4)
         {
             //Bonuses depending on season
-            spring = (game.Season == "spring") ? 1.5f : 1;
-            summer = (game.Season == "summer") ? 1.5f : 1;
-            fall = (game.Season == "fall") ? 1.5f : 1;
-            greedy = (queen.quirks.Contains("Greedy")) ? tracker.quirkValues["Greedy"] : 1;
-            industrious = (queen.quirks.Contains("Industrious")) ? tracker.quirkValues["Industrious"] : 1;
-            agile = (queen.quirks.Contains("Agile")) ? tracker.quirkValues["Agile"] : 1;
-            hiveStandBonus = (hasStand) ? 1.1f : 1;
-            stressMod = (stressLevel <= -1) ? 1.1f : 0.67f;
-            if (stressLevel == 0)
-                stressMod = 1f;
+            SetStatsModifiers();
 
             float possibleComb = construction * queen.constructionMult * hiveEfficency * spring * industrious * russianEff * hiveStandBonus * stressMod;
             if (possibleComb + comb > combCap)
@@ -818,17 +829,28 @@ public class Hive : MonoBehaviour
         //set honeyType and honeyPurity to the type of honey that is most appundant from the available flowers this turn
         //if (honey > 0)
         //{
-            honeyType = nectarValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
-            honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();
+        honeyType = nectarValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+        honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();
 
-            float roundedPurity = Mathf.Round(honeyPurity * 1000) / 10.0f;
-            if (roundedPurity <= 60)
-            {
-                roundedPurity = 100 - roundedPurity;
-                honeyType = FlowerType.Wildflower;
-            }
-            honeyTypeLabel.text = "Type:\n" + honeyType.ToString();
-            honeyPurityLabel.text = "Purity:\n" + roundedPurity + "%";
+        float roundedPurity = Mathf.Round(honeyPurity * 1000) / 10.0f;
+        if (roundedPurity <= 60)
+        {
+            roundedPurity = 100 - roundedPurity;
+            honeyType = FlowerType.Wildflower;
+        }
+        honeyTypeLabel.text = "Type:\n" + honeyType.ToString();
+        if (honeyType != FlowerType.Wildflower)
+            infoIcon.style.backgroundImage = hexMenu.allFlowerSprites[(int)honeyType - 2];
+        else
+            infoIcon.style.backgroundImage = hexMenu.allFlowerSprites[(int)honeyType - 1]; //TEMPORARY FIX FOR NO WILDFLOWER SPRITE
+        honeyPurityLabel.text = "Purity:\n" + roundedPurity + "%";
+
+        if (honeyType != FlowerType.Wildflower && roundedPurity >= 90)
+            infoTint.style.unityBackgroundImageTintColor = new Color(0.29f, 0.83f, 0.15f);
+        else if ((honeyType != FlowerType.Wildflower && roundedPurity >= 90) || honeyType == FlowerType.Wildflower)
+            infoTint.style.unityBackgroundImageTintColor = new Color(0.75f, 0.83f, 0.15f);
+        else
+            infoTint.style.unityBackgroundImageTintColor = new Color(0.55f, 0.29f, 0.23f);
         //}
     }
 
@@ -837,19 +859,19 @@ public class Hive : MonoBehaviour
         if (combMeter == null)
             return;
 
-        combMeter.value = (comb / combCap * 100) + 0;
+        combMeter.style.top = 210 - (comb / combCap * 210);
         if (production * queen.productionMult * hiveEfficency != 0)
-            nectarMeter.value = (multipliedNectar / GetHoneyMultiplier() * 100) + 0;
+            nectarMeter.style.top = 210 - (multipliedNectar / GetHoneyMultiplier() * 210);
         else
-            nectarMeter.value = 0;
-        honeyMeter.value = (honey / (comb * storagePerComb * conversionRate)) + 0;
+            nectarMeter.style.top = 210;
+
+        float part1 = ((honey / (comb * storagePerComb * conversionRate) / 100)) * 210; //210 is the style.top of the visual element at 0%
+        honeyMeter.style.top = 210 - part1; //So to calc meter height, I get the percent of honey to storage, multiply 210, then subtract the result from 210 to invert it.
         UpdateMeterLabels();
     }
 
     private void UpdateMeterLabels()
     {
-        Debug.Log(nectarGain);
-        Debug.Log(multipliedNectar);
         if (production * queen.productionMult * hiveEfficency != 0)
             nectarHover.Q<Label>("Percent").text = (Mathf.Round(multipliedNectar / GetHoneyMultiplier() * 100 * 10) / 10.0f).ToString() + "%";
         else
@@ -1073,8 +1095,19 @@ public class Hive : MonoBehaviour
     {
         if (harvestDict.Keys.Count == 0)
         {
+            infoHoverTint = template.Q<VisualElement>("InfoHoverTint");
+            infoHover = template.Q<CustomVisualElement>("FlowerInfo");
+            infoTint = template.Q<VisualElement>("InfoTint");
+            infoIcon = template.Q<VisualElement>("InfoIcon");
             honeyPurityLabel = template.Q<Label>("HoneyPurity");
             honeyTypeLabel = template.Q<Label>("HoneyType");
+
+            infoEnterCallback = new EventCallback<PointerEnterEvent>(InfoHoverEnter);
+            infoLeaveCallback = new EventCallback<PointerLeaveEvent>(InfoHoverLeave);
+
+            infoHover.RegisterCallback<PointerEnterEvent>(InfoHoverEnter);
+            infoHover.RegisterCallback<PointerLeaveEvent>(InfoHoverLeave);
+
 
             smallHarvest = template.Q<VisualElement>("SmallClick");
             mediumHarvest = template.Q<VisualElement>("MediumClick");
@@ -1099,9 +1132,9 @@ public class Hive : MonoBehaviour
             stressClick = template.Q<CustomVisualElement>("StressClick");
             stressClick.AddManipulator(openWindow);
 
-            combMeter = template.Q<ProgressBar>("CombBar");
-            nectarMeter = template.Q<ProgressBar>("NectarBar");
-            honeyMeter = template.Q<ProgressBar>("HoneyBar");
+            combMeter = template.Q<VisualElement>("CombMeterElement");
+            nectarMeter = template.Q<VisualElement>("NectarMeterElement");
+            honeyMeter = template.Q<VisualElement>("HoneyMeterElement");
             queenHex = template.Q<VisualElement>("QueenHex");
             queenClick = template.Q<CustomVisualElement>("QueenClick");
             queenClick.AddManipulator(assignQueen);
@@ -1158,6 +1191,20 @@ public class Hive : MonoBehaviour
         foreach (Tile t in tileRadius)
             if (t.lastMaterial != null)
                 t.GetComponent<MeshRenderer>().material = t.lastMaterial;
+    }
+
+    private void InfoHoverEnter(PointerEnterEvent e)
+    {
+        honeyPurityLabel.style.visibility = Visibility.Visible;
+        honeyTypeLabel.style.visibility = Visibility.Visible;
+        infoHoverTint.style.visibility = Visibility.Visible;
+    }
+
+    private void InfoHoverLeave(PointerLeaveEvent e)
+    {
+        honeyPurityLabel.style.visibility = Visibility.Hidden;
+        honeyTypeLabel.style.visibility = Visibility.Hidden;
+        infoHoverTint.style.visibility = Visibility.Hidden;
     }
 
     private void HoverHarvestEnter(PointerEnterEvent e)
