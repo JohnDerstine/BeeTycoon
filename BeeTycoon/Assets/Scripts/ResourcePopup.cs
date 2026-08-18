@@ -26,7 +26,13 @@ public class ResourcePopup : MonoBehaviour
     AudioSource source;
 
     [SerializeField]
+    AudioSource popupSource;
+
+    [SerializeField]
     AudioClip audio;
+
+    [SerializeField]
+    AudioClip modProc;
 
     [SerializeField]
     AudioClip percentAudio;
@@ -63,8 +69,9 @@ public class ResourcePopup : MonoBehaviour
             if (value / 100 > Mathf.CeilToInt(percent / 100) && Mathf.CeilToInt(percent / 100) != 0)
             {
                 AudioSource hiveSource = currentHive.GetComponent<AudioSource>();
-                hiveSource.pitch = 1f; // Should probably make seperate audio source
-                hiveSource.PlayOneShot(percentAudio, 1f);
+                popupSource.pitch = 1f; // Should probably make seperate audio source
+                popupSource.PlayOneShot(percentAudio, 1f);
+                GameObject.Find("PlayerController").GetComponent<PlayerController>().RoyalJelly++;
             }
 
             percent = value;
@@ -101,11 +108,14 @@ public class ResourcePopup : MonoBehaviour
         float colorValue = percent / 100;
 
         if (percent < 100)
+        {
             activePercent.Q<Label>().style.color = new Color(1 - colorValue, 1, 0);
+            activePercent.Q<Label>().style.fontSize = 32;
+        }
         else if (percent >= 100 && percent < 200)
         {
             activePercent.Q<Label>().style.color = new Color(0, 1, colorValue);
-            activePercent.Q<Label>().style.fontSize = 32;
+            activePercent.Q<Label>().style.fontSize = 36;
         }
         else if (percent >= 200 && percent < 300)
         {
@@ -115,17 +125,17 @@ public class ResourcePopup : MonoBehaviour
         else if (percent >= 300 && percent < 400)
         {
             activePercent.Q<Label>().style.color = new Color(colorValue, 0, 1);
-            activePercent.Q<Label>().style.fontSize = 48;
+            activePercent.Q<Label>().style.fontSize = 44;
         }
         else if (percent >= 400 && percent < 500)
         {
             activePercent.Q<Label>().style.color = new Color(1, 0, 1 - colorValue);
-            activePercent.Q<Label>().style.fontSize = 56;
+            activePercent.Q<Label>().style.fontSize = 48;
         }
         else
         {
             activePercent.Q<Label>().style.color = new Color(1, 0, 0);
-            activePercent.Q<Label>().style.fontSize = 56;
+            activePercent.Q<Label>().style.fontSize = 52;
         }
 
         activePercent.RegisterCallback((GeometryChangedEvent evt) =>
@@ -144,7 +154,8 @@ public class ResourcePopup : MonoBehaviour
     {
         if (activePercent != null)
         {
-            document.rootVisualElement.Remove(activePercent);
+            if (document.rootVisualElement.Contains(activePercent))
+                document.rootVisualElement.Remove(activePercent);
             activePercent = null;
             accumulatedNectar = 0;
             currentHive = null;
@@ -159,6 +170,8 @@ public class ResourcePopup : MonoBehaviour
         float adjustAmount = 5;
         int degrees = 29;
 
+        popupSource.pitch = 2;
+        popupSource.PlayOneShot(modProc);
         while (timeLapsed < duration * 3f)
         {
             Vector3 iconEuler = icon.transform.rotation.eulerAngles;

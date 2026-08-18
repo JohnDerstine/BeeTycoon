@@ -61,6 +61,8 @@ public class MapLoader : MonoBehaviour
     private GameObject grass;
     [SerializeField]
     private GameObject mushroom;
+    [SerializeField]
+    private GameObject fog;
 
     private List<GameObject> trees = new List<GameObject>();
     private List<GameObject> oobTiles = new List<GameObject>();
@@ -77,6 +79,13 @@ public class MapLoader : MonoBehaviour
     private List<Tile> leftChoices = new List<Tile>();
     private List<Tile> rightChoices = new List<Tile>();
 
+    private GameObject fog1;
+    private GameObject fog2;
+    private GameObject fog3;
+    private GameObject fog4;
+
+    public bool generating;
+
     void Awake()
     {
         tiles = new Tile[mapWidth, mapHeight];
@@ -92,6 +101,7 @@ public class MapLoader : MonoBehaviour
 
     private void GeneratePlot(bool fromSave, bool reload, bool generateFlowers)
     {
+        generating = true;
         trees.Clear();
         tufts.Clear();
         oobTiles.Clear();
@@ -133,6 +143,7 @@ public class MapLoader : MonoBehaviour
 
         GenerateLake();
         CleanupEdges();
+        FogHelper(true);
 
         //GenerateFoliage();
         GenerateBorder();
@@ -154,7 +165,7 @@ public class MapLoader : MonoBehaviour
         {
             int randX = -999;
             int randY = -999;
-            while ((randX == -999 && randY == -999) || tiles[randX, randY].water)
+            while ((randX == -999 && randY == -999) || tiles[randX, randY].water || !tiles[randX, randY].alive || tiles[randX, randY].Flower != FlowerType.Empty)
             {
                 randX = Random.Range(0, 6);
                 randY = Random.Range(5, 11);
@@ -169,6 +180,7 @@ public class MapLoader : MonoBehaviour
             h.hiveTile = tiles[randX, randY];
             h.x = randX;
             h.y = randY;
+            ClearHiveFlowers();
         }
 
         GenerateBuildings();
@@ -197,6 +209,47 @@ public class MapLoader : MonoBehaviour
                 }
             }
         }
+    }
+
+    private void FogHelper(bool spawn)
+    {
+        int farthestZ = 5;
+        int lowestZ = 5;
+        int farthestX = 0;
+        for (int i = 0; i < mapWidth; i++)
+        {
+            for (int j = 0; j < mapHeight; j++)
+            {
+                if (tiles[i, j].alive && j > farthestZ)
+                    farthestZ = j;
+
+                if (tiles[i, j].alive && j < lowestZ)
+                    lowestZ = j;
+
+                if (tiles[i, j].alive && i > farthestX)
+                    farthestX = i;
+            }
+        }
+
+        if (spawn)
+            SpawnFog(farthestZ, lowestZ, farthestX);
+        else
+            AdjustFog(farthestZ, lowestZ, farthestX);
+    }
+
+    private void SpawnFog(int farthestZ, int lowestZ, int farthestX)
+    {
+        fog1 = Instantiate(fog, new Vector3(0, 4.15f, (fog.transform.localScale.z / 2) + (farthestZ * 2)), Quaternion.Euler(-11, 0 ,0));
+        fog2 = Instantiate(fog, new Vector3(0, 4.15f, (lowestZ * 2) - (fog.transform.localScale.z / 2)), Quaternion.Euler(-11, 180, 0));
+        fog3 = Instantiate(fog, new Vector3((fog.transform.localScale.z / 2) + (farthestX * 2), 4.15f, 0), Quaternion.Euler(-11, 90, 0));
+        fog4 = Instantiate(fog, new Vector3( -14 - (fog.transform.localScale.z / 2), 4.15f, 0), Quaternion.Euler(-11, 270, 0));
+    }
+
+    private void AdjustFog(int farthestZ, int lowestZ, int farthestX)
+    {
+        fog1.transform.position = new Vector3(0, 4.15f, (fog.transform.localScale.z / 2) + (farthestZ * 2));
+        fog1.transform.position = new Vector3(0, 4.15f, (lowestZ * 2) - (fog.transform.localScale.z / 2));
+        fog1.transform.position = new Vector3((fog.transform.localScale.z / 2) + (farthestX * 2), 4.15f, 0);
     }
 
     private int GetAdjTileCount(int i, int j)
@@ -310,8 +363,9 @@ public class MapLoader : MonoBehaviour
                 int rotatationRand = Random.Range(0, 360);
                 oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i), Quaternion.identity));
                 oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 - x * 2 + i, 0, mapHeight * 2 + i), Quaternion.identity));
-                trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, mapHeight * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
-                trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
+
+                    trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, mapHeight * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
+                    trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 - x * 2 + i, 0, -2 - i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
             }
             for (int y = 0; y < mapHeight + i + 2; y++) //Top bottom
             {
@@ -328,7 +382,7 @@ public class MapLoader : MonoBehaviour
                     Instantiate(roadTile, new Vector3(-2 - i, 0, mapHeight * 2 - y * 2 + i), Quaternion.identity);
                 }
                 oobTiles.Add(Instantiate(outOfBoundsTile, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i), Quaternion.identity));
-                trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
+                    trees.Add(Instantiate(outOfBoundsTree, new Vector3(mapWidth * 2 + i, 0, mapHeight * 2 - y * 2 + i) + offset, Quaternion.Euler(0, rotatationRand, 0)));
             }
         }
 
@@ -476,6 +530,7 @@ public class MapLoader : MonoBehaviour
         }
 
         ClearHiveFlowers();
+        generating = false;
     }
 
     private void ClearHiveFlowers()
@@ -745,6 +800,7 @@ public class MapLoader : MonoBehaviour
         }
 
         SeasonRecolor();
+        FogHelper(false);
     }
 
     private void ClearAllTiles()

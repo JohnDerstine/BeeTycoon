@@ -54,6 +54,8 @@ public class PlayerController : MonoBehaviour
     public List<Hive> hives = new List<Hive>();
 
     private Label moneyLabel;
+    private Label rjLabel;
+    private Label voucherLabel;
 
     private GameObject selectedItem = null;
     public Texture2D selectedItemSprite;
@@ -67,6 +69,7 @@ public class PlayerController : MonoBehaviour
 
     private int money = 25;
     private int royalJelly = 3;
+    private int vouchers = 10;
     public int moneyEarned = 0;
     public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
@@ -161,8 +164,20 @@ public class PlayerController : MonoBehaviour
         set
         {
             royalJelly = value;
+            rjLabel.text = royalJelly.ToString();
         }
     }
+
+    public int Vouchers
+    {
+        get { return vouchers; }
+        set 
+        { 
+            vouchers = value;
+            voucherLabel.text = vouchers.ToString();
+        }
+    }
+
     public int PopulatedHives
     {
         get 
@@ -332,7 +347,7 @@ public class PlayerController : MonoBehaviour
                             {
                                 hoverObject.transform.position += new Vector3(0, 0.5f, 0);
                                 hives.Add(h);
-                                Money = -hoverObject.GetComponent<Cost>().Price;
+                                Vouchers = -hoverObject.GetComponent<Cost>().Price;
                                 h.x = t.x;
                                 h.y = t.y;
                                 selectedItem = null;
@@ -349,7 +364,7 @@ public class PlayerController : MonoBehaviour
                         {
                             if (c.ftype != FlowerType.Empty && c.ftype != FlowerType.Orange && c.ftype != FlowerType.Tupelo && t.Flower == FlowerType.Empty && !t.HasHive)
                             {
-                                if (Money < c.Price)
+                                if (Vouchers < c.Price)
                                     return;
 
                                 t.Flower = c.ftype;
@@ -358,7 +373,7 @@ public class PlayerController : MonoBehaviour
 
                                 if (hexMenu.flowersOwned[c.ftype] <= 0)
                                 {
-                                    Money = -c.Price;
+                                    Vouchers = -c.Price;
                                     hexMenu.RefreshMenuLists();
                                     hexMenu.OpenTab(3, hexMenu.open4, false);
                                 }
@@ -376,7 +391,7 @@ public class PlayerController : MonoBehaviour
                                     t.Flower = c.ftype;
                                     if (hexMenu.flowersOwned[c.ftype] <= 0)
                                     {
-                                        Money = -c.Price;
+                                        Vouchers = -c.Price;
                                         hexMenu.RefreshMenuLists();
                                         hexMenu.OpenTab(3, hexMenu.open4, false);
                                     }
@@ -411,7 +426,7 @@ public class PlayerController : MonoBehaviour
                     if (selectedItem.tag != "Placeable" && selectedItem.tag != "Dolly" && selectedItem.tag != "Shovel" && selectedItem.tag != "HiveTool" && selectedItem.tag != "Smoker")
                     {
                         int cost = selectedItem.GetComponent<Cost>().Price;
-                        Money = -cost;
+                        Vouchers = -cost;
                         if (selectedItem.TryGetComponent(out QueenBee queen))
                         {
                             StartCoroutine(h.Populate(queen));
@@ -539,13 +554,17 @@ public class PlayerController : MonoBehaviour
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
         }
-
     }
 
     public void OnTurnIncrement()
     {
         foreach (Hive h in hives)
+        {
             h.UpdateHive();
+            if (!h.queen.nullQueen)
+                Vouchers++;
+        }
+
         honeyMarket.UpdateMarket();
         shovelUsesLeft = shovelsPerTurn;
     }
@@ -610,6 +629,10 @@ public class PlayerController : MonoBehaviour
     {
         moneyLabel = ui.rootVisualElement.Q<Label>("Money");
         moneyLabel.text = "$" + money;
+        rjLabel = ui.rootVisualElement.Q<Label>("RJs");
+        rjLabel.text = RoyalJelly.ToString();
+        voucherLabel = ui.rootVisualElement.Q<Label>("Vouchers");
+        voucherLabel.text = Vouchers.ToString();
     }
 
     #region Camera Control

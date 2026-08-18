@@ -66,7 +66,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: 0d77f0442350c5547811b0d6b5546321, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -155,13 +155,12 @@ MonoBehaviour:
   population: 5000
   comb: 0
   combSizeCap: 8
-  nectar: 0
   honey: 0
   conditions: []
   queen: {fileID: 0}
   honeyType: 0
   honeyPurity: 0
-  possibleNectar: 0
+  multipliedNectar: 0
   nectarGain: 0
   selectingQueen: 0
   isOpen: 0
@@ -214,7 +213,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b79fae608ad4e7743bd3693731eaa849, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Price: 10
+  Price: 7
   purchased: 0
   ftype: 0
   OneTime: 0

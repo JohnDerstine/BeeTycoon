@@ -182,6 +182,7 @@ public class HexMenu : MonoBehaviour
             flowerObjectList.Insert(0, allFlowerObjects[i]);
             flowerObjectList[0].GetComponent<Cost>().ftype = (FlowerType)(i + 2);
             flowerSprites.Insert(0, allFlowerSprites[i]);
+            flowerObjectList[0].GetComponent<Cost>().Price = unlocks.stage;
             flowerNames.Insert(0, FTypeToString((FlowerType)(i + 2)));
             tab4ItemCount++;
         }
@@ -453,7 +454,7 @@ public class HexMenu : MonoBehaviour
     //Check to see if a queen was selected from the shop normally
     private void SelectItem(GameObject item, Texture2D sprite, int cost, VisualElement hex)
     {
-        if (player.Money < cost)
+        if (player.Vouchers < cost)
             return;
 
         document.GetComponent<AudioSource>().Play();
@@ -472,10 +473,10 @@ public class HexMenu : MonoBehaviour
 
         if (item.tag == "Stage")
         {
-            if (player.Money < cost)
+            if (player.Vouchers < cost)
                 return;
 
-            player.Money = -cost;
+            player.Vouchers = -cost;
             List<int> flowers = unlocks.GetNextFlowers();
             foreach (int i in flowers)
             {
@@ -505,7 +506,7 @@ public class HexMenu : MonoBehaviour
             Label costLabel = hex.Q<Label>();
             if (toolManager.GetToolFromTag(item.tag).Level == 0)
             {
-                player.Money = -cost;
+                player.Vouchers = -cost;
                 toolManager.GetToolFromTag(item.tag).Upgrade();
                 UpdateToolUIOnPurschase(item);
             }
@@ -529,11 +530,11 @@ public class HexMenu : MonoBehaviour
     //Check to see if a Queen was selected from the shop, after clicking on the HiveUI queen button
     public void SelectHive(GameObject item, Texture2D sprite, int cost, Hive hive)
     {
-        if (player.Money < cost)
+        if (player.Vouchers < cost)
             return;
 
         document.GetComponent<AudioSource>().Play();
-        player.Money = -cost;
+        player.Vouchers = -cost;
         StartCoroutine(hive.Populate(item.GetComponent<QueenBee>()));
         beeObjectList.Remove(item);
         beeSprites.Remove(sprite);

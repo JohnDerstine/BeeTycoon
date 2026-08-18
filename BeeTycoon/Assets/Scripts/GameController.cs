@@ -453,8 +453,13 @@ public class GameController : MonoBehaviour
             else
             {
                 choices.isChoosing = true;
-                StartCoroutine(choices.GiveChoice(3, false, false));
+                choices.LoadShop();
                 yield return new WaitWhile(() => choices.isChoosing);
+
+
+                //choices.isChoosing = true;
+                //StartCoroutine(choices.GiveChoice(3, false, false));
+                //yield return new WaitWhile(() => choices.isChoosing);
             }
         }
         else

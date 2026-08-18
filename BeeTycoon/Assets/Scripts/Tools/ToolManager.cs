@@ -87,7 +87,7 @@ public class ToolManager : MonoBehaviour
                 objectToMove.transform.position = storedPos;
                 if (objectToMove.TryGetComponent<Hive>(out Hive h))
                     h.GetTileRadius(h.x, h.y);
-                storedTile.Flower = storedFType;
+                storedTile.FlowerNoAnimation(storedFType, true);
                 storedTile = null;
                 storedFType = FlowerType.Empty;
                 Destroy(activeHolo);

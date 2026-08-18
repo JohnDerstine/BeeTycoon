@@ -88,10 +88,12 @@ public class GameEventController : MonoBehaviour
                 chance += 5;
         }
 
-        if (Random.Range(0, 100) <= chance)
+        if (Random.Range(0, 100) <= chance && !eventObjectDict[eventObjects[4]])
         {
-            Debug.Log("I HIT THE " + chance + "/100");
             GetEvent(true);
+            yield return new WaitWhile(() => !animationComplete);
+            animationComplete = false;
+            activeEvents++;
         }
 
         allComplete = true;
@@ -99,13 +101,22 @@ public class GameEventController : MonoBehaviour
 
     private void GetEvent(bool swarm)
     {
-        int randObject = Random.Range(0, eventObjects.Count);
-        activeObject = eventObjects[randObject];
-        while ((eventObjectDict[activeObject] && CheckAvailability()) || (randObject == 4 && !swarm))
+        int randObject;
+        if (swarm)
         {
-            randObject = Random.Range(0, eventObjects.Count);
+            randObject = 4;
             activeObject = eventObjects[randObject];
         }
+        else
+        {
+            do
+            {
+                randObject = Random.Range(0, eventObjects.Count);
+                activeObject = eventObjects[randObject];
+            }
+            while ((eventObjectDict[activeObject] && CheckAvailability()));
+        }
+
         eventObjectDict[activeObject] = true;
 
         EventHelper(randObject);

@@ -925,6 +925,11 @@ public class Hive : MonoBehaviour
             activePopup.RemoveFromHierarchy();
             activePopup = null;
         }
+
+        if (!conditions.Contains("Indulged") && map.GetAdjacentFlowers(queen.favorite, x, y).Count > 0)
+            AddCondition("Indulged");
+        else if (conditions.Contains("Indulged") && map.GetAdjacentFlowers(queen.favorite, x, y).Count <= 0)
+            CureCondition("Indulged");
     }
 
     //Load queen from save doesn't require transfering stats

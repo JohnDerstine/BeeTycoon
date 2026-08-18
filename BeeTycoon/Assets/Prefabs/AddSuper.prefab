@@ -82,7 +82,7 @@ SpriteRenderer:
   m_Size: {x: 6.4, y: 6.4}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!114 &3707762640021538622
@@ -97,5 +97,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b79fae608ad4e7743bd3693731eaa849, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Price: 9
+  Price: 5
+  purchased: 0
   ftype: 0
+  OneTime: 0
+  tree: 0

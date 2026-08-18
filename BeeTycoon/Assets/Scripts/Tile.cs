@@ -60,13 +60,16 @@ public class Tile : MonoBehaviour
         get { return flower; }
         set
         {
+            if (flower == value)
+                return;
+
             if ((flower == FlowerType.Orange || flower == FlowerType.Tupelo) && this != original)
             {
                 original.Flower = value;
                 return;
             }
 
-            if (controller.CurrentState != GameStates.Menu)
+            if (controller.CurrentState != GameStates.Menu && !map.generating)
             {
                 if (flower != FlowerType.Empty)
                     StartCoroutine(RemoveFlower(value));
@@ -85,14 +88,14 @@ public class Tile : MonoBehaviour
         if (!shovel)
         {
             Destroy(flowerObject);
-            SetFlower(f);
+            SetFlower(f, false);
         }
         flower = f;
     }
 
     private IEnumerator PlaceFlower(FlowerType f)
     {
-        SetFlower(f);
+        SetFlower(f, true);
         StartCoroutine(FlowerAppear(f));
         yield return new WaitWhile(() => !appearComplete);
         appearComplete = false;
@@ -137,7 +140,7 @@ public class Tile : MonoBehaviour
         yield return null;
     }
 
-    private void SetFlower(FlowerType current)
+    private void SetFlower(FlowerType current, bool animation)
     {
         if (current != FlowerType.Empty && current != FlowerType.Orange && current != FlowerType.Tupelo) //&& value != flower
             flowerObject = Instantiate(map.flowerList[(int)current], transform.position, Quaternion.identity);
@@ -170,8 +173,10 @@ public class Tile : MonoBehaviour
             map.tiles[x + 1, y + 1].flowerObject = null;
         }
 
-        if (controller.CurrentState != GameStates.Menu && current != FlowerType.Empty)
+        if (controller.CurrentState != GameStates.Menu && current != FlowerType.Empty && animation)
+        {
             flowerObject.transform.localScale = new Vector3(0, 0, 0);
+        }
     }
 
     public GameObject FlowerObject
