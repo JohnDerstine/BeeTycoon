@@ -173,6 +173,10 @@ public class QueenChooser : MonoBehaviour
                     applicableMods.Add(mod);
             }
         }
+        foreach (OrderModifier mod in mods.GetArchetypeAll<OrderModifier>())
+        {
+            applicableMods.Add(mod);
+        }
 
         for (int i = 0; i < 3; i++)
         {
@@ -420,6 +424,10 @@ public class QueenChooser : MonoBehaviour
                             if (mod.Flower == f && !applicableMods.Contains(mod))
                                 applicableMods.Add(mod);
                         }
+                    }
+                    foreach (OrderModifier mod in mods.GetArchetypeAll<OrderModifier>())
+                    {
+                        applicableMods.Add(mod);
                     }
                     int randID = -999;
                     while (usedIds.Contains(randID) || randID == -999)

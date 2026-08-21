@@ -82,7 +82,7 @@ public class GameController : MonoBehaviour
     private Button continueButton;
     private VisualElement techTreeButton;
 
-    private int quota = 0;
+    private int quota = 25;
     //private float quotaScaling = 1.5f;
     private int previousQuota = 0;
 
@@ -145,7 +145,7 @@ public class GameController : MonoBehaviour
             if (value == GameStates.Start)
             {
                 List<int> choiceList = new List<int>() { 3, 3 };
-                StartCoroutine(choices.GiveChoice(choiceList, true, false));
+                StartCoroutine(choices.GiveChoice(choiceList, true, true));
             }
             currentState = value;
         }
@@ -259,7 +259,7 @@ public class GameController : MonoBehaviour
         GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>().ResetToStart();
         year = 1;
         turn = 1;
-        quota = 0;
+        quota = 25;
         previousQuota = 0;
         season = "spring";
     }
@@ -310,7 +310,7 @@ public class GameController : MonoBehaviour
         ReloadUI();
         SetToolUsesLabels();
 
-        Quota = 0;
+        Quota = 25;
 
         map.GameStart(false);
         nectar.GameStart();
@@ -442,13 +442,20 @@ public class GameController : MonoBehaviour
 
             if (newYear)
             {
-                choices.isChoosing = true;
-                StartCoroutine(choices.GiveChoice(3, false, false)); //Normal choices
-                yield return new WaitWhile(() => choices.isChoosing);
+                //choices.isChoosing = true;
+                //StartCoroutine(choices.GiveChoice(3, false, false)); //Normal choices
+                //yield return new WaitWhile(() => choices.isChoosing);
 
                 choices.isChoosing = true;
                 StartCoroutine(choices.GiveChoice(3, false, true)); //modifier choices
                 yield return new WaitWhile(() => choices.isChoosing);
+
+                if (year == 2)
+                    map.IncreaseMapSize("left");
+                else if (year == 3)
+                    map.IncreaseMapSize("right");
+                else if (year == 4)
+                    map.IncreaseMapSize("down");
             }
             else
             {
@@ -481,8 +488,8 @@ public class GameController : MonoBehaviour
         }
         if (season == "winter")
             Quota = 0;
-        if (year == 1 && season == "summer")
-            Quota = 25;
+        //if (year == 1 && season == "summer")
+        //    Quota = 25;
 
         toolManager.TurnReset();
 

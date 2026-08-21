@@ -39,6 +39,7 @@ public class Tile : MonoBehaviour
 
     private bool disappearComplete;
     private bool appearComplete;
+    public bool busy;
 
     public Tile Original
     {
@@ -60,7 +61,7 @@ public class Tile : MonoBehaviour
         get { return flower; }
         set
         {
-            if (flower == value)
+            if (flower == value || busy)
                 return;
 
             if ((flower == FlowerType.Orange || flower == FlowerType.Tupelo) && this != original)
@@ -95,32 +96,38 @@ public class Tile : MonoBehaviour
 
     private IEnumerator PlaceFlower(FlowerType f)
     {
+        busy = true;
         SetFlower(f, true);
         StartCoroutine(FlowerAppear(f));
         yield return new WaitWhile(() => !appearComplete);
         appearComplete = false;
-
         flower = f;
+        busy = false;
         yield return null;
     }
 
     private IEnumerator RemoveFlower(FlowerType f)
     {
+        busy = true;
         StartCoroutine(FlowerDisappear(f));
         yield return new WaitWhile(() => !disappearComplete);
         disappearComplete = false;
-
         Destroy(flowerObject);
         flower = f;
+        busy = false;
         yield return null;
     }
 
     private IEnumerator FlowerDisappear(FlowerType f)
     {
-        for (int i = 0; i < 19; i++)
+
+        float timeLapsed = 0.0f;
+        while (timeLapsed < 0.25f)
         {
-            flowerObject.transform.localScale -= new Vector3(0.05f, 0.05f, 0.05f);
-            yield return new WaitForSeconds(0.5f / 20);
+            float adjustAmount = Time.deltaTime * 4;
+            flowerObject.transform.localScale -= new Vector3(adjustAmount, adjustAmount, adjustAmount);
+            yield return new WaitForSeconds(Time.deltaTime);
+            timeLapsed += Time.deltaTime;
         }
 
         disappearComplete = true;
@@ -129,12 +136,14 @@ public class Tile : MonoBehaviour
 
     private IEnumerator FlowerAppear(FlowerType f)
     {
-        for (int i = 0; i < 20; i++)
+        float timeLapsed = 0.0f;
+        while (timeLapsed < 0.25f)
         {
-            flowerObject.transform.localScale += new Vector3(0.05f, 0.05f, 0.05f);
-            yield return new WaitForSeconds(0.5f / 20);
+            float adjustAmount = Time.deltaTime * 4;
+            flowerObject.transform.localScale += new Vector3(adjustAmount, adjustAmount, adjustAmount);
+            yield return new WaitForSeconds(Time.deltaTime);
+            timeLapsed += Time.deltaTime;
         }
-
 
         appearComplete = true;
         yield return null;

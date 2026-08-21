@@ -42,7 +42,7 @@ public class Shed : MonoBehaviour
     private void OnMouseDown()
     {
         ui.rootVisualElement.Q("Base").Add(modTemplate);
-        if (modHover == null)
+        if (modHover == null && modifiers.Count > 0)
         {
             modHover = ModifierUI.Instantiate();
 

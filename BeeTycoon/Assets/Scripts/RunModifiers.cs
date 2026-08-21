@@ -7,6 +7,24 @@ using UnityEngine;
 
 public class RunModifiers : MonoBehaviour
 {
+    public Dictionary<FlowerType, List<string>> flowerAttributes = new Dictionary<FlowerType, List<string>>()
+    {
+        {FlowerType.Empty, new List<string>() {} },
+        {FlowerType.Clover, new List<string>() { "pink", "short"} },
+        {FlowerType.Alfalfa, new List<string>() { "purple", "tall"} },
+        {FlowerType.Buckwheat, new List<string>() { "white", "tall"} },
+        {FlowerType.Dandelion, new List<string>() { "yellow", "short"} },
+        {FlowerType.Sunflower, new List<string>() { "yellow", "tall"} },
+        {FlowerType.Orange, new List<string>() { "white", "tall", "tree"} },
+        {FlowerType.Fireweed, new List<string>() { "pink", "tall"} },
+        {FlowerType.Goldenrod, new List<string>() { "yellow", "tall"} },
+        {FlowerType.Daisy, new List<string>() { "white", "yellow", "short"} },
+        {FlowerType.Thistle, new List<string>() { "purple", "short"} },
+        {FlowerType.Blueberry, new List<string>() { "white", "short"} },
+        {FlowerType.Tupelo, new List<string>() { "purple", "tall", "tree"} },
+    };
+
+
     public Dictionary<int, Modifier> allMods = new Dictionary<int, Modifier>();
     public List<Modifier> accquiredMods = new List<Modifier>();
 
@@ -31,7 +49,7 @@ public class RunModifiers : MonoBehaviour
 
         #region mods
         //flower base
-        allMods.Add(0, new FlowerModifier("Clover Clover Bias", modSprites[0], 1, 0,new FlowerType[2] { FlowerType.Clover, FlowerType.Clover }, 6, "adjacent or diagonal", 16, 1));
+        allMods.Add(0, new FlowerModifier("Clover Clover Bias", modSprites[0], 1, 0, new FlowerType[2] { FlowerType.Clover, FlowerType.Clover }, 6, "adjacent or diagonal", 16, 1));
         allMods.Add(1, new FlowerModifier("Alfalfa Clover Bias", modSprites[1], 1, 1, new FlowerType[2] { FlowerType.Alfalfa, FlowerType.Clover }, 1, "adjacent", 10, 1));
         allMods.Add(2, new FlowerModifier("Buckwheat Thistle Bias", modSprites[2], 1, 2, new FlowerType[2] { FlowerType.Buckwheat, FlowerType.Thistle }, 1, "adjacent", 5, 1));
         allMods.Add(3, new FlowerModifier("Dandelion Goldenrod Bias", modSprites[3], 1, 3, new FlowerType[2] { FlowerType.Dandelion, FlowerType.Goldenrod }, 1, "adjacent or diagonal", 15, 1));
@@ -73,6 +91,28 @@ public class RunModifiers : MonoBehaviour
         allMods.Add(35, new HoneyModifier("Blueberry Specialty", modSprites[35], 1, 35, FlowerType.Blueberry, 0, 1.25f));
         allMods.Add(36, new HoneyModifier("Tupelo Specialty", modSprites[36], 1, 36, FlowerType.Tupelo, 0, 1.25f));
 
+        //order mods
+        //bool flower, Flowertype flower, string attribute, string myAttribute, int tiles, bool before, bool after, bool inf, mult, base, retrigger (future), 
+        //bool tells whether we need to check for flower type, or flower attribute, then uses the respetive variable
+        //int represents how many tiles before it need to match
+
+        //scoring a short before a tall, adds 5 base
+        //scoring a tall before a short, multiplies by 1.25x
+        //scoring 3 of the same flower multiples next flower by 2x
+
+        //for each yellow flower after this flower, add 1 base 
+        //for each pink before this flower, multiply score by 1.25x
+        //for each white flower in the hive radius, add 2 base
+        //for each purple flower in hive radius, multiply score by 1.1x
+
+        allMods.Add(37, new OrderModifier("Guidance", modSprites[37], 1, 37, false, "short", "tall", 1, false, true, false, 5, 1));
+        allMods.Add(38, new OrderModifier("Admiration", modSprites[38], 1, 38, false, "tall", "short", 1, false, true, false, 0, 1.25f));
+        allMods.Add(39, new OrderModifier("Block Planting", modSprites[39], 1, 39, true, "", "", 3, false, true, false, 0, 2));
+        allMods.Add(40, new OrderModifier("Golden Future", modSprites[40], 1, 40, false, "yellow", "", -1, false, true, true, 2, 1));
+        allMods.Add(41, new OrderModifier("Rosy Past", modSprites[41], 1, 41, false, "pink", "", -1, true, false, true, 0, 1.25f));
+        allMods.Add(42, new OrderModifier("Bed of Clouds", modSprites[42], 1, 42, false, "white", "", -1, true, true, true, 1, 1));
+        allMods.Add(43, new OrderModifier("Royal Carpet", modSprites[43], 1, 43, false, "purple", "", -1, true, true, true, 0, 1.1f));
+
 
         #endregion
         #region tools
@@ -88,7 +128,7 @@ public class RunModifiers : MonoBehaviour
 
     public void AddMod(int id)
     {
-        accquiredMods.Add(allMods[0]); //CHANGE THIS WHEN DONE TESTING
+        accquiredMods.Add(allMods[id]); //CHANGE THIS WHEN DONE TESTING
     }
 
     public List<T> GetArchetypeAccquired<T>() where T : struct
@@ -312,5 +352,131 @@ public struct HoneyModifier : Modifier
         string modType = (multMod == 1) ? "Increase" : "Multiply";
 
         description = modType + " selling price of high quality " + flower.ToString() + " honey by " + mod;
+    }
+}
+
+public struct OrderModifier : Modifier
+{
+
+    private string name;
+    public string Name
+    {
+        get { return name; }
+    }
+
+    private string description;
+    public string Description
+    {
+        get { return description; }
+    }
+
+    private int rarity;
+    public int Rarity
+    {
+        get { return rarity; }
+    }
+
+    private Texture2D sprite;
+    public Texture2D Sprite
+    {
+        get { return sprite; }
+    }
+
+    private int id;
+    public int ID
+    {
+        get { return id; }
+    }
+
+    private bool isFlower;
+    public bool IsFlower
+    {
+        get { return isFlower; }
+    }
+
+    private string attribute;
+    public string Attribute
+    {
+        get { return attribute; }
+    }
+
+    private string myAttribute;
+    public string MyAttribute
+    {
+        get { return myAttribute; }
+    }
+
+    private int tiles;
+    public int Tiles
+    {
+        get { return tiles; }
+    }
+
+    private bool before;
+    public bool Before
+    {
+        get { return before; }
+    }
+
+    private bool after;
+    public bool After
+    {
+        get { return after; }
+    }
+
+    private bool inf;
+    public bool Inf
+    {
+        get { return inf; }
+    }
+
+    private int baseMod;
+    public int BaseMod
+    {
+        get { return baseMod; }
+    }
+
+    private float multMod;
+    public float MultMod
+    {
+        get { return multMod; }
+    }
+
+    public OrderModifier(string name, Texture2D sprite, int rarity, int id, bool isFlower, string attribute, string myAttribute, int tiles, bool before, bool after, bool inf, int baseMod, float multMod)
+    {
+        this.name = name;
+        this.sprite = sprite;
+        this.rarity = rarity;
+        this.id = id;
+        this.isFlower = isFlower;
+        this.attribute = attribute;
+        this.myAttribute = myAttribute;
+        this.tiles = tiles;
+        this.before = before;
+        this.after = after;
+        this.inf = inf;
+        this.baseMod = baseMod;
+        this.multMod = multMod;
+
+        string mod = (multMod == 1) ? baseMod + "" : multMod + "x";
+        string modType = (multMod == 1) ? "increase" : "multiply";
+        string amount = (tiles == 1) ? "a" : tiles.ToString();
+        string plural = (tiles == 1) ? "" : "s";
+        string direction = (after) ? "after" : "before";
+
+        if (inf)
+        {
+            if (after && before)
+                direction = "in hive radius";
+            description = "For every " + attribute + " flower " + direction + " the scoring flower, " + modType + " the flower's nectar gain by " + mod;
+        }
+        else
+        {
+            if (attribute != "")
+                description = "When a " + myAttribute + " flower scores " + direction + " " + amount + " " + attribute + " flower" + plural + ", " + modType + " it's nectar gain by " + mod;
+            else
+                description = "When " + amount + " of the same flower score consecutivly, " + modType + " the next flowers nectar gain by " + mod;
+        }
+
     }
 }

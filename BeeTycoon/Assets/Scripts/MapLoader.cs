@@ -248,8 +248,8 @@ public class MapLoader : MonoBehaviour
     private void AdjustFog(int farthestZ, int lowestZ, int farthestX)
     {
         fog1.transform.position = new Vector3(0, 4.15f, (fog.transform.localScale.z / 2) + (farthestZ * 2));
-        fog1.transform.position = new Vector3(0, 4.15f, (lowestZ * 2) - (fog.transform.localScale.z / 2));
-        fog1.transform.position = new Vector3((fog.transform.localScale.z / 2) + (farthestX * 2), 4.15f, 0);
+        fog2.transform.position = new Vector3(0, 4.15f, (lowestZ * 2) - (fog.transform.localScale.z / 2));
+        fog3.transform.position = new Vector3((fog.transform.localScale.z / 2) + (farthestX * 2), 4.15f, 0);
     }
 
     private int GetAdjTileCount(int i, int j)

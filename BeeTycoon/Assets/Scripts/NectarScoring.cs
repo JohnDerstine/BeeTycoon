@@ -1,9 +1,14 @@
 using System.Buffers;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
+using UnityEngine.SocialPlatforms.Impl;
 using UnityEngine.UIElements;
 using static Unity.VisualScripting.Member;
 
@@ -52,7 +57,7 @@ public class NectarScoring : MonoBehaviour
     VisualElement total;
     Label totalAmount;
 
-    const int cloverValue = 200;
+    const int cloverValue = 10;
     const int alfalfaValue = 20;
     const int buckwheatValue = 10;
     const int fireweedValue = 30;
@@ -125,7 +130,7 @@ public class NectarScoring : MonoBehaviour
         //Display modifier icons for flower modifiers on left side of screen
         foreach (Modifier m in mods.accquiredMods)
         {
-            if (m is FlowerModifier)
+            if (m is FlowerModifier || m is OrderModifier)
             {
                 TemplateContainer container = modIcon.Instantiate();
                 VisualElement hex = container.Q<VisualElement>("Hex");
@@ -246,38 +251,158 @@ public class NectarScoring : MonoBehaviour
         mod.Stat2 += updated - original;
     }
 
-    private int ApplyModifierValues(FlowerType flower, List<Tile> adjTiles, List<Tile> diagTiles, int currentGain)
+    private int ApplyModifierValues(FlowerType flower, List<Tile> adjTiles, List<Tile> diagTiles, int currentGain, Hive h, Tile t)
     {
         appliedMods.Clear();
         int newGain = currentGain;
         float mult = 1f;
-        foreach (FlowerModifier m in mods.GetArchetypeAccquired<FlowerModifier>())
+
+        List<FlowerModifier> flowerModifiers = mods.GetArchetypeAccquired<FlowerModifier>();
+        List<OrderModifier> orderModifiers = mods.GetArchetypeAccquired<OrderModifier>();
+        List<Modifier> allAccquired = new List<Modifier>();
+        foreach (FlowerModifier m in flowerModifiers)
+            allAccquired.Add(m);
+        foreach (OrderModifier m in orderModifiers)
+            allAccquired.Add(m);
+
+        foreach (Modifier m in allAccquired)
         {
-            if (m.Flowers[0] == flower)
+            if (m is FlowerModifier)
             {
-                int amountCheck = 0;
-                if (m.Direction.Contains("adjacent"))
-                    foreach (Tile t in adjTiles)
-                        if (t.Flower == m.Flowers[1])
-                            amountCheck++;
-
-                if (m.Direction.Contains("diagonal"))
-                    foreach (Tile t in diagTiles)
-                        if (t.Flower == m.Flowers[1])
-                            amountCheck++;
-
-                if (amountCheck >= m.Amount)
+                FlowerModifier fm = (FlowerModifier)m;
+                if (fm.Flowers[0] == flower)
                 {
-                    if (m.BaseMod != 0)
-                        newGain += m.BaseMod;
-                    else
-                        mult *= m.MultMod;
-                    appliedMods.Add(m);
+                    if (FlowerModHelper(fm, adjTiles, diagTiles) >= fm.Amount)
+                    {
+                        newGain += fm.BaseMod;
+                        mult *= fm.MultMod;
+                        appliedMods.Add(fm);
+                    }
                 }
             }
-            TrackModifierStats(currentGain, newGain, m);
+
+            if (m is OrderModifier)
+            {
+                OrderModifier om = (OrderModifier)m;
+                if (om.MyAttribute == "" || mods.flowerAttributes[flower].Contains(om.MyAttribute))
+                {
+                    if (om.Tiles == -1)
+                    {
+                        int num = OrderModHelper(om, h.tileRadius, t);
+                        if (om.BaseMod != 0)
+                            newGain += om.BaseMod * num;
+                        if (om.MultMod != 1)
+                            mult *= om.MultMod * num;
+                        appliedMods.Add(om);
+                    }
+                    else if (OrderModHelper(om, h.tileRadius, t) >= om.Tiles)
+                    {
+                        newGain += om.BaseMod;
+                        mult *= om.MultMod;
+                        appliedMods.Add(om);
+                    }
+                }
+            }
+            //TrackModifierStats(currentGain, newGain, m);
         }
         return (int)(newGain * mult);
+    }
+
+    private int FlowerModHelper(FlowerModifier m, List<Tile> adjTiles, List<Tile> diagTiles)
+    {
+        int amountCheck = 0;
+        if (m.Direction.Contains("adjacent"))
+            foreach (Tile t in adjTiles)
+                if (t.Flower == m.Flowers[1])
+                    amountCheck++;
+
+        if (m.Direction.Contains("diagonal"))
+            foreach (Tile t in diagTiles)
+                if (t.Flower == m.Flowers[1])
+                    amountCheck++;
+
+        return amountCheck;
+    }
+
+    private int OrderModHelper(OrderModifier m, List<Tile> hiveTiles, Tile tile)
+    {
+        int amountCheck = 0;
+
+        if (m.Inf)
+        {
+            if (m.Before)
+                foreach (Tile t in hiveTiles)
+                    if (mods.flowerAttributes[t.Flower].Contains(m.Attribute) && hiveTiles.IndexOf(tile) > hiveTiles.IndexOf(t))
+                        amountCheck++;
+
+            if (m.After)
+                foreach (Tile t in hiveTiles)
+                    if (mods.flowerAttributes[t.Flower].Contains(m.Attribute) && hiveTiles.IndexOf(tile) < hiveTiles.IndexOf(t))
+                        amountCheck++;
+        }
+        else
+        {
+            int startIndex = hiveTiles.IndexOf(tile);
+            if (m.Before)
+            {
+                FlowerType stored = FlowerType.Wildflower;
+                for (int i = startIndex + 1; i <= startIndex + m.Tiles; i++)
+                {
+                    if (i > hiveTiles.Count - 1)
+                        break;
+
+                    if (hiveTiles[i].Flower == FlowerType.Empty)
+                    {
+                        startIndex++;
+                    }
+                    else
+                    {
+                        if (!m.IsFlower)
+                        {
+                            if (mods.flowerAttributes[hiveTiles[i].Flower].Contains(m.Attribute))
+                                amountCheck++;
+                        }
+                        else
+                        {
+                            if (stored == FlowerType.Wildflower && hiveTiles[i].Flower != FlowerType.Empty)
+                                stored = hiveTiles[i].Flower;
+                            if (stored == hiveTiles[i].Flower)
+                                amountCheck++;
+                        }
+                    }
+                }
+            }
+            else if (m.After)
+            {
+                FlowerType stored = FlowerType.Wildflower;
+                for (int i = startIndex - 1; i >= startIndex - m.Tiles; i--)
+                {
+                    if (i < 0)
+                        break;
+
+                    if (hiveTiles[i].Flower == FlowerType.Empty)
+                    {
+                        startIndex--;
+                    }
+                    else
+                    {
+                        if (!m.IsFlower)
+                        {
+                            if (mods.flowerAttributes[hiveTiles[i].Flower].Contains(m.Attribute))
+                                amountCheck++;
+                        }
+                        else
+                        {
+                            if (stored == FlowerType.Wildflower && hiveTiles[i].Flower != FlowerType.Empty)
+                                stored = hiveTiles[i].Flower;
+                            if (stored == hiveTiles[i].Flower)
+                                amountCheck++;
+                        }
+                    }
+                }
+            }
+        }
+            return amountCheck;
     }
 
     private void FlowerValueHelper(Tile t, int gain, float duration, FlowerType f, Hive h)
@@ -290,22 +415,22 @@ public class NectarScoring : MonoBehaviour
         h.personalNectarGains[f] += gain;
         totalAmountGained += gain;
         if (h.personalNectarGains[f] > 999)
-            item.Q<Label>("Amount").style.fontSize = 48;
+            item.Q<Label>("Amount").style.fontSize = 24;
         if (totalAmountGained > 999)
-            totalAmount.style.fontSize = 48;
-        totalAmount.text = totalAmountGained.ToString();
-        item.Q<Label>("Amount").text = h.personalNectarGains[f].ToString();
+            totalAmount.style.fontSize = 24;
+        totalAmount.text = Math.Round(totalAmountGained *.01f, 2, MidpointRounding.AwayFromZero).ToString() + " lbs.";
+        item.Q<Label>("Amount").text = Math.Round(h.personalNectarGains[f] * .01f, 2, MidpointRounding.AwayFromZero).ToString() + " lbs.";
     }
 
     private int CalcHiveSharing(Tile t, int gain, Hive h)
     {
-        int shareCount = 1;
+        int shareCount = 0;
         foreach (Hive hive in player.hives)
             if (hive != h)
                 if (hive.tileRadius.Contains(t))
                     shareCount++;
 
-        return Mathf.FloorToInt((gain / shareCount) + (0.5f * (gain / shareCount)));
+        return Mathf.FloorToInt((gain + (0.5f * gain * shareCount)) / (shareCount + 1));
     }
 
     private IEnumerator GetCloverValue(Tile t, float duration, Hive h)
@@ -325,7 +450,7 @@ public class NectarScoring : MonoBehaviour
         //Animate flower
         StartCoroutine(t.Animate(FlowerType.Clover, 1, duration, true, source, h));
         int gain = (adjClover.Count + diagClover.Count) * cloverValue;
-        gain = ApplyModifierValues(FlowerType.Clover, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Clover, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Clover, h);
 
@@ -358,7 +483,7 @@ public class NectarScoring : MonoBehaviour
 
         StartCoroutine(t.Animate(FlowerType.Alfalfa, 1, duration, true, source, h));
         int gain = diagAlfalfa.Count * alfalfaValue;
-        gain = ApplyModifierValues(FlowerType.Alfalfa, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Alfalfa, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Alfalfa, h);
 
@@ -385,7 +510,7 @@ public class NectarScoring : MonoBehaviour
         count += buckwheatValue;
         StartCoroutine(t.Animate(FlowerType.Buckwheat, 1, duration, true, source, h));
         int gain = buckwheatValue;
-        gain = ApplyModifierValues(FlowerType.Buckwheat, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Buckwheat, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Buckwheat, h);
 
@@ -406,7 +531,7 @@ public class NectarScoring : MonoBehaviour
         count += fireweedValue;
         StartCoroutine(t.Animate(FlowerType.Fireweed, 1, duration, true, source, h));
         int gain = fireweedValue;
-        gain = ApplyModifierValues(FlowerType.Fireweed, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Fireweed, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Fireweed, h);
 
@@ -427,7 +552,7 @@ public class NectarScoring : MonoBehaviour
         count += goldenrodValue;
         StartCoroutine(t.Animate(FlowerType.Goldenrod, 1, duration, true, source, h));
         int gain = goldenrodValue;
-        gain = ApplyModifierValues(FlowerType.Goldenrod, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Goldenrod, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Goldenrod, h);
 
@@ -448,7 +573,7 @@ public class NectarScoring : MonoBehaviour
         count += dandelionValue;
         StartCoroutine(t.Animate(FlowerType.Dandelion, 1, duration, true, source, h));
         int gain = dandelionValue;
-        gain = ApplyModifierValues(FlowerType.Dandelion, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Dandelion, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Dandelion, h);
 
@@ -473,7 +598,7 @@ public class NectarScoring : MonoBehaviour
         count += diagEmpty.Count;
         StartCoroutine(t.Animate(FlowerType.Sunflower, 1, duration, true, source, h));
         int gain = (adjEmpty.Count + diagEmpty.Count) * sunflowerValue;
-        gain = ApplyModifierValues(FlowerType.Sunflower, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Sunflower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Sunflower, h);
 
@@ -494,7 +619,7 @@ public class NectarScoring : MonoBehaviour
         count += orangeValue;
         StartCoroutine(t.Animate(FlowerType.Orange, 1, duration, true, source, h));
         int gain = orangeValue;
-        gain = ApplyModifierValues(FlowerType.Orange, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Orange, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Orange, h);
 
@@ -531,7 +656,7 @@ public class NectarScoring : MonoBehaviour
         count += daisyValue * uniqueFlowers;
         StartCoroutine(t.Animate(FlowerType.Daisy, 1, duration, true, source, h));
         int gain = daisyValue * uniqueFlowers;
-        gain = ApplyModifierValues(FlowerType.Daisy, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Daisy, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Daisy, h);
 
@@ -562,12 +687,12 @@ public class NectarScoring : MonoBehaviour
             }
         }
 
-        Tile randTile = validTiles[Random.Range(0, validTiles.Count)];
+        Tile randTile = validTiles[UnityEngine.Random.Range(0, validTiles.Count)];
 
         count += randTile.lastGain * 3;
         StartCoroutine(t.Animate(FlowerType.Thistle, 1, duration, true, source, h));
         int gain = randTile.lastGain * 3;
-        gain = ApplyModifierValues(FlowerType.Thistle, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Thistle, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Thistle, h);
 
@@ -594,7 +719,7 @@ public class NectarScoring : MonoBehaviour
             count += blueberryValue;
             gain = blueberryValue;
         }
-        gain = ApplyModifierValues(FlowerType.Blueberry, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Blueberry, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         StartCoroutine(t.Animate(FlowerType.Blueberry, 1, duration, true, source, h));
         FlowerValueHelper(t, gain, duration, FlowerType.Blueberry, h);
@@ -616,7 +741,7 @@ public class NectarScoring : MonoBehaviour
         count += tupeloValue;
         StartCoroutine(t.Animate(FlowerType.Tupelo, 1, duration, true, source, h));
         int gain = tupeloValue;
-        gain = ApplyModifierValues(FlowerType.Tupelo, adjTiles, diagTiles, gain);
+        gain = ApplyModifierValues(FlowerType.Tupelo, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
         FlowerValueHelper(t, gain, duration, FlowerType.Tupelo, h);
 

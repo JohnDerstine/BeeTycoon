@@ -67,9 +67,9 @@ public class PlayerController : MonoBehaviour
     private bool pickedUpThisFrame = false;
     private Tile storedTile;
 
-    private int money = 25;
+    private int money = 0;
     private int royalJelly = 3;
-    private int vouchers = 10;
+    private int vouchers = 5;
     public int moneyEarned = 0;
     public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
@@ -172,8 +172,8 @@ public class PlayerController : MonoBehaviour
     {
         get { return vouchers; }
         set 
-        { 
-            vouchers = value;
+        {
+            vouchers += value;
             voucherLabel.text = vouchers.ToString();
         }
     }
@@ -362,7 +362,7 @@ public class PlayerController : MonoBehaviour
                         }
                         else if (hoverObject.TryGetComponent<Cost>(out Cost c))
                         {
-                            if (c.ftype != FlowerType.Empty && c.ftype != FlowerType.Orange && c.ftype != FlowerType.Tupelo && t.Flower == FlowerType.Empty && !t.HasHive)
+                            if (c.ftype != FlowerType.Empty && c.ftype != FlowerType.Orange && c.ftype != FlowerType.Tupelo && t.Flower == FlowerType.Empty && !t.HasHive && !t.busy)
                             {
                                 if (Vouchers < c.Price)
                                     return;
@@ -384,7 +384,7 @@ public class PlayerController : MonoBehaviour
                                     hexMenu.OpenTab(3, hexMenu.open4, false);
                                 }
                             }
-                            else if (c.ftype != FlowerType.Empty && t.Flower == FlowerType.Empty && !t.HasHive) //tree check
+                            else if (c.ftype != FlowerType.Empty && t.Flower == FlowerType.Empty && !t.HasHive && !t.busy) //tree check //this is done really bad, will redo this at some point
                             {
                                 if (t.y != map.mapHeight && t.x != map.mapWidth)
                                 {
@@ -402,7 +402,6 @@ public class PlayerController : MonoBehaviour
                                         hexMenu.OpenTab(3, hexMenu.open4, false);
                                     }
                                 }
-
                             }
 
                             if (c.ftype == FlowerType.Empty)
@@ -562,7 +561,7 @@ public class PlayerController : MonoBehaviour
         {
             h.UpdateHive();
             if (!h.queen.nullQueen)
-                Vouchers++;
+                Vouchers = 1;
         }
 
         honeyMarket.UpdateMarket();
