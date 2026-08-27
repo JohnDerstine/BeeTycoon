@@ -4,7 +4,6 @@
         <ui:VisualElement name="Icon" style="flex-grow: 1; background-image: url(&quot;project://database/Assets/Sprites/BeeIcon.png?fileID=2800000&amp;guid=d794b4b9be42e824f883ecaf14cd324c&amp;type=3#BeeIcon&quot;); position: absolute; width: 128px; height: 128px; margin-top: 40px; align-items: stretch; align-self: center;" />
         <ui:Label tabindex="-1" text="Species:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Species" class="Statistic" style="margin-top: 60px; font-size: 24px;" />
         <ui:Label tabindex="-1" text="Radius Type:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Age" class="Statistic" style="font-size: 24px;" />
-        <ui:Label tabindex="-1" text="Grade:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Grade" class="Statistic" style="font-size: 24px;" />
         <ui:Label tabindex="-1" text="Favorite Flower:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Favorite" class="Statistic" style="font-size: 24px;" />
         <ui:Label tabindex="-1" text="Quirks:" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Quirks" class="Statistic" style="font-size: 24px;" />
         <ui:VisualElement name="QuirkContainer" style="flex-grow: 0; flex-direction: row; top: 110px; flex-wrap: wrap; align-items: center; justify-content: center; padding-left: 55px; padding-right: 55px;" />

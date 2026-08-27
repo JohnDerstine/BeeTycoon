@@ -519,7 +519,6 @@ public class QueenChooser : MonoBehaviour
             temp.Q<VisualElement>("Icon").style.backgroundImage = queenSprite;
             temp.Q<Label>("Species").text = "Species: " + queenOptions[i].species;
             temp.Q<Label>("Age").text = "Radius Type: " + queenOptions[i].radiusType;
-            temp.Q<Label>("Grade").text = "Grade: " + queenOptions[i].grade.ToString() + "/10";
             temp.Q<Label>("Favorite").text = "Favorite Flower: " + queenOptions[i].favorite.ToString();
 
             //Add quirk labels to the queen
@@ -762,7 +761,6 @@ public class QueenChooser : MonoBehaviour
         hoverTemp.Q<VisualElement>("Icon").style.backgroundImage = queenSprite;
         hoverTemp.Q<Label>("Species").text = "Species: " + queen.species;
         hoverTemp.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
-        hoverTemp.Q<Label>("Grade").text = "Grade: " + queen.grade.ToString() + "/10";
         hoverTemp.Q<Label>("Favorite").text = "Favorite Flower: " + queen.favorite.ToString();
 
         //Add quirk labels to the queen

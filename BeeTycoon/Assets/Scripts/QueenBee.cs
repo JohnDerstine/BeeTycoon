@@ -9,15 +9,7 @@ public class QueenBee : MonoBehaviour
     public bool fromSave;
     private UnlockTracker unlocks;
 
-    //stat multipliers;
-    public float productionMult = 0.0f;
-    public float constructionMult = 0.0f;
-    public float collectionMult = 0.0f;
-    public float resilienceMult = 0.0f;
-    public float aggressivnessMult = 0.0f;
-
     public string species;
-    public float grade;
     public string radiusType;
     public FlowerType favorite;
     public List<string> quirks = new List<string>();
@@ -34,14 +26,7 @@ public class QueenBee : MonoBehaviour
             return;
 
         if (!nullQueen)
-        {
-            productionMult = Random.Range(.75f, 2.0f);
-            constructionMult = Random.Range(.75f, 2.0f);
-            collectionMult = Random.Range(.75f, 2.0f);
-            resilienceMult = Random.Range(.75f, 2.0f);
-            aggressivnessMult = Random.Range(.75f, 2.0f);
             GenerateStats();
-        }
         else
             finishedGenerating = true;
     }
@@ -57,7 +42,6 @@ public class QueenBee : MonoBehaviour
         species = possibilites[Random.Range(0, possibilites.Count)];
 
         radiusType = rTypes[Random.Range(0, 3)];
-        grade = Mathf.Round((productionMult + constructionMult + collectionMult + resilienceMult + aggressivnessMult) * 10) / 10.0f;
 
         int quirkNum;
         int quirkRand = Random.Range(0, 10);
@@ -94,16 +78,10 @@ public class QueenBee : MonoBehaviour
     public IEnumerator TransferStats(QueenBee newQueen)
     {
         yield return new WaitUntil(() => finishedGenerating);
-        productionMult = newQueen.productionMult;
-        collectionMult = newQueen.collectionMult;
-        constructionMult = newQueen.constructionMult;
-        aggressivnessMult = newQueen.aggressivnessMult;
-        resilienceMult = newQueen.resilienceMult;
         radiusType = newQueen.radiusType;
         favorite = newQueen.favorite;
         species = newQueen.species;
         quirks = newQueen.quirks;
-        grade = newQueen.grade;
         nullQueen = false;
         transferComplete = true;
     }

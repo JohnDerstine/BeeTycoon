@@ -101,8 +101,8 @@ public class ResourcePopup : MonoBehaviour
     {
         currentHive.SetStatsModifiers();
         accumulatedNectar += amount;
-        Percent = (accumulatedNectar * .01f * currentHive.GetNectarMultiplier() / currentHive.GetHoneyMultiplier()) * 100;
-        if (currentHive.GetHoneyMultiplier() != 0)
+        Percent = (accumulatedNectar * .01f / currentHive.maxHoneyProduction) * 100;
+        if (currentHive.maxHoneyProduction != 0)
             activePercent.Q<Label>().text = Mathf.RoundToInt(percent).ToString() + "%"; //0.01f is conversion rate
 
         float colorValue = percent / 100;

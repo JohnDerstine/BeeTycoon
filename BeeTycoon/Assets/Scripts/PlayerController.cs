@@ -445,13 +445,13 @@ public class PlayerController : MonoBehaviour
                                 newLevel.transform.localPosition = new Vector3(0, h.Size - 1, 0);
                             }
                         }
-                        else if (selectedItem.tag == "Frame")
-                        {
-                            if (h.Frames < 10)
-                            {
-                                h.Frames++;
-                            }
-                        }
+                        //else if (selectedItem.tag == "Frame")
+                        //{
+                        //    if (h.Frames < 10)
+                        //    {
+                        //        h.Frames++;
+                        //    }
+                        //}
                         else if (selectedItem.tag == "Sugar")
                         {
                             if (!h.hasSugar)
@@ -540,10 +540,10 @@ public class PlayerController : MonoBehaviour
                 if (h.Size >= 5)
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
                 break;
-            case "Frame":
-                if (h.Frames >= 10)
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
-                break;
+            //case "Frame":
+            //    if (h.Frames >= 10)
+            //        h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+            //    break;
             case "Bee":
                 if (!h.conditions.Contains("Dead"))
                     h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
@@ -747,7 +747,6 @@ public class PlayerController : MonoBehaviour
             comb.Add(h.comb);
             combSizeCap.Add(h.combSizeCap);
             nectarGain.Add(h.nectarGain);
-            multipliedNectar.Add(h.multipliedNectar);
             population.Add(h.population);
             size.Add(h.Size);
             //condition.Add(h.Condition);
@@ -755,14 +754,8 @@ public class PlayerController : MonoBehaviour
             //Queen
             nullQueen.Add(h.queen.nullQueen);
             finishedGenerating.Add(h.queen.finishedGenerating);
-            constructionMult.Add(h.queen.constructionMult);
-            productionMult.Add(h.queen.productionMult);
-            collectionMult.Add(h.queen.collectionMult);
-            resilienceMult.Add(h.queen.resilienceMult);
-            aggressivnessMult.Add(h.queen.aggressivnessMult);
             species.Add(h.queen.species);
             radiusType.Add(h.queen.radiusType);
-            grade.Add(h.queen.grade);
             foreach (string s in h.queen.quirks)
                 quirks.Add(s);
             quirksCount.Add(h.queen.quirks.Count);
@@ -860,7 +853,6 @@ public class PlayerController : MonoBehaviour
                 hive.comb = data.comb[i];
                 hive.combSizeCap = data.combSizeCap[i];
                 hive.nectarGain = data.nectarGain[i];
-                hive.multipliedNectar = data.multipliedNectar[i];
                 hive.population = data.population[i];
                 hive.Size = data.size[i];
                 //hive.Condition = data.condition[i];
@@ -903,14 +895,8 @@ public class PlayerController : MonoBehaviour
         {
             queen.nullQueen = false;
             queen.finishedGenerating = true;
-            queen.constructionMult = data.constructionMult[i];
-            queen.productionMult = data.productionMult[i];
-            queen.collectionMult = data.collectionMult[i];
-            queen.resilienceMult = data.resilienceMult[i];
-            queen.aggressivnessMult = data.aggressivnessMult[i];
             queen.species = data.species[i];
             queen.radiusType = data.radiusType[i];
-            queen.grade = data.grade[i];
 
             int count = 0;
             for (int j = 0; count < data.quirksCount[i]; j = 0)

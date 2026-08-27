@@ -101,7 +101,7 @@ public class HexMenu : MonoBehaviour
 
     public int tab1ItemCount = 0;
     private int tab2ItemCount = 6;
-    private int tab3ItemCount = 8;
+    private int tab3ItemCount = 7;
     private int tab4ItemCount = 1;
 
     [SerializeField]
@@ -599,7 +599,6 @@ public class HexMenu : MonoBehaviour
                     popup.Q<VisualElement>("Icon").style.backgroundImage = sprite;
                     popup.Q<Label>("Species").text = "Species: " + queen.species;
                     popup.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
-                    popup.Q<Label>("Grade").text = "Grade: " + queen.grade.ToString() + "/10";
                     VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");
                     foreach (string s in queen.quirks)
                     {
@@ -813,14 +812,8 @@ public class HexMenu : MonoBehaviour
             QueenBee queen = go.GetComponent<QueenBee>();
             nullQueen.Add(false);
             finishedGenerating.Add(true);
-            constructionMult.Add(queen.constructionMult);
-            productionMult.Add(queen.productionMult);
-            collectionMult.Add(queen.collectionMult);
-            resilienceMult.Add(queen.resilienceMult);
-            aggressivnessMult.Add(queen.aggressivnessMult);
             species.Add(queen.species);
             radiusType.Add(queen.radiusType);
-            grade.Add(queen.grade);
             foreach (string s in queen.quirks)
                 quirks.Add(s);
             quirksCount.Add(queen.quirks.Count);
@@ -884,14 +877,8 @@ public class HexMenu : MonoBehaviour
     {
         queen.nullQueen = false;
         queen.finishedGenerating = true;
-        queen.constructionMult = data.constructionMult[i];
-        queen.productionMult = data.productionMult[i];
-        queen.collectionMult = data.collectionMult[i];
-        queen.resilienceMult = data.resilienceMult[i];
-        queen.aggressivnessMult = data.aggressivnessMult[i];
         queen.species = data.species[i];
         queen.radiusType = data.radiusType[i];
-        queen.grade = data.grade[i];
 
         int count = 0;
         for (int j = 0; count < data.quirksCount[i]; j = 0)

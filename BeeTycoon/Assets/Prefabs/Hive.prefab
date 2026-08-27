@@ -153,8 +153,8 @@ MonoBehaviour:
   y: 0
   hiveTile: {fileID: 0}
   population: 5000
-  comb: 0
-  combSizeCap: 8
+  comb: 6
+  combSizeCap: 6
   honey: 0
   conditions: []
   queen: {fileID: 0}
@@ -190,13 +190,7 @@ MonoBehaviour:
   nullQueen: 1
   finishedGenerating: 0
   fromSave: 0
-  productionMult: 0
-  constructionMult: 0
-  collectionMult: 0
-  resilienceMult: 0
-  aggressivnessMult: 0
   species: 
-  grade: 0
   radiusType: 
   favorite: 0
   quirks: []
