@@ -1285,6 +1285,7 @@ MonoBehaviour:
   sizeHex: {fileID: 2800000, guid: 0be4c73216f34f545af8fb5208927640, type: 3}
   toolHex: {fileID: 2800000, guid: 2eefe8bbb4f582a4c973b42f6673cd55, type: 3}
   modifierHex: {fileID: 9197481963319205126, guid: 8aa08588868c1484f9ce19b21438a893, type: 3}
+  bundleHex: {fileID: 9197481963319205126, guid: cff4bfd0fdfa93c459dcdc250618c4d5, type: 3}
   choicesContainer: {fileID: 9197481963319205126, guid: 4824afd6568b8da419faf5736df0e8a6, type: 3}
   shopContainer: {fileID: 9197481963319205126, guid: c1e74acdd9886cb4c973649a60f75f02, type: 3}
   document: {fileID: 1944616203}

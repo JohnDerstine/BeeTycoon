@@ -99,25 +99,21 @@ public class Hive : MonoBehaviour
     public float maxHoneyProduction;
     private float maxHoneyBase = 10;
 
-    float greedy = 1;
-    float industrious = 1;
-    float agile = 1;
+    float greedy;
+    float industrious;
+    float agile;
+    float rugged;
+    float docile;
+    float motherly;
+    float picky;
 
     private float addedNectar = 0;
 
-    private float storage = 0; //how much storage the hive has
-    private float baseStoragePerComb = 5;
+    private float baseStoragePerComb = 5; //how much storage you start with
     private float storagePerComb = 5; //how much each level of size changes the storage - lbs.
 
     private float birthRate = 2500;
     private float hiveEfficency = 0; //Efficiency is a multiplier to all the hive's actions and is calculated by the population / total population * size of the hive
-
-    //stats 0-1f
-    private float production = 20f; //was 20f;
-    private float construction = 1f; 
-    //private float collection = 1f; //Not currently in use. Nectar is now caclulated through flowers
-    private float resilience = 1;
-    private float aggressivness = 5;
 
     private int stressLevel = 0;
     public List<string> conditions = new List<string>();
@@ -133,11 +129,14 @@ public class Hive : MonoBehaviour
         { "Glued", 1},
         { "Freezing", 4},
         { "Starving", 4},
-        { "Defending", 1 },
-        { "Swarmed", 1 },
+        { "Defending", 1},
+        { "Swarmed", 1},
+        { "Killer", 1},
         { "Undisturbed", -1},
         { "Relaxed", -1},
-        { "Indulged", -1}
+        { "Calm", -1},
+        { "Indulged", -1},
+        { "Carniolan", - 1}
     };
     private bool attacking;
 
@@ -145,6 +144,8 @@ public class Hive : MonoBehaviour
     public QueenBee queen;
 
     public Dictionary<FlowerType, float> nectarValues = new Dictionary<FlowerType, float>();
+    public Dictionary<FlowerType, float> buckfastGains = new Dictionary<FlowerType, float>();
+    public Dictionary<FlowerType, float> buckfastValues = new Dictionary<FlowerType, float>();
     public FlowerType honeyType = FlowerType.Empty;
     public float honeyPurity = 0;
 
@@ -233,16 +234,6 @@ public class Hive : MonoBehaviour
             UpdateMeters();
         }
     }
-
-    //public int Frames
-    //{
-    //    get { return combSizeCap; }
-    //    set
-    //    {
-    //        combSizeCap++;
-    //        combCap += size;
-    //    }
-    //}
 
     public bool Placed
     {
@@ -398,8 +389,12 @@ public class Hive : MonoBehaviour
         {
             FlowerType fType = (FlowerType)v;
             personalNectarGains.Add(fType, 0);
+            buckfastGains.Add(fType, 0);
             if (!fromSave)
+            {
                 nectarValues.Add(fType, 0);
+                buckfastValues.Add(fType, 0);
+            }
         }
 
         Color darkerTintColor = Color.black;
@@ -431,8 +426,12 @@ public class Hive : MonoBehaviour
     public void SetStatsModifiers()
     {
         greedy = (queen.quirks.Contains("Greedy")) ? tracker.quirkValues["Greedy"] : 1;
-        industrious = (queen.quirks.Contains("Industrious")) ? tracker.quirkValues["Industrious"] : 1;
-        agile = (queen.quirks.Contains("Agile")) ? tracker.quirkValues["Agile"] : 1;
+        industrious = (queen.quirks.Contains("Industrious")) ? tracker.quirkValues["Industrious"] : 0;
+        agile = (queen.quirks.Contains("Agile")) ? tracker.quirkValues["Agile"] : 0;
+        docile = (queen.quirks.Contains("Territorial")) ? tracker.quirkValues["Territorial"] : 0;
+        rugged = (queen.quirks.Contains("Rugged")) ? tracker.quirkValues["Rugged"] : 1;
+        motherly = (queen.quirks.Contains("Motherly")) ? tracker.quirkValues["Motherly"] : 0;
+        picky = (queen.quirks.Contains("Picky")) ? tracker.quirkValues["Picky"] : 0;
     }
 
     public void ResetNectarGains()
@@ -442,6 +441,7 @@ public class Hive : MonoBehaviour
         {
             FlowerType fType = (FlowerType)v;
             personalNectarGains[fType] = 0;
+            buckfastGains[fType] = 0;
         }
     }
 
@@ -514,6 +514,40 @@ public class Hive : MonoBehaviour
         }
     }
 
+    public void CheckForCarniolan()
+    {
+        if (queen.species == "Carniolan")
+        {
+            foreach (Tile t in tileRadius)
+            {
+                if (t.HasHive && t.hive != this && !t.hive.conditions.Contains("Carniolan"))
+                    t.hive.AddCondition("Carniolan");
+            }
+        }
+
+        if (conditions.Contains("Carniolan"))
+        {
+            bool found = false;
+            foreach (Hive h in player.hives)
+            {
+                if (h.queen.species == "Carniolan" && h != this)
+                {
+                    foreach (Tile t in tileRadius)
+                    {
+                        if (t.HasHive && t.hive == this)
+                        {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (found)
+                    return;
+            }
+            CureCondition("Carniolan");
+        }
+    }
+
     private void CalcEfficiency()
     {
         float popEff = population / basePopulation * size;
@@ -523,7 +557,42 @@ public class Hive : MonoBehaviour
         if (stressMod >= 1)
             stressMod = -10;
 
-        hiveEfficency = (100 + popEff + hivestand + russian + stressMod) / 100; //Potentially clamp this if I think scaling is too good.
+        hiveEfficency = Mathf.Clamp((100 + popEff + hivestand + russian + stressMod) / 100, 1, 1.5f + agile);
+    }
+
+    private float GetItalianMult()
+    {
+        float mult = 1;
+        foreach (Hive h in player.hives)
+            if (h.queen.species == "Italian")
+                mult += 0.1f;
+        return mult;
+    }
+
+    private float GetCordovanMult()
+    {
+        if (queen.species == "Cordovan")
+        {
+            float mult = 0.5f;
+            mult += 0.25f * player.hives.Count - 1;
+            return mult;
+        }
+        return 1;
+    }
+
+    private float GetHimalayanMult()
+    {
+        if (queen.species == "Himalayan" && CheckHimalayanCondition())
+            return 1.25f;
+        return 1;
+    }
+
+    private bool CheckHimalayanCondition()
+    {
+        foreach (Tile t in tileRadius)
+            if (t.HasHive && t.hive != this)
+                return false;
+        return true;
     }
 
     public void UpdateHive()
@@ -548,7 +617,7 @@ public class Hive : MonoBehaviour
         if (game.Season == "winter")
         {
             //CONSUME HONEY FOR FOOD
-            honey -= population / 20000;
+            honey -= (population / 2000) / rugged;
 
             //POP DECLINE
             if (honey < 0)
@@ -561,16 +630,14 @@ public class Hive : MonoBehaviour
         else if (conditions.Contains("Freezing"))
             CureCondition("Freezing");
             
-        if (stressLevel < 4)
+        if (stressLevel < 4 || queen.species == "Killer")
         {
-            //Bonuses depending on season
-            SetStatsModifiers();
-
             nectarGain = (addedNectar + personalNectarGains.Values.Sum()) * conversionRate; //scale it down to lbs
+            float buckGain = buckfastGains.Values.Sum() * conversionRate;
 
             float italian = (queen.species == "Italian") ? 1.25f : 1;
-            maxHoneyProduction = maxHoneyBase * hiveEfficency * italian;
-            storagePerComb = baseStoragePerComb * hiveEfficency;
+            maxHoneyProduction = maxHoneyBase * hiveEfficency * GetItalianMult() * greedy * GetCordovanMult() * GetHimalayanMult();
+            storagePerComb = (baseStoragePerComb + industrious) * hiveEfficency;
 
             float possibleHoney = nectarGain;
             if (possibleHoney > maxHoneyProduction)
@@ -582,8 +649,10 @@ public class Hive : MonoBehaviour
 
             if (nectarGain > 0)
                 SplitNectar(nectarGain);
+            if (buckGain > 0)
+                SplitBuckfast(buckGain);
 
-            float possiblePop = birthRate; //Will have to change this
+            float possiblePop = birthRate + motherly;
             if (possiblePop + population > popCap)
                 possiblePop = popCap - population;
             population += possiblePop;
@@ -594,7 +663,7 @@ public class Hive : MonoBehaviour
         CalcHoneyStats();
         if (template != null)
             UpdateMeters();
-        if (conditions.Count > 0 && queen.species == "Japanese" && Random.Range(0, 3) == 0)
+        if (conditions.Count > 0 && (queen.species == "Japanese" || queen.japaneseInherited) && Random.Range(0, 3) == 0)
             CureRandomNegativeCondition();
 
         TryAddCondition();
@@ -612,9 +681,7 @@ public class Hive : MonoBehaviour
         if (conditions.Contains("Relaxed"))
             CureCondition("Relaxed");
 
-        //Debug.Log("Population: " + population);
-        //Debug.Log("Honey: " + honey);
-        //Debug.Log(honey - population / 20000);
+        CheckForCarniolan();
     }
 
     private void Harvest(float percent)
@@ -645,14 +712,11 @@ public class Hive : MonoBehaviour
             player.inventory[honeyType][2] += amount * extractorBonus;
         }
 
-        if (!toolManager.extractor.noCombLoss)
-            comb = comb / 1.1f; //lose 10% of comb every extraction
-
         if (turnsSinceLastHarvest >= 3)
             CureCondition("Undisturbed");
         turnsSinceLastHarvest = 0;
 
-        if (percent == 1f && amount / storage > .75f)
+        if (percent == 1f && amount / (storagePerComb * comb) > .75f)
             if (Random.Range(0, toolManager.suit.cureChance) == 0)
                 CureCondition(conditions[Random.Range(0, conditions.Count)]);
 
@@ -813,13 +877,28 @@ public class Hive : MonoBehaviour
             nectarValues[key] += personalNectarGains[key] / inputNectar;
     }
 
+    private void SplitBuckfast(float inputNectar)
+    {
+        foreach (FlowerType key in buckfastValues.Keys.ToList())
+            buckfastValues[key] += buckfastGains[key] / inputNectar;
+    }
+
     public void CalcHoneyStats()
     {
         //set honeyType and honeyPurity to the type of honey that is most appundant from the available flowers this turn
-        //if (honey > 0)
-        //{
-        honeyType = nectarValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
-        honeyPurity = nectarValues[honeyType] / nectarValues.Values.Sum();
+        if (queen.species == "Buckfast")
+        {
+            honeyType = buckfastValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+            honeyPurity = (buckfastValues[honeyType] / buckfastValues.Values.Sum()) + picky;
+        }
+        else
+        {
+            honeyType = nectarValues.Aggregate((x, y) => x.Value > y.Value ? x : y).Key;
+            if (queen.species == "Himalayan" && CheckHimalayanCondition())
+                honeyPurity = 1;
+            else
+                honeyPurity = (nectarValues[honeyType] / nectarValues.Values.Sum()) + picky;
+        }
 
         float roundedPurity = Mathf.Round(honeyPurity * 1000) / 10.0f;
         if (roundedPurity <= 60)
@@ -840,7 +919,6 @@ public class Hive : MonoBehaviour
             infoTint.style.unityBackgroundImageTintColor = new Color(0.75f, 0.83f, 0.15f);
         else
             infoTint.style.unityBackgroundImageTintColor = new Color(0.55f, 0.29f, 0.23f);
-        //}
     }
 
     public void UpdateMeters()
@@ -849,7 +927,7 @@ public class Hive : MonoBehaviour
             return;
 
         combMeter.style.top = 210 - (comb / (combSizeCap * 5) * 210);
-        if (production * hiveEfficency != 0)
+        if (hiveEfficency != 0)
             nectarMeter.style.top = 210 - (nectarGain / maxHoneyProduction * 210);
         else
             nectarMeter.style.top = 210;
@@ -861,7 +939,7 @@ public class Hive : MonoBehaviour
 
     private void UpdateMeterLabels()
     {
-        if (production * hiveEfficency != 0)
+        if (hiveEfficency != 0)
             nectarHover.Q<Label>("Percent").text = (Mathf.Round(nectarGain / maxHoneyProduction * 100 * 10) / 10.0f).ToString() + "%";
         else
             nectarHover.Q<Label>("Percent").text = "0%";
@@ -905,6 +983,21 @@ public class Hive : MonoBehaviour
         GetTileRadius(x, y);
         DisplayHiveRadius();
         EnableHarvestButtons();
+        SetStatsModifiers();
+        if (queen.quirks.Contains("Calm"))
+            AddCondition("Calm");
+        CheckForCarniolan();
+
+        if (queen.species == "Killer")
+            foreach (Hive h in player.hives)
+                if (h != this)
+                    h.AddCondition("Killer");
+
+        foreach (Hive h in player.hives)
+            if (h != this && h.queen.species == "Killer")
+                AddCondition("Killer");
+
+        CalcEfficiency();
 
         if (activePopup != null)
         {
@@ -935,10 +1028,10 @@ public class Hive : MonoBehaviour
         game = GameObject.Find("GameController").GetComponent<GameController>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
 
-        greedy = (queen.quirks.Contains("Greedy")) ? tracker.quirkValues["Greedy"] : 1;
-        industrious = (queen.quirks.Contains("Industrious")) ? tracker.quirkValues["Industrious"] : 1;
-        agile = (queen.quirks.Contains("Agile")) ? tracker.quirkValues["Agile"] : 1;
-        hiveEfficency = (population / popCap) * size;
+        SetStatsModifiers();
+        if (queen.quirks.Contains("Calm"))
+            AddCondition("Calm");
+        CalcEfficiency();
 
         CalcHoneyStats();
         UpdateMeters();
@@ -964,9 +1057,7 @@ public class Hive : MonoBehaviour
     {
         if (game.Season == "winter")
         {
-            float rugged = (queen.quirks.Contains("Rugged")) ? tracker.quirkValues["Rugged"] : 1;
- 
-            if (honey <= population / (16 - resilience * rugged))
+            if (honey <= (population / 2000) / rugged)
                 AddCondition("Starving");
 
             if ((!hasInsulation || population <= popCap / (Size * 2)))
@@ -977,8 +1068,7 @@ public class Hive : MonoBehaviour
             AddCondition("Mites");
         }
 
-        float russian = (queen.species == "Russian") ? 1 : 0;
-        int aggrevatedChance = Random.Range(0, (int)aggressivness - 1);
+        int aggrevatedChance = Random.Range(0, 5 + (int)docile);
         if (!conditions.Contains("Aggrevated") && aggrevatedChance == 0)
             AddCondition("Aggrevated");
     }
@@ -990,6 +1080,12 @@ public class Hive : MonoBehaviour
 
         if (baseRandConditions.Contains(con))
             randConditions.Add(con);
+
+        foreach (Tile t in tileRadius)
+        {
+            if (t.HasHive && t.hive.queen.species == "Japanese" && Random.Range(0, 10) == 0)
+                queen.japaneseInherited = true;
+        }
     }
 
     private void CureRandomNegativeCondition()

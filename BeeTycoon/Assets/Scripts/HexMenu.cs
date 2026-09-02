@@ -492,8 +492,14 @@ public class HexMenu : MonoBehaviour
             return;
         }
 
-        if (item.tag != "Placeable" && item.tag != "BeeSuit" && item.tag != "Extractor")
+        if (item.TryGetComponent(out ToolScript t))
             ActivateTool(item, sprite);
+        else if (item.tag != "Placeable")
+        {
+            player.SelectedItem = item;
+            player.selectedItemSprite = sprite;
+            UnityEngine.Cursor.SetCursor(sprite, new Vector2(sprite.width / 2, sprite.height / 2), CursorMode.Auto);
+        }
 
         if (item.tag == "Placeable")
         {

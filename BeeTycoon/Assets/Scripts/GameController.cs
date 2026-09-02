@@ -144,8 +144,7 @@ public class GameController : MonoBehaviour
         {
             if (value == GameStates.Start)
             {
-                List<int> choiceList = new List<int>() { 3, 3 };
-                StartCoroutine(choices.GiveChoice(choiceList, true, true));
+                StartCoroutine(choices.CreateBundles());
             }
             currentState = value;
         }
@@ -442,14 +441,6 @@ public class GameController : MonoBehaviour
 
             if (newYear)
             {
-                //choices.isChoosing = true;
-                //StartCoroutine(choices.GiveChoice(3, false, false)); //Normal choices
-                //yield return new WaitWhile(() => choices.isChoosing);
-
-                choices.isChoosing = true;
-                StartCoroutine(choices.GiveChoice(3, false, true)); //modifier choices
-                yield return new WaitWhile(() => choices.isChoosing);
-
                 if (year == 2)
                     map.IncreaseMapSize("left");
                 else if (year == 3)

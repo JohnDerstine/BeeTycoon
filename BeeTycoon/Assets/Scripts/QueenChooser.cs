@@ -5,6 +5,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.XR;
+using static UnityEngine.GridBrushBase;
 
 public class QueenChooser : MonoBehaviour
 {
@@ -49,6 +50,9 @@ public class QueenChooser : MonoBehaviour
 
     [SerializeField]
     private VisualTreeAsset modifierHex;
+
+    [SerializeField]
+    private VisualTreeAsset bundleHex;
 
     [SerializeField]
     private VisualTreeAsset choicesContainer;
@@ -271,10 +275,8 @@ public class QueenChooser : MonoBehaviour
         isChoosing = false;
     }
 
-    public IEnumerator GiveChoice(int choice, bool starter = false, bool modifier = false)
+    public IEnumerator CreateBundles()
     {
-        ResetRNGOptions();
-        isChoosing = true;
         template = choicesContainer.Instantiate();
         container = template.Q<VisualElement>("Container");
         template.style.position = Position.Absolute;
@@ -283,177 +285,62 @@ public class QueenChooser : MonoBehaviour
         container.style.justifyContent = Justify.SpaceAround;
         document.rootVisualElement.Q<VisualElement>("Base").Add(template);
 
-        StartCoroutine(SpawnChoices(choice, starter, modifier));
-        yield return new WaitForFixedUpdate(); //Wait for selectionActive to be updated
-        yield return new WaitUntil(() => !selectionActive); //Wait for selectionActive to be false until spawning more choices
+        callback = new EventCallback<PointerLeaveEvent>(OnAnyLeave);
 
-        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
-        template = null;
-        container = null;
-        isChoosing = false;
-        //GameObject.Find("GameController").GetComponent<GameController>().CurrentState = GameStates.Running;
-    }
+        VisualElement banner1 = container.Q<VisualElement>("Banner1");
+        VisualElement banner2 = container.Q<VisualElement>("Banner2");
+        VisualElement banner3 = container.Q<VisualElement>("Banner3");
 
-    public IEnumerator GiveChoice(List<int> choices, bool starter = false, bool modifier = false)
-    {
-        ResetRNGOptions();
-        bool wasTrue = starter;
-        isChoosing = true;
-        template = choicesContainer.Instantiate();
-        container = template.Q<VisualElement>("Container");
-        template.style.position = Position.Absolute;
-        template.style.flexDirection = FlexDirection.Row;
-        template.style.justifyContent = Justify.FlexStart;
-        container.style.justifyContent = Justify.SpaceAround;
-        document.rootVisualElement.Q<VisualElement>("Base").Add(template);
-        for (int i = 0; i < choices.Count; i++)
+        List<string> possibilites = new List<string>(); //Get a list of the species of bees the player has unlocked
+        foreach (KeyValuePair<string, bool> kvp in tracker.species)
         {
-            if (wasTrue && i == 1)
-                modifier = true;
-            StartCoroutine(SpawnChoices(choices[i], starter, modifier));
-            yield return new WaitForFixedUpdate(); //Wait for selectionActive to be updated
-            yield return new WaitUntil(() => !selectionActive); //Wait for selectionActive to be false until spawning more choices
-            starter = false;
+            if (kvp.Value == true)
+                possibilites.Add(kvp.Key);
         }
 
-        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
-        template = null;
-        container = null;
-        isChoosing = false;
-        GameObject.Find("GameController").GetComponent<GameController>().CurrentState = GameStates.Running;
-    }
+        List<VisualElement> banners = new List<VisualElement>() { banner1, banner2, banner3 };
+        foreach (VisualElement banner in banners)
+        {
+            TemplateContainer queenElem = bundleHex.Instantiate();
+            banner.Add(queenElem);
+            GameObject q = Instantiate(queenPrefab, new Vector3(-100, -100, -100), Quaternion.identity);
+            QueenBee queen = q.GetComponent<QueenBee>();
+            queenOptions.Add(queen);
+            int randSpecies = Random.Range(0, possibilites.Count);
+            queen.species = possibilites[randSpecies];
+            possibilites.RemoveAt(randSpecies);
+            int savedI = queenOptions.Count - 1;
+            banner.RegisterCallback<ClickEvent>(e => SelectQueen(savedI));
+            queenElem.RegisterCallback<PointerEnterEvent>(e => OnQueenEnter(e, queen));
 
-    //Creates Queen Bee choices for the user to select from
-    //Takes an input for the number of choices and whether or not this will be the player's starter Queen
-    private IEnumerator SpawnChoices(int numChoices, bool starter, bool modifier)
-    {
-        if (sizeDirections.Count == 0 && rngOptions.Contains(sizeUI))
-            rngOptions.Remove(sizeUI);
-
-        //Get the options that user will have to choose from
-        List<VisualTreeAsset> rngChoices = new List<VisualTreeAsset>();
-        if (starter)
-        {
-            for (int i = 0; rngChoices.Count < numChoices; i++)
-                rngChoices.Add(queenUI);
-        }
-        else if (modifier)
-        {
-            for (int i = 0; rngChoices.Count < numChoices; i++)
-                rngChoices.Add(modifierUI);
-        }
-        else
-        {
-            //rngChoices.Add(queenUI);
-            for (int i = 0; rngChoices.Count < numChoices; i++)
+            if (tracker.majorTechs["FlowerSelect"])
             {
-                if (rngOptions.Count == 0)
-                    rngOptions.Add(queenUI);
+                FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
 
-                int rand = Random.Range(0, rngOptions.Count);
-                rngChoices.Add(rngOptions[rand]);
-                rngOptions.RemoveAt(rand);
+                TemplateContainer elem = bundleHex.Instantiate();
+                elem.Q<VisualElement>("Item").style.backgroundImage = sizeHex;
+                elem.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[(int)rand - 2];
+                banner.RegisterCallback<ClickEvent>(e => SelectFlower(rand));
+                elem.RegisterCallback<PointerEnterEvent>(e => OnFlowerEnter(e, rand));
+                banner.Add(elem);
+            }
+
+            if (tracker.majorTechs["ToolSelect"])
+            {
+                Tool rand = toolManager.GetUnmaxedTools()[Random.Range(0, toolManager.GetUnmaxedTools().Count)];
+
+                TemplateContainer elem = bundleHex.Instantiate();
+                elem.Q<VisualElement>("Item").style.backgroundImage = toolHex;
+                elem.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.toolSprites[(int)rand];
+                banner.RegisterCallback<ClickEvent>(e => SelectTool(rand));
+                elem.RegisterCallback<PointerEnterEvent>(e => OnToolEnter(e, rand));
+                banner.Add(elem);
             }
         }
-
-        StartCoroutine(SetUpQueens(rngChoices, starter));
-        
-        for (int i = 0; i < rngChoices.Count; i++)
-        {
-            if (rngChoices[i] != queenUI)
-            {
-                //Set up UI template for choice
-                TemplateContainer temp = rngChoices[i].Instantiate();
-                VisualElement popup = temp.Q<VisualElement>("Popup");
-                popup.RegisterCallback(queenMoveCallback); //register callbacks for hovering over the choices
-                popup.RegisterCallback(queenExitCallback);
-
-                if (rngChoices[i] == honeyUI)
-                {
-                    FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
-                    popup.Q<Label>("Type").text = rand.ToString();
-                    popup.Q<Label>("Price").text = "$" + GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().GetPrice(rand) + " / lb.";
-                    popup.AddManipulator(new Clickable(e => SelectHoney(rand)));
-                }
-                else if (rngChoices[i] == flowerUI)
-                {
-                    FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
-                    popup.Q<Label>("Type").text = rand.ToString();
-                    popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[(int)rand - 2];
-
-                    popup.AddManipulator(new Clickable(e => SelectFlower(rand)));
-                }
-                else if (rngChoices[i] == sizeUI)
-                {
-                    string dir = sizeDirections[Random.Range(0, sizeDirections.Count)];
-                    popup.Q<Label>("Amount").text = "Expand plot<br> " + dir + "wards";
-                    popup.AddManipulator(new Clickable(e => SelectSize(dir)));
-                }
-                else if (rngChoices[i] == toolUI)
-                {
-                    Tool rand = toolManager.GetUnmaxedTools()[Random.Range(0, toolManager.GetUnmaxedTools().Count)];
-
-                    string title = rand.ToString();
-                    int level = toolManager.GetToolFromTag(rand.ToString()).Level;
-                    if (level == 1)
-                        title += " Upgrade I";
-                    else if (level == 2)
-                        title += " Upgrade II";
-
-                    popup.Q<Label>("Type").text = title;
-                    popup.Q<Label>("Description").text = toolManager.GetToolFromTag(rand.ToString()).GetDescription();
-                    popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.toolSprites[(int)rand];
-
-                    popup.AddManipulator(new Clickable(e => SelectTool(rand)));
-                }
-                else if (rngChoices[i] == modifierUI)
-                {
-                    List<Modifier> applicableMods = new List<Modifier>();
-                    foreach (FlowerModifier mod in mods.GetArchetypeAll<FlowerModifier>())
-                    {
-                        foreach (FlowerType f in tracker.ownedFlowers)
-                        {
-                            if (mod.Flowers.Contains(f) && !applicableMods.Contains(mod))
-                                applicableMods.Add(mod);
-                        }
-                    }
-                    foreach (HoneyModifier mod in mods.GetArchetypeAll<HoneyModifier>())
-                    {
-                        foreach (FlowerType f in tracker.ownedFlowers)
-                        {
-                            if (mod.Flower == f && !applicableMods.Contains(mod))
-                                applicableMods.Add(mod);
-                        }
-                    }
-                    foreach (OrderModifier mod in mods.GetArchetypeAll<OrderModifier>())
-                    {
-                        applicableMods.Add(mod);
-                    }
-                    int randID = -999;
-                    while (usedIds.Contains(randID) || randID == -999)
-                        randID = Random.Range(0, applicableMods.Count());
-
-                    usedIds.Add(randID);
-                    popup.Q<VisualElement>("Icon").style.backgroundImage = applicableMods[randID].Sprite;
-                    popup.Q<Label>("Title").text = applicableMods[randID].Name;
-                    popup.Q<Label>("Description").text = applicableMods[randID].Description;
-                    int actualID = applicableMods[randID].ID;
-                    popup.AddManipulator(new Clickable(e => SelectModifier(actualID))); //Looking back on it, this doesn't make sense. I don't want randID, I want the ID of the mod in applicableMods[randID]
-                    //Double check to make sure that the game refelcts this being incorrect
-                }
-                    container.Add(temp);
-            }
-        }
-        usedIds.Clear();
-
-        yield return new WaitForFixedUpdate();
-
-        template.Q<Label>("ChooseLabel").text = "Choose 1 of " + numChoices; //Set up instruction text
-        if (!starter)
-            template.Q<Label>("Description").text = "This will be added to your shop";
-
-        ResetRNGOptions();
         selectionActive = true;
+        yield return new WaitWhile(() => selectionActive);
+
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
     }
 
     private void ResetRNGOptions()
@@ -471,87 +358,12 @@ public class QueenChooser : MonoBehaviour
         if (toolManager.GetUnmaxedTools().Count > 0)
             rngOptions.Add(toolUI);
     }
-
-    private IEnumerator SetUpQueens(List<VisualTreeAsset> rngChoices, bool starter)
-    {
-        List<string> possibilites = new List<string>(); //Get a list of the species of bees the player has unlocked
-        foreach (KeyValuePair<string, bool> kvp in tracker.species)
-        {
-            if (kvp.Value == true)
-                possibilites.Add(kvp.Key);
-        }
-
-        //Instatiate Queen Objects
-        for (int i = 0; i < rngChoices.Count; i++)
-        {
-            if (rngChoices[i] == queenUI)
-            {
-                GameObject q = Instantiate(queenPrefab, new Vector3(-100, -100, -100), Quaternion.identity);
-                queenOptions.Add(q.GetComponent<QueenBee>());
-            }
-        }
-
-        yield return new WaitForFixedUpdate(); //Wait a frame for the Queens to be instatiated
-
-        ////Set up each queen choice
-        for (int i = 0; i < queenOptions.Count; i++)
-        {
-            //Decide the queen's species
-            if (starter)
-            {
-                int rand = Random.Range(0, possibilites.Count);
-                queenOptions[i].species = possibilites[rand];
-                possibilites.RemoveAt(rand);
-                if (starter) //First queen of game is free.
-                    queenOptions[i].GetComponent<Cost>().Price = 0;
-            }
-
-            //Set up UI template for queen choice
-            TemplateContainer temp = queenUI.Instantiate();
-            VisualElement popup = temp.Q<VisualElement>("Popup");
-            popup.RegisterCallback(queenMoveCallback); //register callbacks for hovering over the choices
-            popup.RegisterCallback(queenExitCallback);
-
-            int savedI = i; //I needs to be saved to a variable for callbacks to reference it correctly
-            popup.AddManipulator(new Clickable(e => SelectQueen(savedI))); //Add Click event
-
-            //Display Info about queen
-            temp.Q<VisualElement>("Icon").style.backgroundImage = queenSprite;
-            temp.Q<Label>("Species").text = "Species: " + queenOptions[i].species;
-            temp.Q<Label>("Age").text = "Radius Type: " + queenOptions[i].radiusType;
-            temp.Q<Label>("Favorite").text = "Favorite Flower: " + queenOptions[i].favorite.ToString();
-
-            //Add quirk labels to the queen
-            foreach (string s in queenOptions[i].quirks)
-            {
-                Label quirk = new Label();
-                quirk.text = s;
-                quirk.AddToClassList("Quirk");
-                temp.Q<VisualElement>("QuirkContainer").Add(quirk);
-                quirk.RegisterCallback(quirkEnterCallback, quirk.text);
-                quirk.RegisterCallback(quirkExitCallback);
-            }
-
-            //Add choice to the UI Document
-            container.Add(temp);
-        }
-    }
-
     #region Deprecated Selects
 
     private void SelectFlower(FlowerType f)
     {
         selectionActive = false;
         hexMenu.flowersOwned[f] += 5;
-        queenOptions.Clear();
-        document.rootVisualElement.Q<VisualElement>("Container").Clear();
-    }
-
-    private void SelectHoney(FlowerType f)
-    {
-        selectionActive = false;
-        player.inventory[f][0] += 5; //add to total honey
-        player.inventory[f][2] += 5; //add to medium quality honey
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }
@@ -573,17 +385,6 @@ public class QueenChooser : MonoBehaviour
             toolScript.gameObject.GetComponent<Cost>().Purchased = true;
         toolManager.GetToolFromTag(tool.ToString()).Upgrade();
 
-        queenOptions.Clear();
-        document.rootVisualElement.Q<VisualElement>("Container").Clear();
-    }
-
-    private void SelectModifier(int id)
-    {
-        selectionActive = false;
-        mods.AddMod(id);
-        if (modifierList == null)
-            modifierList = GameObject.Find("Shed(Clone)").GetComponent<Shed>();
-        modifierList.AddModifier(id);
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
     }
@@ -784,10 +585,10 @@ public class QueenChooser : MonoBehaviour
         hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
         {
             hoverTemp.style.top = hex.resolvedStyle.top - (hoverTemp.resolvedStyle.height / 4);
-            if (hex.resolvedStyle.left > Screen.width / 4)
-                hoverTemp.style.left = hex.resolvedStyle.left - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
+            if (hex.worldBound.x > Screen.width / 4)
+                hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
             else
-                hoverTemp.style.left = hex.resolvedStyle.left + hex.resolvedStyle.width;
+                hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
         });
         hex.RegisterCallback(callback);
     }
@@ -810,10 +611,10 @@ public class QueenChooser : MonoBehaviour
         hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
         {
             hoverTemp.style.top = hex.resolvedStyle.top - (hoverTemp.resolvedStyle.height / 4);
-            if (hex.resolvedStyle.left > Screen.width / 4)
-                hoverTemp.style.left = hex.resolvedStyle.left - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
+            if (hex.worldBound.x > Screen.width / 4)
+                hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
             else
-                hoverTemp.style.left = hex.resolvedStyle.left + hex.resolvedStyle.width;
+                hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
         });
         hex.RegisterCallback(callback);
     }
@@ -836,10 +637,10 @@ public class QueenChooser : MonoBehaviour
         hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
         {
             hoverTemp.style.top = hex.resolvedStyle.top - (hoverTemp.resolvedStyle.height / 4);
-            if (hex.resolvedStyle.left > Screen.width / 4)
-                hoverTemp.style.left = hex.resolvedStyle.left - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
+            if (hex.worldBound.x > Screen.width / 4)
+                hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
             else
-                hoverTemp.style.left = hex.resolvedStyle.left + hex.resolvedStyle.width;
+                hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
         });
         hex.RegisterCallback(callback);
     }
@@ -870,10 +671,10 @@ public class QueenChooser : MonoBehaviour
         hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
         {
             hoverTemp.style.top = hex.resolvedStyle.top - (hoverTemp.resolvedStyle.height / 4);
-            if (hex.resolvedStyle.left > Screen.width / 4)
-                hoverTemp.style.left = hex.resolvedStyle.left - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
+            if (hex.worldBound.x > Screen.width / 4)
+                hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
             else
-                hoverTemp.style.left = hex.resolvedStyle.left + hex.resolvedStyle.width;
+                hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
         });
         hex.RegisterCallback(callback);
     }

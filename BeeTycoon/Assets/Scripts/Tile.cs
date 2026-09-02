@@ -97,6 +97,8 @@ public class Tile : MonoBehaviour
     private IEnumerator PlaceFlower(FlowerType f)
     {
         busy = true;
+        if (f == FlowerType.Dandelion)
+            GameObject.Find("MapLoader").GetComponent<NectarScoring>().dandelionScaling++;
         SetFlower(f, true);
         StartCoroutine(FlowerAppear(f));
         yield return new WaitWhile(() => !appearComplete);

@@ -18,6 +18,8 @@ public class QueenBee : MonoBehaviour
 
     public bool transferComplete = false;
 
+    public bool japaneseInherited = false;
+
     void Start()
     {
         unlocks = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
@@ -47,12 +49,10 @@ public class QueenBee : MonoBehaviour
         int quirkRand = Random.Range(0, 10);
         if (quirkRand <= 2)
             quirkNum = 0;
-        else if (quirkRand > 2 && quirkRand <= 6)
+        else if (quirkRand > 2 && quirkRand <= 8)
             quirkNum = 1;
-        else if (quirkRand > 6 && quirkRand <= 8)
-            quirkNum = 2;
         else
-            quirkNum = 3;
+            quirkNum = 2;
             
         possibilites.Clear();
         foreach (KeyValuePair<string, bool> kvp in unlocks.quirks)

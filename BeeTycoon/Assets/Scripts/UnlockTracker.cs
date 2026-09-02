@@ -26,7 +26,7 @@ public class UnlockTracker : MonoBehaviour
         {"FlowerSelect", false},
         {"SizeSelect", false},
         {"Composte", false},
-        {"Orders", false},
+        {"ToolSelect", false},
     };
 
     public Dictionary<string, bool> toolUpgrades = new Dictionary<string, bool>()
@@ -50,7 +50,7 @@ public class UnlockTracker : MonoBehaviour
         {FlowerType.Clover, false},
         {FlowerType.Buckwheat, false},
         {FlowerType.Alfalfa, false},
-        {FlowerType.Dandelion, false},
+        {FlowerType.Goldenrod, false},
         {FlowerType.Sunflower, false},
         {FlowerType.Orange, false},
     };
@@ -58,7 +58,7 @@ public class UnlockTracker : MonoBehaviour
     public Dictionary<FlowerType, bool> Stage34Flowers = new Dictionary<FlowerType, bool>()
     {
         {FlowerType.Fireweed, false},
-        {FlowerType.Goldenrod, false},
+        {FlowerType.Dandelion, false},
         {FlowerType.Daisy, false},
         {FlowerType.Thistle, false},
         {FlowerType.Blueberry, false},
@@ -70,7 +70,7 @@ public class UnlockTracker : MonoBehaviour
         {FlowerType.Clover, true},
         {FlowerType.Buckwheat, true},
         {FlowerType.Alfalfa, true},
-        {FlowerType.Dandelion, true},
+        {FlowerType.Goldenrod, true},
         {FlowerType.Sunflower, true},
         {FlowerType.Orange, true},
     };
@@ -78,7 +78,7 @@ public class UnlockTracker : MonoBehaviour
     public Dictionary<FlowerType, bool> Stage34FlowersUnlocked = new Dictionary<FlowerType, bool>()
     {
         {FlowerType.Fireweed, true},
-        {FlowerType.Goldenrod, true},
+        {FlowerType.Dandelion, true},
         {FlowerType.Daisy, true},
         {FlowerType.Thistle, true},
         {FlowerType.Blueberry, true},
@@ -97,20 +97,24 @@ public class UnlockTracker : MonoBehaviour
 
     public Dictionary<string, string> quirkDescriptions = new Dictionary<string, string>()
     {
-        {"Industrious", "This coloney is 50% more efficient at building comb"},
-        {"Greedy", "This coloney is 50% more efficient at producing honey"},
-        {"Territorial", "This coloney is 50% better at fighting pests and invaders"},
-        {"Rugged", "This coloney is 50% more resistant disease"},
-        {"Agile", "This coloney is 50% more efficient at collecting nectar"}
+        {"Industrious", "This colony can store 6 lbs of honey more, per hive level"},
+        {"Greedy", "Increase maximum honey production by 10%"},
+        {"Docile", "Decrese chance of becoming aggrevated from 20% to 16.6%"},
+        {"Rugged", "This colony is requires 25% less honey to survive winter"},
+        {"Agile", "Raise the maximum hive efficiency from 150% to 160%"},
+        {"Motherly", "Increase birthrate from 2500 to 3000 per turn"},
+        {"Picky", "Honey purity is 5% higher"}
     };
 
     public Dictionary<string, float> quirkValues = new Dictionary<string, float>()
     {
-        {"Industrious", 1.5f},
-        {"Greedy", 1.5f},
-        {"Territorial", 1.5f},
-        {"Rugged", 1.5f},
-        {"Agile", 1.5f}
+        {"Industrious", 1},
+        {"Greedy", 1.1f},
+        {"Docile", 1},
+        {"Rugged", 1.25f},
+        {"Agile", 0.1f},
+        {"Motherly", 500},
+        {"Picky", 0.05f}
     };
 
     public List<FlowerType> ownedFlowers = new List<FlowerType>();

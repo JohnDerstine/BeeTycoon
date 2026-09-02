@@ -340,6 +340,7 @@ public class ToolManager : MonoBehaviour
                         h.GetTileRadius(h.x, h.y);
                         if (!h.isOpen)
                             h.HideHiveRadius();
+                        h.CheckForCarniolan();
                     }
                 }
             }
