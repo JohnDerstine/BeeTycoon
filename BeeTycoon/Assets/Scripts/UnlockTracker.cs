@@ -90,9 +90,11 @@ public class UnlockTracker : MonoBehaviour
     {
         {"Industrious", true},
         {"Greedy", true},
-        {"Territorial", true},
+        {"Docile", true},
         {"Rugged", true},
-        {"Agile", true}
+        {"Agile", true},
+        {"Motherly", true},
+        {"Picky", true}
     };
 
     public Dictionary<string, string> quirkDescriptions = new Dictionary<string, string>()
@@ -115,6 +117,43 @@ public class UnlockTracker : MonoBehaviour
         {"Agile", 0.1f},
         {"Motherly", 500},
         {"Picky", 0.05f}
+    };
+
+    public Dictionary<string, string> speciesDetails = new Dictionary<string, string>()
+    {
+        {"Italian", "Italian honey bees increase their maximum honey production by 10% for each Italian colony."},
+        {"Russian", "Russian honey bees don't share flowers in their radius with other species, taking all the nectar for themselves. When mutlile Russian colonies share a flower, they all get the maximum benefit."},
+        {"Japanese", "Japanese honey bees have a 33% chance to cure themselves of a negative condition each turn. Other hives in their radius have a 10% chance to gain this passive when cured of a negative condition."},
+        {"Carniolan", "Carniolan honey bees provide a calming effect to other hives in their radius, reducing the other hives' stress by 1."},
+        {"Caucasian", "Caucasian honey bees prefer open space. When over half the tiles in their radius are empty, all flowers in their radius produce double the nectar. This effect persists for other hives who score those flowers."},
+        {"Himalayan", "Himalayan honey bees' maximum honey production is increased by 25%, and all honey is treated as pure when there are no other hives in their radius."},
+        {"Cordovan", "Cordovan honey bees recieve -50% maximum honey production. For each other populated hive you own, increase this hive's maixmum honey product by 25%, up to +150%."},
+        {"Buckfast", "Buckfast honey bees' honey type and purity are dictated only by the flowers diagonal and adjacent to the hive. All other flowers are scored normally."},
+        {"Killer", "Killer honey bees do not halt production at stress level 4. Additionally, increase nectar gained from flowers by 50% for each stress level."}
+    };
+
+    public Dictionary<FlowerType, string> flowerDetails = new Dictionary<FlowerType, string>()
+    { 
+        {FlowerType.Clover, "Clovers produce 0.10 lbs of nectar for each adjacent or diagonal clover."},
+        {FlowerType.Alfalfa, "Alfalfas produce 0.20 lbs of nectar for each diagonal alfalfa."},
+        {FlowerType.Buckwheat, "Buckwheats produce 0.10 lbs of nectar, and has a 1 in 7 chance to spread to tiles adjacent to it."},
+        {FlowerType.Goldenrod, "Goldenrods produce 0.50 lbs of nectar."},
+        {FlowerType.Fireweed, "Fireweeds produce 0.30 lbs of nectar, and has a 1 in 3 chance to replace an adjacent flower. If it has 3 or more adjacent flowers, it dies."},
+        {FlowerType.Dandelion, "Dandelions produce 0.10 lbs of nectar. At the end of every turn, dandelions move to to a random tile. Increase the nectar gain by 0.01 lbs for each time a dandelion has moved."},
+        {FlowerType.Sunflower, "Sunflowers produce 0.07 lbs of nectar for each empty tile adjacent and diagonal to it."},
+        {FlowerType.Daisy, "Daisies produce 0.30 lbs of nectar for each unique flower adjacent and diagonal to it."},
+        {FlowerType.Thistle, "Thistles kill an adjacent or diagonal flower, and produce nectar equal to 3x the amount that tile last produced."},
+        {FlowerType.Blueberry, "Blueberries produce 2 lbs of nectar, but only in Summer."},
+        {FlowerType.Orange, "Orange trees take up 4 tiles, but score on all of those tiles. They produce 0.50 lbs of nectar per tile."},
+        {FlowerType.Tupelo, "Tueplo trees take up 4 tiles, but score on all of those tiles. They produce 0.75 lbs of nectar per tile. Flowers adjacent can not die."},
+        {FlowerType.Tulip, "Produces double a random honey type. This type changes each season."},
+        {FlowerType.TulipPoplar, "Tulip Poplar trees take up 4 tiles, but score on all of those tiles. They produce 0.05 lbs of nectar per tile. Extremely high & stable sell price."},
+        {FlowerType.Hydrangea, "Hydrangeas produce 0.30 lbs of nectar, and produce 3x that when adjacent to water."},
+        {FlowerType.WaterLily, "Water Lillies produce 0.50 lbs of nectar and can be place on water."},
+        {FlowerType.Sundew, "Sundews produce 0.20 lbs of nectar. Any tiles with a sundew counts as 'water'."},
+        {FlowerType.PitcherPlant, "Pitcher Plants produce 1 lb of nectar. When not scored, pitcher plants save their nectar. Up to 3 lbs can be saved."},
+        {FlowerType.Lavendar, "Lavendars produce 0.15 lbs of nectar. If the hive is above 0 stress, apply the soothing condition. Otherwise, produce an additional 0.10 lbs of nectar."},
+        {FlowerType.Hibiscus, "Produces 0.20 lbs of nectar for each condition the hive has."},
     };
 
     public List<FlowerType> ownedFlowers = new List<FlowerType>();

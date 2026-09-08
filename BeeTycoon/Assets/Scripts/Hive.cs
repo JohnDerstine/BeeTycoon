@@ -20,7 +20,15 @@ public enum FlowerType
     Thistle = 10,
     Blueberry = 11,
     Orange = 12,
-    Tupelo = 13
+    Tupelo = 13,
+    Tulip = 14,
+    TulipPoplar = 15,
+    Hydrangea = 16,
+    WaterLily = 17,
+    Sundew = 18,
+    PitcherPlant = 19,
+    Lavendar = 20,
+    Hibiscus = 21
 }
 
 public class Hive : MonoBehaviour
@@ -563,9 +571,12 @@ public class Hive : MonoBehaviour
     private float GetItalianMult()
     {
         float mult = 1;
-        foreach (Hive h in player.hives)
-            if (h.queen.species == "Italian")
-                mult += 0.1f;
+        if (queen.species == "Italian")
+        {
+            foreach (Hive h in player.hives)
+                if (h.queen.species == "Italian")
+                    mult += 0.1f;
+        }
         return mult;
     }
 

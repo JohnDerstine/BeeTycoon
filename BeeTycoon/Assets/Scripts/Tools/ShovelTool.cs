@@ -10,7 +10,7 @@ public class ShovelTool : ToolScript
     {
         "Moves flowers from one tile to another.\n\n3 Uses per turn",
         "Uses per turn:\n3 -> 5",
-        "Uses per turn:\n5 -> 7"
+        "Uses per turn:\n5 -> 7",
     };
 
     private void Awake()
@@ -21,6 +21,11 @@ public class ShovelTool : ToolScript
     public override string GetDescription()
     {
         return descriptions[level].ToString();
+    }
+
+    public override string GetCurrentDescription()
+    {
+        return "Moves flowers from one tile to another. \n\n" + usesPerTurn + " Uses per turn";
     }
 
     public override void Upgrade()

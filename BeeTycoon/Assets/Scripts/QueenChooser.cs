@@ -1,16 +1,22 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Xml.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
 using UnityEngine.XR;
+using static UnityEngine.GraphicsBuffer;
 using static UnityEngine.GridBrushBase;
 
 public class QueenChooser : MonoBehaviour
 {
     [SerializeField]
     private RunModifiers mods;
+
+    [SerializeField]
+    private GameController game;
 
     [SerializeField]
     private Texture2D testQueenSprite;
@@ -112,9 +118,13 @@ public class QueenChooser : MonoBehaviour
 
     TemplateContainer hoverTemp;
 
-    EventCallback<PointerLeaveEvent> callback;
-
     private bool skippable = true;
+
+    private EventCallback<WheelEvent, QueenBee> cycleDetails;
+    private VisualElement activeHover;
+    private VisualElement hoveredQueen;
+    private int detailsIndex = 0;
+    private List<string> details = new List<string>();
 
     public void OnSceneLoaded()
     {
@@ -128,6 +138,7 @@ public class QueenChooser : MonoBehaviour
         queenMoveCallback = new EventCallback<PointerMoveEvent>(OnQueenMove);
         quirkExitCallback = new EventCallback<PointerLeaveEvent>(OnQuirkExit);
         quirkEnterCallback = new EventCallback<PointerEnterEvent, string>(OnQuirkEnter);
+        cycleDetails = new EventCallback<WheelEvent, QueenBee>(OnDetailTab);
         ResetRNGOptions();
     }
 
@@ -142,7 +153,6 @@ public class QueenChooser : MonoBehaviour
 
     public void LoadShop()
     {
-        callback = new EventCallback<PointerLeaveEvent>(OnAnyLeave);
         ResetShopOptions();
 
         shop = shopContainer.Instantiate();
@@ -194,7 +204,7 @@ public class QueenChooser : MonoBehaviour
             cost.text = (randMod.Rarity * 2).ToString();
             item.name = "ShopHex";
             item.AddManipulator(new Clickable(e => SelectModifierShop(randMod.ID, item)));
-            item.RegisterCallback<PointerEnterEvent>(e => OnModEnter(e, randMod.ID));
+            item.RegisterCallback<PointerMoveEvent>(e => OnModMove(e, randMod.ID));
         }
 
         for (int i = 0; i < 3; i++)
@@ -221,7 +231,7 @@ public class QueenChooser : MonoBehaviour
                 }
                 queen.species = possibilites[Random.Range(0, possibilites.Count)];
                 item.AddManipulator(new Clickable(e => SelectQueenShop(queen, item)));
-                item.RegisterCallback<PointerEnterEvent>(e => OnQueenEnter(e, queen));
+                item.RegisterCallback<PointerMoveEvent>(e => OnQueenMove(e, queen));
             }
 
             if (randHex == honeyHex)
@@ -230,7 +240,7 @@ public class QueenChooser : MonoBehaviour
                 item.Q<VisualElement>("Icon").style.backgroundImage = honeySprite;
                 cost.text = "1";
                 item.AddManipulator(new Clickable(e => SelectHoneyShop(rand, item)));
-                item.RegisterCallback<PointerEnterEvent>(e => OnHoneyEnter(e, rand));
+                item.RegisterCallback<PointerMoveEvent>(e => OnHoneyMove(e, rand));
             }
 
             if (randHex == flowerHex)
@@ -239,7 +249,7 @@ public class QueenChooser : MonoBehaviour
                 item.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[(int)rand - 2];
                 cost.text = "1";
                 item.AddManipulator(new Clickable(e => SelectFlowerShop(rand, item)));
-                item.RegisterCallback<PointerEnterEvent>(e => OnFlowerEnter(e, rand));
+                item.RegisterCallback<PointerMoveEvent>(e => OnFlowerMove(e, rand));
             }
 
             if (randHex == toolHex)
@@ -248,7 +258,7 @@ public class QueenChooser : MonoBehaviour
                 Tool rand = toolManager.GetUnmaxedTools()[Random.Range(0, toolManager.GetUnmaxedTools().Count)];
                 item.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.toolSprites[(int)rand];
                 item.AddManipulator(new Clickable(e => SelectToolShop(rand, item)));
-                item.RegisterCallback<PointerEnterEvent>(e => OnToolEnter(e, rand));
+                item.RegisterCallback<PointerMoveEvent>(e => OnToolMove(e, rand));
             }
 
             item.name = "ShopHex";
@@ -285,7 +295,10 @@ public class QueenChooser : MonoBehaviour
         container.style.justifyContent = Justify.SpaceAround;
         document.rootVisualElement.Q<VisualElement>("Base").Add(template);
 
-        callback = new EventCallback<PointerLeaveEvent>(OnAnyLeave);
+        document.rootVisualElement.Q<VisualElement>("Left").visible = false;
+        document.rootVisualElement.Q<VisualElement>("Right").visible = false;
+        document.rootVisualElement.Q<VisualElement>("Center").visible = false;
+        document.rootVisualElement.Q<VisualElement>("Toolbar").visible = false;
 
         VisualElement banner1 = container.Q<VisualElement>("Banner1");
         VisualElement banner2 = container.Q<VisualElement>("Banner2");
@@ -306,14 +319,34 @@ public class QueenChooser : MonoBehaviour
             GameObject q = Instantiate(queenPrefab, new Vector3(-100, -100, -100), Quaternion.identity);
             QueenBee queen = q.GetComponent<QueenBee>();
             queenOptions.Add(queen);
-            int randSpecies = Random.Range(0, possibilites.Count);
-            queen.species = possibilites[randSpecies];
-            possibilites.RemoveAt(randSpecies);
+            Debug.Log(possibilites.Count);
+            queen.species = possibilites[Random.Range(0, possibilites.Count)];
+            Debug.Log(queen.species);
+            possibilites.Remove(queen.species);
             int savedI = queenOptions.Count - 1;
-            banner.RegisterCallback<ClickEvent>(e => SelectQueen(savedI));
-            queenElem.RegisterCallback<PointerEnterEvent>(e => OnQueenEnter(e, queen));
 
-            if (tracker.majorTechs["FlowerSelect"])
+            banner.RegisterCallback((PointerEnterEvent e) =>{
+                banner.style.unityBackgroundImageTintColor = Color.white;
+                foreach (VisualElement child in banner.Children())
+                {
+                    child.Q<CustomVisualElement>("Item").style.unityBackgroundImageTintColor = Color.white;
+                    child.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                }
+            });
+
+            banner.RegisterCallback((PointerLeaveEvent e) => {
+                banner.style.unityBackgroundImageTintColor = Color.gray;
+                foreach (VisualElement child in banner.Children())
+                {
+                    child.Q<CustomVisualElement>("Item").style.unityBackgroundImageTintColor = Color.gray;
+                    child.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.gray;
+                }
+            });
+
+            banner.RegisterCallback<ClickEvent>(e => SelectQueen(savedI));
+            queenElem.RegisterCallback<PointerMoveEvent>(e => OnQueenMove(e, queen));
+
+            if (true)//tracker.majorTechs["FlowerSelect"])
             {
                 FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
 
@@ -321,11 +354,11 @@ public class QueenChooser : MonoBehaviour
                 elem.Q<VisualElement>("Item").style.backgroundImage = sizeHex;
                 elem.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[(int)rand - 2];
                 banner.RegisterCallback<ClickEvent>(e => SelectFlower(rand));
-                elem.RegisterCallback<PointerEnterEvent>(e => OnFlowerEnter(e, rand));
+                elem.RegisterCallback<PointerMoveEvent>(e => OnFlowerMove(e, rand));
                 banner.Add(elem);
             }
 
-            if (tracker.majorTechs["ToolSelect"])
+            if (true)//tracker.majorTechs["ToolSelect"])
             {
                 Tool rand = toolManager.GetUnmaxedTools()[Random.Range(0, toolManager.GetUnmaxedTools().Count)];
 
@@ -333,12 +366,20 @@ public class QueenChooser : MonoBehaviour
                 elem.Q<VisualElement>("Item").style.backgroundImage = toolHex;
                 elem.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.toolSprites[(int)rand];
                 banner.RegisterCallback<ClickEvent>(e => SelectTool(rand));
-                elem.RegisterCallback<PointerEnterEvent>(e => OnToolEnter(e, rand));
+                elem.RegisterCallback<PointerMoveEvent>(e => OnToolMove(e, rand));
                 banner.Add(elem);
             }
         }
         selectionActive = true;
         yield return new WaitWhile(() => selectionActive);
+
+        document.rootVisualElement.Q<VisualElement>("Left").visible = true;
+        document.rootVisualElement.Q<VisualElement>("Right").visible = true;
+        document.rootVisualElement.Q<VisualElement>("Center").visible = true;
+        document.rootVisualElement.Q<VisualElement>("Toolbar").visible = true;
+
+        if (game.CurrentState == GameStates.Start)
+            game.CurrentState = GameStates.Running;
 
         document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
     }
@@ -362,7 +403,6 @@ public class QueenChooser : MonoBehaviour
 
     private void SelectFlower(FlowerType f)
     {
-        selectionActive = false;
         hexMenu.flowersOwned[f] += 5;
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
@@ -370,7 +410,6 @@ public class QueenChooser : MonoBehaviour
 
     private void SelectSize(string dir)
     {
-        selectionActive = false;
         GameObject.Find("MapLoader").GetComponent<MapLoader>().IncreaseMapSize(dir);
         sizeDirections.Remove(dir);
         queenOptions.Clear();
@@ -379,7 +418,6 @@ public class QueenChooser : MonoBehaviour
 
     private void SelectTool(Tool tool)
     {
-        selectionActive = false;
         ToolScript toolScript = toolManager.GetToolFromTag(tool.ToString());
         if (toolScript.Level == 0)
             toolScript.gameObject.GetComponent<Cost>().Purchased = true;
@@ -525,168 +563,236 @@ public class QueenChooser : MonoBehaviour
         activeLabel.pickingMode = PickingMode.Ignore;
     }
 
-    #region enters
-    private void OnModEnter(PointerEnterEvent e, int id)
+    private void OnDetailTab(WheelEvent e, QueenBee queen)
     {
-        hoverTemp = modifierUI.Instantiate();
-        VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
-
-        popup.Q<VisualElement>("Icon").style.backgroundImage = mods.allMods[id].Sprite;
-        popup.Q<Label>("Title").text = mods.allMods[id].Name;
-        popup.Q<Label>("Description").text = mods.allMods[id].Description;
-
-        hoverTemp.style.position = Position.Absolute;
-        hoverTemp.pickingMode = PickingMode.Ignore;
-        popup.pickingMode = PickingMode.Ignore;
-
-        document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
-
-        VisualElement hex = e.target as VisualElement;
-        hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
+        if (hoverTemp != null)
         {
-            hoverTemp.style.top = hex.resolvedStyle.top - (hoverTemp.resolvedStyle.height / 4);
-            if (hex.resolvedStyle.left > Screen.width / 4)
-                hoverTemp.style.left = hex.resolvedStyle.left - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
-            else
-                hoverTemp.style.left = hex.resolvedStyle.left + hex.resolvedStyle.width;
-        });
-        hex.RegisterCallback(callback);
+            detailsIndex++;
+            if (detailsIndex > details.Count - 1)
+                detailsIndex = 0;
+            Label tip = hoverTemp.Q<Label>("Tip");
+            tip.text = details[detailsIndex];
+        }
     }
 
-    private void OnQueenEnter(PointerEnterEvent e, QueenBee queen)
+    private void SetDetailsList(QueenBee queen)
     {
-        hoverTemp = queenUI.Instantiate();
-        VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
-
-        //Display Info about queen
-        hoverTemp.Q<VisualElement>("Icon").style.backgroundImage = queenSprite;
-        hoverTemp.Q<Label>("Species").text = "Species: " + queen.species;
-        hoverTemp.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
-        hoverTemp.Q<Label>("Favorite").text = "Favorite Flower: " + queen.favorite.ToString();
-
-        //Add quirk labels to the queen
+        detailsIndex = 0;
+        details.Clear();
+        details.Add(tracker.speciesDetails[queen.species]);
+        details.Add(tracker.flowerDetails[queen.favorite]);
         foreach (string s in queen.quirks)
+            details.Add(tracker.quirkDescriptions[s]);
+    }
+
+    #region enters
+    private void OnModMove(PointerMoveEvent e, int id)
+    {
+        VisualElement targetTemplate = e.currentTarget as VisualElement;
+        CustomVisualElement target = targetTemplate.Q<CustomVisualElement>("Item");
+        if (target.ContainsPoint(e.localPosition) && hoverTemp == null)
         {
-            Label quirk = new Label();
-            quirk.text = s;
-            quirk.AddToClassList("Quirk");
-            hoverTemp.Q<VisualElement>("QuirkContainer").Add(quirk);
-            quirk.RegisterCallback(quirkEnterCallback, quirk.text);
-            quirk.RegisterCallback(quirkExitCallback);
+
+            hoverTemp = modifierUI.Instantiate();
+            VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
+
+            popup.Q<VisualElement>("Icon").style.backgroundImage = mods.allMods[id].Sprite;
+            popup.Q<Label>("Title").text = mods.allMods[id].Name;
+            popup.Q<Label>("Description").text = mods.allMods[id].Description;
+
+            hoverTemp.style.position = Position.Absolute;
+            hoverTemp.pickingMode = PickingMode.Ignore;
+            popup.pickingMode = PickingMode.Ignore;
+
+            document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
+
+            VisualElement hex = e.target as VisualElement;
+            hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                hoverTemp.style.top = (Screen.height / 2) - (hoverTemp.resolvedStyle.height / 2);
+                if (hex.worldBound.x < Screen.width - (Screen.width / 2.5f))
+                    hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
+                else
+                    hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width);
+            });
+        }
+        else if (!target.ContainsPoint(e.localPosition) && hoverTemp != null)
+            Leave();
+    }
+
+    private void OnQueenMove(PointerMoveEvent e, QueenBee queen)
+    {
+        VisualElement targetTemplate = e.currentTarget as VisualElement;
+        CustomVisualElement target = targetTemplate.Q<CustomVisualElement>("Item");
+        if (target.ContainsPoint(e.localPosition) && hoverTemp == null)
+        {
+            hoveredQueen = target;
+            hoverTemp = queenUI.Instantiate();
+            VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
+
+            //Display Info about queen
+            hoverTemp.Q<VisualElement>("Icon").style.backgroundImage = queenSprite;
+            hoverTemp.Q<Label>("Species").text = "Species: " + queen.species;
+            hoverTemp.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
+            hoverTemp.Q<Label>("Favorite").text = "Favorite Flower: " + queen.favorite.ToString();
+            hoverTemp.Q<Label>("Tip").text = tracker.speciesDetails[queen.species];
+
+            //Add quirk labels to the queen
+            foreach (string s in queen.quirks)
+            {
+                Label quirk = new Label();
+                quirk.text = s;
+                quirk.AddToClassList("Quirk");
+                hoverTemp.Q<VisualElement>("QuirkContainer").Add(quirk);
+                quirk.RegisterCallback(quirkEnterCallback, quirk.text);
+                quirk.RegisterCallback(quirkExitCallback);
+            }
+
+            hoverTemp.style.position = Position.Absolute;
+            hoverTemp.pickingMode = PickingMode.Ignore;
+            popup.pickingMode = PickingMode.Ignore;
+
+            document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
+            activeHover = hoverTemp;
+
+            VisualElement hex = e.target as VisualElement;
+            hex.RegisterCallback(cycleDetails, queen);
+            SetDetailsList(queen);
+            hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                hoverTemp.style.top = (Screen.height / 2) - (hoverTemp.resolvedStyle.height / 2);
+                if (hex.worldBound.x < Screen.width - (Screen.width / 2.5f))
+                {
+                    hoverTemp.style.left = hex.worldBound.x + (hex.resolvedStyle.width / 1.5f);
+                    activeHover.Q<VisualElement>("Details").BringToFront();
+                }
+                else
+                    hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width);
+            });
+        }
+        else if (!target.ContainsPoint(e.localPosition) && hoverTemp != null)
+            Leave();
+    }
+
+    private void OnHoneyMove(PointerMoveEvent e, FlowerType f)
+    {
+        VisualElement targetTemplate = e.currentTarget as VisualElement;
+        CustomVisualElement target = targetTemplate.Q<CustomVisualElement>("Item");
+        if (target.ContainsPoint(e.localPosition) && hoverTemp == null)
+        {
+            hoverTemp = honeyUI.Instantiate();
+            VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
+
+            popup.Q<Label>("Type").text = f.ToString();
+            popup.Q<Label>("Price").text = "$" + GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().GetPrice(f) + " / lb.";
+
+            hoverTemp.style.position = Position.Absolute;
+            hoverTemp.pickingMode = PickingMode.Ignore;
+            popup.pickingMode = PickingMode.Ignore;
+
+            document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
+
+            VisualElement hex = e.target as VisualElement;
+            hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                hoverTemp.style.top = (Screen.height / 2) - (hoverTemp.resolvedStyle.height / 2);
+                if (hex.worldBound.x < Screen.width - (Screen.width / 2.5f))
+                    hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
+                else
+                    hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width);
+            });
+        }
+        else if (!target.ContainsPoint(e.localPosition) && hoverTemp != null)
+            Leave();
+    }
+
+    private void OnFlowerMove(PointerMoveEvent e, FlowerType f)
+    {
+        VisualElement targetTemplate = e.currentTarget as VisualElement;
+        CustomVisualElement target = targetTemplate.Q<CustomVisualElement>("Item");
+        if (target.ContainsPoint(e.localPosition) && hoverTemp == null)
+        {
+            hoverTemp = flowerUI.Instantiate();
+            VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
+
+            popup.Q<Label>("Type").text = 5 + " " + f.ToString();
+            popup.Q<Label>("Amount").text = tracker.flowerDetails[f];
+            popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[(int)f - 2];
+
+            hoverTemp.style.position = Position.Absolute;
+            hoverTemp.pickingMode = PickingMode.Ignore;
+            popup.pickingMode = PickingMode.Ignore;
+
+            document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
+
+            VisualElement hex = e.target as VisualElement;
+            hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                hoverTemp.style.top = (Screen.height / 2) - (hoverTemp.resolvedStyle.height / 2);
+                if (hex.worldBound.x < Screen.width - (Screen.width / 2.5f))
+                    hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
+                else
+                    hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width);
+            });
+        }
+        else if (!target.ContainsPoint(e.localPosition) && hoverTemp != null)
+            Leave();
+    }
+
+    private void OnToolMove(PointerMoveEvent e, Tool rand)
+    {
+        VisualElement targetTemplate = e.currentTarget as VisualElement;
+        CustomVisualElement target = targetTemplate.Q<CustomVisualElement>("Item");
+        if (target.ContainsPoint(e.localPosition) && hoverTemp == null)
+        {
+            hoverTemp = toolUI.Instantiate();
+            VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
+
+            string title = rand.ToString();
+            int level = toolManager.GetToolFromTag(rand.ToString()).Level;
+            if (level == 1)
+                title += " Upgrade I";
+            else if (level == 2)
+                title += " Upgrade II";
+
+            popup.Q<Label>("Type").text = title;
+            popup.Q<Label>("Description").text = toolManager.GetToolFromTag(rand.ToString()).GetDescription();
+            popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.toolSprites[(int)rand];
+
+            hoverTemp.style.position = Position.Absolute;
+            hoverTemp.pickingMode = PickingMode.Ignore;
+            popup.pickingMode = PickingMode.Ignore;
+
+            document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
+
+            VisualElement hex = e.target as VisualElement;
+            hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                hoverTemp.style.top = (Screen.height / 2) - (hoverTemp.resolvedStyle.height / 2);
+                if (hex.worldBound.x < Screen.width - (Screen.width / 2.5f))
+                    hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
+                else
+                    hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width);
+            });
+        }
+        else if (!target.ContainsPoint(e.localPosition) && hoverTemp != null)
+            Leave();
+    }
+
+    private void Leave()
+    {
+        if (hoveredQueen != null)
+        {
+            hoveredQueen.UnregisterCallback(cycleDetails);
+            hoveredQueen = null;
         }
 
-        hoverTemp.style.position = Position.Absolute;
-        hoverTemp.pickingMode = PickingMode.Ignore;
-        popup.pickingMode = PickingMode.Ignore;
-
-        document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
-
-        VisualElement hex = e.target as VisualElement;
-        hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
-        {
-            hoverTemp.style.top = hex.resolvedStyle.top - (hoverTemp.resolvedStyle.height / 4);
-            if (hex.worldBound.x > Screen.width / 4)
-                hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
-            else
-                hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
-        });
-        hex.RegisterCallback(callback);
-    }
-
-    private void OnHoneyEnter(PointerEnterEvent e, FlowerType f)
-    {
-        hoverTemp = honeyUI.Instantiate();
-        VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
-
-        popup.Q<Label>("Type").text = f.ToString();
-        popup.Q<Label>("Price").text = "$" + GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().GetPrice(f) + " / lb.";
-
-        hoverTemp.style.position = Position.Absolute;
-        hoverTemp.pickingMode = PickingMode.Ignore;
-        popup.pickingMode = PickingMode.Ignore;
-
-        document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
-
-        VisualElement hex = e.target as VisualElement;
-        hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
-        {
-            hoverTemp.style.top = hex.resolvedStyle.top - (hoverTemp.resolvedStyle.height / 4);
-            if (hex.worldBound.x > Screen.width / 4)
-                hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
-            else
-                hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
-        });
-        hex.RegisterCallback(callback);
-    }
-
-    private void OnFlowerEnter(PointerEnterEvent e, FlowerType f)
-    {
-        hoverTemp = flowerUI.Instantiate();
-        VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
-
-        popup.Q<Label>("Type").text = f.ToString();
-        popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.allFlowerSprites[(int)f - 2];
-
-        hoverTemp.style.position = Position.Absolute;
-        hoverTemp.pickingMode = PickingMode.Ignore;
-        popup.pickingMode = PickingMode.Ignore;
-
-        document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
-
-        VisualElement hex = e.target as VisualElement;
-        hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
-        {
-            hoverTemp.style.top = hex.resolvedStyle.top - (hoverTemp.resolvedStyle.height / 4);
-            if (hex.worldBound.x > Screen.width / 4)
-                hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
-            else
-                hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
-        });
-        hex.RegisterCallback(callback);
-    }
-
-    private void OnToolEnter(PointerEnterEvent e, Tool rand)
-    {
-        hoverTemp = toolUI.Instantiate();
-        VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
-
-        string title = rand.ToString();
-        int level = toolManager.GetToolFromTag(rand.ToString()).Level;
-        if (level == 1)
-            title += " Upgrade I";
-        else if (level == 2)
-            title += " Upgrade II";
-
-        popup.Q<Label>("Type").text = title;
-        popup.Q<Label>("Description").text = toolManager.GetToolFromTag(rand.ToString()).GetDescription();
-        popup.Q<VisualElement>("Icon").style.backgroundImage = hexMenu.toolSprites[(int)rand];
-
-        hoverTemp.style.position = Position.Absolute;
-        hoverTemp.pickingMode = PickingMode.Ignore;
-        popup.pickingMode = PickingMode.Ignore;
-
-        document.rootVisualElement.Q<VisualElement>("BackgroundTint").Add(hoverTemp);
-
-        VisualElement hex = e.target as VisualElement;
-        hoverTemp.RegisterCallback((GeometryChangedEvent evt) =>
-        {
-            hoverTemp.style.top = hex.resolvedStyle.top - (hoverTemp.resolvedStyle.height / 4);
-            if (hex.worldBound.x > Screen.width / 4)
-                hoverTemp.style.left = hex.worldBound.x - (hoverTemp.resolvedStyle.width - hoverTemp.resolvedStyle.width / 4);
-            else
-                hoverTemp.style.left = hex.worldBound.x + hex.resolvedStyle.width;
-        });
-        hex.RegisterCallback(callback);
-    }
-
-    private void OnAnyLeave(PointerLeaveEvent e)
-    {
-        VisualElement hex = e.target as VisualElement;
-        hex.UnregisterCallback(callback);
         document.rootVisualElement.Q<VisualElement>("BackgroundTint").Remove(hoverTemp);
         hoverTemp = null;
-    }
+        if (activeHover != null)
+            activeHover = null;
 
+    }
     #endregion
 
     private void OnQuirkExit(PointerLeaveEvent e)

@@ -258,7 +258,7 @@ public class GameController : MonoBehaviour
         GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>().ResetToStart();
         year = 1;
         turn = 1;
-        quota = 25;
+        quota = 0;
         previousQuota = 0;
         season = "spring";
     }
@@ -309,7 +309,7 @@ public class GameController : MonoBehaviour
         ReloadUI();
         SetToolUsesLabels();
 
-        Quota = 25;
+        Quota = 0;
 
         map.GameStart(false);
         nectar.GameStart();

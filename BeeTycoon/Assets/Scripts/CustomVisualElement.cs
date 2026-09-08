@@ -30,7 +30,6 @@ public class CustomVisualElement : VisualElement
         alphaHitTestMinThreshold = 0.5f;
 
         Background b = resolvedStyle.backgroundImage;
-
         Texture2D tex = b.texture;
         if (tex == null && b.sprite != null)
         {

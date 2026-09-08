@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using UnityEngine;
 
 public class SuitTool : ToolScript
@@ -16,6 +17,18 @@ public class SuitTool : ToolScript
     public override string GetDescription()
     {
         return descriptions[level].ToString();
+    }
+
+    public override string GetCurrentDescription()
+    {
+        string description = descriptions[0];
+        int chance = 25;
+        if (level == 3)
+            chance = 50;
+
+        if (level == 2 || level == 3)
+            description += "When harvesting a full hive, " + chance + "% chance to cure random affliction.";
+        return description;
     }
 
     public override void Upgrade()

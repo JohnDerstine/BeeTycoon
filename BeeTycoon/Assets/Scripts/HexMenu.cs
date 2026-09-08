@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UIElements;
 using static UnityEngine.GridBrushBase;
@@ -25,6 +26,12 @@ public class HexMenu : MonoBehaviour
 
     [SerializeField]
     private VisualTreeAsset queenUI;
+
+    [SerializeField]
+    private VisualTreeAsset flowerUI;
+
+    [SerializeField]
+    private VisualTreeAsset toolUI;
 
     private List<List<string>> stringList = new List<List<string>>();
 
@@ -82,7 +89,7 @@ public class HexMenu : MonoBehaviour
     [SerializeField]
     private Texture2D nextStageSprite;
 
-    private TemplateContainer hoverTemplate;
+    public TemplateContainer hoverTemplate;
 
     private Manipulator close;
     public Manipulator open1;
@@ -92,6 +99,9 @@ public class HexMenu : MonoBehaviour
     private EventCallback<PointerUpEvent> endSelectionCallback;
     private EventCallback<PointerMoveEvent, int[]> queenMoveCallback;
     private EventCallback<PointerLeaveEvent> queenExitCallback;
+    private EventCallback<WheelEvent, QueenBee> cycleDetails;
+    private int detailsIndex = 0;
+    private List<string> details = new List<string>();
 
     private VisualElement left;
     private CustomVisualElement tab1;
@@ -105,7 +115,13 @@ public class HexMenu : MonoBehaviour
     private int tab4ItemCount = 1;
 
     [SerializeField]
-    private Texture2D hex;
+    private Texture2D hex0;
+    [SerializeField]
+    private Texture2D hex1;
+    [SerializeField]
+    private Texture2D hex2;
+    [SerializeField]
+    private Texture2D hex3;
 
     [SerializeField]
     private StyleSheet tabStyle;
@@ -164,6 +180,7 @@ public class HexMenu : MonoBehaviour
 
         queenExitCallback = new EventCallback<PointerLeaveEvent>(OnQueenExit);
         queenMoveCallback = new EventCallback<PointerMoveEvent, int[]>(OnQueenMove);
+        cycleDetails = new EventCallback<WheelEvent, QueenBee>(OnDetailWheel);
 
         if (!fromSave)
         {
@@ -267,9 +284,9 @@ public class HexMenu : MonoBehaviour
         foreach (CustomVisualElement t in tabs)
         {
             if (t != tab)
-                t.style.unityBackgroundImageTintColor = new Color(0.36f, 0.21f, 0.17f, 1);
+                t.style.unityBackgroundImageTintColor = new Color(0.5f, 0.5f, 0.5f, 1);
             else
-                t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 0f, 1f);
+                t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
         }
 
         //Separate calculations for first item of each row
@@ -290,6 +307,7 @@ public class HexMenu : MonoBehaviour
             //Get the last hex created
             CustomVisualElement lastHex = tabHexes[tabHexes.Count - 1];
             hex.styleSheets.Add(tabStyle);
+            hex.focusable = true;
 
             //Calculate and set position of new hex to be flush with the previous hexes
             //NOTE: tab1.resolvedStyle is used as the basis calculations since it is placed before runtime
@@ -318,6 +336,15 @@ public class HexMenu : MonoBehaviour
 
             AddHexManipulators(hex, fromHive, list, item, cost);
 
+            if (num == 0)
+                hex.style.backgroundImage = hex0;
+            else if (num == 1)
+                hex.style.backgroundImage = hex1;
+            else if (num == 2)
+                hex.style.backgroundImage = hex2;
+            else if (num == 3)
+                hex.style.backgroundImage = hex3;
+
             hex.Add(icon);
             hex.Add(costLabel);
             itemsInRow++;
@@ -339,6 +366,17 @@ public class HexMenu : MonoBehaviour
         //styling
         CustomVisualElement starterHex = new CustomVisualElement();
         starterHex.styleSheets.Add(tabStyle);
+        starterHex.focusable = true;
+
+        if (num == 0)
+            starterHex.style.backgroundImage = hex0;
+        else if (num == 1)
+            starterHex.style.backgroundImage = hex1;
+        else if (num == 2)
+            starterHex.style.backgroundImage = hex2;
+        else if (num == 3)
+            starterHex.style.backgroundImage = hex3;
+
         float itemTop = tab1.resolvedStyle.top;
         starterHex.style.top = itemTop;
         StyleLength itemLeft = tab1.resolvedStyle.width * .25f;
@@ -389,6 +427,7 @@ public class HexMenu : MonoBehaviour
             hex.AddManipulator(new Clickable(e => SelectHive(objectList[num][index], spriteList[num][index], cost, selectedHive)));
 
         hex.RegisterCallback(queenMoveCallback, new int[2] { num, index });
+        hex.RegisterCallback(cycleDetails, objectList[num][index].GetComponent<QueenBee>());
         hex.RegisterCallback(queenExitCallback);
     }
 
@@ -564,6 +603,28 @@ public class HexMenu : MonoBehaviour
         selectedHive.queenClick.AddManipulator(selectedHive.assignQueen);
     }
 
+    private void OnDetailWheel(WheelEvent e, QueenBee queen)
+    {
+        if (hoverTemplate != null)
+        {
+            detailsIndex++;
+            if (detailsIndex > details.Count - 1)
+                detailsIndex = 0;
+            Label tip = hoverTemplate.Q<Label>("Tip");
+            tip.text = details[detailsIndex];
+        }
+    }
+
+    private void SetDetailsList(QueenBee queen)
+    {
+        detailsIndex = 0;
+        details.Clear();
+        details.Add(unlocks.speciesDetails[queen.species]);
+        details.Add(unlocks.flowerDetails[queen.favorite]);
+        foreach (string s in queen.quirks)
+            details.Add(unlocks.quirkDescriptions[s]);
+    }
+
     //Add hover template
     private void OnQueenMove(PointerMoveEvent e, int[] ints)
     {
@@ -581,13 +642,14 @@ public class HexMenu : MonoBehaviour
                 {
                     hoverTemplate = queenUI.Instantiate();
                     document.rootVisualElement.Q("Base").Add(hoverTemplate);
+                    hoverTemplate.Q<VisualElement>("Details").BringToFront();
                     VisualElement popup = hoverTemplate.Q<VisualElement>("Popup");
 
                     //Resolved style is NaN until updated
                     popup.RegisterCallback((GeometryChangedEvent evt) =>
                     {
                         hoverTemplate.style.position = Position.Absolute;
-                        hoverTemplate.style.left = e.position.x;
+                        hoverTemplate.style.left = target.resolvedStyle.left + target.resolvedStyle.width;
                         hoverTemplate.style.top = e.position.y - popup.resolvedStyle.height / 2f;
                         //Make sure the popup isn't off-screen
                         if (e.position.y - popup.resolvedStyle.height / 2f < 0)
@@ -600,6 +662,8 @@ public class HexMenu : MonoBehaviour
                             hoverTemplate.style.top = Screen.height - popup.resolvedStyle.height;
                         }
                     });
+
+                    SetDetailsList(queen);
 
                     //Update tooltip text to reflect queen stats
                     popup.Q<VisualElement>("Icon").style.backgroundImage = sprite;
@@ -617,24 +681,36 @@ public class HexMenu : MonoBehaviour
             }
             else
             {
-                if (hoverTemplate != null)
-                {
-                    document.rootVisualElement.Q("Base").Remove(hoverTemplate);
-                    hoverTemplate = null;
-                }
+                document.rootVisualElement.Q("Base").Remove(hoverTemplate);
+                hoverTemplate = null;
             }
         }
-        else if (hoverTemplate == null)
+        else if (num == 1)
+        {
+            if (target.ContainsPoint(e.localPosition))
+                OnToolMove(e, (Tool)objectList[num][index].GetComponent<ToolScript>().toolID);
+        }
+        else if (num == 2)
+        {
+            //hoverTemplate = hexMenuLabel.Instantiate();
+            //hoverTemplate.pickingMode = PickingMode.Ignore;
+            //hoverTemplate.style.position = Position.Absolute;
+            //hoverTemplate.style.left = e.position.x;
+            //hoverTemplate.style.top = e.position.y;
+            //hoverTemplate.Q<Label>().text = stringList[num][index];
+            //document.rootVisualElement.Q("Base").Add(hoverTemplate);
+        }
+        else if (num == 3)
         {
             if (target.ContainsPoint(e.localPosition))
             {
-                hoverTemplate = hexMenuLabel.Instantiate();
-                hoverTemplate.pickingMode = PickingMode.Ignore;
-                hoverTemplate.style.position = Position.Absolute;
-                hoverTemplate.style.left = e.position.x;
-                hoverTemplate.style.top = e.position.y;
-                hoverTemplate.Q<Label>().text = stringList[num][index];
-                document.rootVisualElement.Q("Base").Add(hoverTemplate);
+                FlowerType f = objectList[num][index].GetComponent<Cost>().ftype;
+                if (f != FlowerType.Empty)
+                    OnFlowerMove(e, f);
+                else
+                {
+                    //Next flower stage popup
+                }
             }
         }
     }
@@ -647,6 +723,79 @@ public class HexMenu : MonoBehaviour
             document.rootVisualElement.Q("Base").Remove(hoverTemplate);
             hoverTemplate = null;
         }
+    }
+
+    private void OnFlowerMove(PointerMoveEvent e, FlowerType f)
+    {
+        CustomVisualElement target = e.currentTarget as CustomVisualElement;
+        if (target.ContainsPoint(e.localPosition) && hoverTemplate == null)
+        {
+            hoverTemplate = flowerUI.Instantiate();
+            VisualElement popup = hoverTemplate.Q<VisualElement>("Popup");
+
+            popup.Q<Label>("Type").text = 5 + " " + f.ToString();
+            popup.Q<Label>("Amount").text = unlocks.flowerDetails[f];
+            popup.Q<VisualElement>("Icon").style.backgroundImage = allFlowerSprites[(int)f - 2];
+
+            hoverTemplate.style.position = Position.Absolute;
+            hoverTemplate.pickingMode = PickingMode.Ignore;
+            popup.pickingMode = PickingMode.Ignore;
+
+            document.rootVisualElement.Q<VisualElement>("Base").Add(hoverTemplate);
+
+            VisualElement hex = e.target as VisualElement;
+            hoverTemplate.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                hoverTemplate.style.top = (Screen.height / 2) - (hoverTemplate.resolvedStyle.height / 2);
+                if (hex.worldBound.x < Screen.width - (Screen.width / 2.5f))
+                    hoverTemplate.style.left = hex.worldBound.x + hex.resolvedStyle.width;
+                else
+                    hoverTemplate.style.left = hex.worldBound.x - (hoverTemplate.resolvedStyle.width);
+            });
+        }
+        else if (!target.ContainsPoint(e.localPosition) && hoverTemplate != null)
+            Leave();
+    }
+
+    private void OnToolMove(PointerMoveEvent e, Tool rand)
+    {
+        CustomVisualElement target = e.currentTarget as CustomVisualElement;
+        if (target.ContainsPoint(e.localPosition) && hoverTemplate == null)
+        {
+            hoverTemplate = toolUI.Instantiate();
+            VisualElement popup = hoverTemplate.Q<VisualElement>("Popup");
+
+            string title = rand.ToString();
+
+            popup.Q<Label>("Type").text = title;
+            popup.Q<Label>("Description").text = toolManager.GetToolFromTag(rand.ToString()).GetCurrentDescription();
+            popup.Q<VisualElement>("Icon").style.backgroundImage = toolSprites[(int)rand];
+
+            hoverTemplate.style.position = Position.Absolute;
+            hoverTemplate.pickingMode = PickingMode.Ignore;
+            popup.pickingMode = PickingMode.Ignore;
+
+            document.rootVisualElement.Q<VisualElement>("Base").Add(hoverTemplate);
+
+            VisualElement hex = e.target as VisualElement;
+            hoverTemplate.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                hoverTemplate.style.top = (Screen.height / 2) - (hoverTemplate.resolvedStyle.height / 2);
+                if (hex.worldBound.x < Screen.width - (Screen.width / 2.5f))
+                    hoverTemplate.style.left = hex.worldBound.x + hex.resolvedStyle.width;
+                else
+                    hoverTemplate.style.left = hex.worldBound.x - (hoverTemplate.resolvedStyle.width);
+            });
+        }
+        else if (!target.ContainsPoint(e.localPosition) && hoverTemplate != null)
+            Leave();
+    }
+
+    private void Leave()
+    {
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(hoverTemplate);
+        hoverTemplate = null;
+
     }
 
     //Coroutine, otherwise price label is $0 when added to the hex item list

@@ -987,6 +987,7 @@ MonoBehaviour:
   populatedHives: 0
   nectarItem: {fileID: 9197481963319205126, guid: 5ebbc1011549af44d9a30cc9fbeaa0b6, type: 3}
   honeySprite: {fileID: 2800000, guid: 95d9997ccce6aa046898a9e8bd880124, type: 3}
+  dandelionScaling: 0
   multiplierLabel: {fileID: 0}
 --- !u!1 &1944616202
 GameObject:
@@ -1272,6 +1273,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   mods: {fileID: 2079847522}
+  game: {fileID: 2079847517}
   testQueenSprite: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
   queenUI: {fileID: 9197481963319205126, guid: e245947465bf3cd45a1b4793dd8b6307, type: 3}
   flowerUI: {fileID: 9197481963319205126, guid: 41289ee943797054c89352f188954b6a, type: 3}

@@ -8,7 +8,7 @@ public abstract class ToolScript : MonoBehaviour
     private ToolManager toolManager;
 
     [SerializeField]
-    private int toolID;
+    public int toolID;
 
     protected int level = 0;
     public int Level
@@ -23,6 +23,8 @@ public abstract class ToolScript : MonoBehaviour
     public abstract void TurnReset();
 
     public abstract string GetDescription();
+
+    public abstract string GetCurrentDescription();
 
     public void SetLevel(int level)
     {

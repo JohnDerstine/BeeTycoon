@@ -719,7 +719,9 @@ MonoBehaviour:
   player: {fileID: 1759206122}
   toolManager: {fileID: 522247318}
   hexMenuLabel: {fileID: 9197481963319205126, guid: 25cb2297d0ca0af4eb0e6c308b2f835d, type: 3}
-  queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
+  queenUI: {fileID: 9197481963319205126, guid: e245947465bf3cd45a1b4793dd8b6307, type: 3}
+  flowerUI: {fileID: 9197481963319205126, guid: 41289ee943797054c89352f188954b6a, type: 3}
+  toolUI: {fileID: 9197481963319205126, guid: 178d772e79dc46244a65ca7a161feebd, type: 3}
   beeNames: []
   toolNames:
   - Hive Tool
@@ -800,7 +802,10 @@ MonoBehaviour:
   nextStage: {fileID: 1381741657326285398, guid: 93e69a5550f98b74ab5d7e0646b3d5ef, type: 3}
   nextStageSprite: {fileID: 2800000, guid: cb13e1e9a6d215a4689f4740db577159, type: 3}
   tab1ItemCount: 0
-  hex: {fileID: 2800000, guid: 38522a5f81ab10a4392ffed8ef29445d, type: 3}
+  hex0: {fileID: 2800000, guid: c6a4e0e351a85b4498a9497f02a8bbdb, type: 3}
+  hex1: {fileID: 2800000, guid: 2eefe8bbb4f582a4c973b42f6673cd55, type: 3}
+  hex2: {fileID: 2800000, guid: 38522a5f81ab10a4392ffed8ef29445d, type: 3}
+  hex3: {fileID: 2800000, guid: 0be4c73216f34f545af8fb5208927640, type: 3}
   tabStyle: {fileID: 7433441132597879392, guid: db82af968aa77354d90ac85bca8ba754, type: 3}
   itemStyle: {fileID: 7433441132597879392, guid: bdf693ba0f0048f4583b9bb0b085768b, type: 3}
   costStyle: {fileID: 7433441132597879392, guid: 24b5367f1a29d884cbfe6b7a485461d5, type: 3}

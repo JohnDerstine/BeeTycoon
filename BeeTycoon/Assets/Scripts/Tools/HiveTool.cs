@@ -19,6 +19,11 @@ public class HiveTool : ToolScript
         return descriptions[level].ToString();
     }
 
+    public override string GetCurrentDescription()
+    {
+        return "WIP";
+    }
+
     public override void Upgrade()
     {
         level++;

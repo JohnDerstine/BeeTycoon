@@ -36,12 +36,6 @@ public class QueenBee : MonoBehaviour
     private void GenerateStats()
     {
         List<string> possibilites = new List<string>();
-        foreach (KeyValuePair<string, bool> kvp in unlocks.species)
-        {
-            if (kvp.Value)
-                possibilites.Add(kvp.Key);
-        }
-        species = possibilites[Random.Range(0, possibilites.Count)];
 
         radiusType = rTypes[Random.Range(0, 3)];
 
@@ -53,8 +47,7 @@ public class QueenBee : MonoBehaviour
             quirkNum = 1;
         else
             quirkNum = 2;
-            
-        possibilites.Clear();
+        
         foreach (KeyValuePair<string, bool> kvp in unlocks.quirks)
         {
             if (kvp.Value)
@@ -71,7 +64,6 @@ public class QueenBee : MonoBehaviour
         List<FlowerType> unlockedFlowers = unlocks.GetUnlockedFlowers();
         favorite = unlockedFlowers[Random.Range(0, unlockedFlowers.Count)];
 
-        //GetComponent<Cost>().Price = (int)grade;
         finishedGenerating = true;
     }
 

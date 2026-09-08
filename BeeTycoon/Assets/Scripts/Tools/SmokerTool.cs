@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.ConstrainedExecution;
 using UnityEngine;
 
 public class SmokerTool : ToolScript
@@ -17,6 +18,20 @@ public class SmokerTool : ToolScript
     public override string GetDescription()
     {
         return descriptions[level].ToString();
+    }
+
+    public override string GetCurrentDescription()
+    {
+        string calm = "";
+        if (calming)
+            calm = " and reduces stress by 1";
+        int uses = usesPerTurn;
+        if (uses == 0)
+            uses = 1;
+
+        string description = "Cures hives from the aggressive affliction" + calm + "\n\n" + uses + " Uses per turn";
+
+        return description;
     }
 
     public override void Upgrade()

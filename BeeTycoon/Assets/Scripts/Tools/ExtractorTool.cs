@@ -8,14 +8,24 @@ public class ExtractorTool : ToolScript
     public float extractorBonus = 1f;
     private List<string> descriptions = new List<string>()
     {
-        "Increases harvest efficiency which grants 10% more honey",
+        "Increases harvest efficiency, which grants 10% more honey",
         "Honey bonus:\n10% -> 25%",
-        "Removes comb loss when harvesting"
+        "honey bonus:\n25% -> 50%"
     };
 
     public override string GetDescription()
     {
         return descriptions[level].ToString();
+    }
+
+    public override string GetCurrentDescription()
+    {
+        int percent = 10;
+        if (level == 2)
+            percent = 25;
+        else if (level == 3)
+            percent = 50;
+        return "Increases harvest efficiency, which grants " + percent + "% more honey";
     }
 
     public override void Upgrade()

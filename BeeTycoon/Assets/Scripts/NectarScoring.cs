@@ -62,7 +62,7 @@ public class NectarScoring : MonoBehaviour
     const int buckwheatValue = 10;
     const int fireweedValue = 30;
     const int goldenrodValue = 50;
-    const int dandelionValue = 20;
+    const int dandelionValue = 10;
     const int sunflowerValue = 5;
     const int orangeValue = 50;
     const int daisyValue = 50;
@@ -464,8 +464,8 @@ public class NectarScoring : MonoBehaviour
             }
         }
 
-        if (h.queen.species == "Russian") //Might have to change this in case russian stacking is too effective
-            return Mathf.FloorToInt(((gain + (0.5f * gain * shareCount)) / (shareCount + 1)) * 2);
+        if (h.queen.species == "Russian" && russianPresent) //Might have to change this in case russian stacking is too effective
+            return Mathf.FloorToInt(gain + (0.5f * gain * shareCount));
         else if (russianPresent)
             return 0;
 

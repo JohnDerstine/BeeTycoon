@@ -24,6 +24,11 @@ public class DollyTool : ToolScript
         return descriptions[level].ToString();
     }
 
+    public override string GetCurrentDescription()
+    {
+        return "Moves hives from one\ntile to another.\n\n" + usesPerTurn + " Use per turn\n\nCan only carry hives\nup to " + carryCapcity + " supers tall";
+    }
+
     public override void Upgrade()
     {
         level++;

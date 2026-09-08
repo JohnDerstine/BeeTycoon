@@ -637,7 +637,7 @@ public class PlayerController : MonoBehaviour
     #region Camera Control
     private void CheckZoom()
     {
-        if (honeyMarket.marketOpen || glossary.open)
+        if (honeyMarket.marketOpen || glossary.open || hexMenu.hoverTemplate != null)
             return;
 
         Vector3 cameraPos = Camera.main.transform.position;
