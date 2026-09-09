@@ -71,11 +71,44 @@ public class ResourcePopup : MonoBehaviour
                 AudioSource hiveSource = currentHive.GetComponent<AudioSource>();
                 popupSource.pitch = 1f; // Should probably make seperate audio source
                 popupSource.PlayOneShot(percentAudio, 1f);
+                SpawnRJPopup();
                 GameObject.Find("PlayerController").GetComponent<PlayerController>().RoyalJelly++;
             }
 
             percent = value;
         }
+    }
+
+    private void SpawnRJPopup()
+    {
+        TemplateContainer RJ = honeyGlobIcon.Instantiate();
+        RJ.style.position = Position.Absolute;
+        RJ.Q("Glob").style.width = 128;
+        RJ.Q("Glob").style.height = 128;
+        document.rootVisualElement.Q<VisualElement>("Base").Add(RJ);
+
+        Vector3 position = currentHive.transform.position;
+        position = Camera.main.WorldToScreenPoint(position);
+        float startTop = Screen.height - position.y;
+        float startLeft = position.x;
+
+        StartCoroutine(UpdateRJ(RJ));
+    }
+
+    private IEnumerator UpdateRJ(TemplateContainer RJ)
+    {
+        float timeLapsed = 0.0f;
+        float duration = 2.0f;
+
+        while (timeLapsed < duration)
+        {
+            RJ.style.top = RJ.resolvedStyle.top + 5;
+
+            yield return new WaitForSeconds(Time.deltaTime);
+            timeLapsed += Time.deltaTime;
+        }
+
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(RJ);
     }
 
     public void DisplayPercent(Hive h)

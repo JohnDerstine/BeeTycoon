@@ -319,9 +319,7 @@ public class QueenChooser : MonoBehaviour
             GameObject q = Instantiate(queenPrefab, new Vector3(-100, -100, -100), Quaternion.identity);
             QueenBee queen = q.GetComponent<QueenBee>();
             queenOptions.Add(queen);
-            Debug.Log(possibilites.Count);
             queen.species = possibilites[Random.Range(0, possibilites.Count)];
-            Debug.Log(queen.species);
             possibilites.Remove(queen.species);
             int savedI = queenOptions.Count - 1;
 

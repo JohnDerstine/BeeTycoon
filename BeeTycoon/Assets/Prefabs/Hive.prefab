@@ -122,7 +122,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hiveUI: {fileID: 9197481963319205126, guid: fc2d44516520a4e47ac454e4bfa3e3cb, type: 3}
-  queenUI: {fileID: 9197481963319205126, guid: 7e18a95684e43364a974f6092526645b, type: 3}
+  queenUI: {fileID: 9197481963319205126, guid: e245947465bf3cd45a1b4793dd8b6307, type: 3}
   GlossaryUI: {fileID: 9197481963319205126, guid: e3ac110c7c93fdc4e98d68a8e515d060, type: 3}
   afflictionPopupUI: {fileID: 9197481963319205126, guid: 08265538f8da31a4db376b1f84271779, type: 3}
   afflictionToolTipUI: {fileID: 9197481963319205126, guid: 77601ef736d6e6c45a555ce10cd0a948, type: 3}
@@ -156,11 +156,11 @@ MonoBehaviour:
   comb: 6
   combSizeCap: 6
   honey: 0
+  maxHoneyProduction: 0
   conditions: []
   queen: {fileID: 0}
   honeyType: 0
   honeyPurity: 0
-  multipliedNectar: 0
   nectarGain: 0
   selectingQueen: 0
   isOpen: 0
@@ -175,6 +175,8 @@ MonoBehaviour:
   tileRadius: []
   rotation: 0
   selectedMaterial: {fileID: 2100000, guid: e62bc6755cfe5a441b059ae6c407dab8, type: 2}
+  selectedMaterial2: {fileID: 2100000, guid: d85af6054be44af4482c653e01b0cfa4, type: 2}
+  selectedMaterial3: {fileID: 2100000, guid: 39a1935749c82574ab1a30bf6e513055, type: 2}
 --- !u!114 &-2763537602791666697
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -195,6 +197,7 @@ MonoBehaviour:
   favorite: 0
   quirks: []
   transferComplete: 0
+  japaneseInherited: 0
 --- !u!114 &-6374463908099276077
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -77,6 +77,8 @@ public class PlayerController : MonoBehaviour
     public int shovelsPerTurn = 3;
     private int shovelUsesLeft = 3;
 
+    public bool hiveScrollLock = false;
+
     public bool fromSave;
 
     private GameObject activeHolo;
@@ -637,7 +639,7 @@ public class PlayerController : MonoBehaviour
     #region Camera Control
     private void CheckZoom()
     {
-        if (honeyMarket.marketOpen || glossary.open || hexMenu.hoverTemplate != null)
+        if (honeyMarket.marketOpen || glossary.open || hexMenu.hoverTemplate != null || hiveScrollLock)
             return;
 
         Vector3 cameraPos = Camera.main.transform.position;

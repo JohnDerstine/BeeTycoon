@@ -36,7 +36,7 @@ public class ExtractorTool : ToolScript
         else if (level == 2)
             extractorBonus = 1.25f;
         else
-            noCombLoss = true;
+            extractorBonus = 1.5f;
 
         base.Upgrade();
     }

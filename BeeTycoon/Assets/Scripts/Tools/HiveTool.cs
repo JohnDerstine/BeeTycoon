@@ -6,12 +6,11 @@ public class HiveTool : ToolScript
 {
     public int usesPerTurn = 0;
     public int usesLeft = 0;
-    public bool canRemoveSupers = false;
     private List<string> descriptions = new List<string>()
     {
         "Cures hives from the glued affliction\n\n1 Use per turn",
-        "Uses per turn: 1 -> 2",
-        "Can be used to remove supers from a hive"
+        "Increases all tools uses per turn by 1",
+        "Increases all tools uses per turn by 1"
     };
 
     public override string GetDescription()
@@ -21,21 +20,35 @@ public class HiveTool : ToolScript
 
     public override string GetCurrentDescription()
     {
-        return "WIP";
+        int upt = usesPerTurn;
+        if (upt == 0)
+            upt = 1;
+        string upgraded = "";
+        int num = level - 1;
+
+        if (level == 2 || level == 3)
+            upgraded = "\n\nAdditionaly, all other tools get an extra " + num + " uses per turn";
+        string description = "Cures hives from glued affliction\n\n" + upt + "Uses per turn" + upgraded;
+
+        return description;
     }
 
     public override void Upgrade()
     {
+        ToolManager tManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
         level++;
         if (level == 1)
         {
             usesPerTurn = 1;
             usesLeft = 1;
         }
-        else if (level == 2)
-            usesPerTurn += 1;
-        else
-            canRemoveSupers = true;
+        else if (level == 2 || level == 3)
+        {
+            tManager.shovel.usesPerTurn++;
+            tManager.dolly.usesPerTurn++;
+            tManager.smoker.usesPerTurn++;
+            usesPerTurn++;
+        }
 
         base.Upgrade();
     }

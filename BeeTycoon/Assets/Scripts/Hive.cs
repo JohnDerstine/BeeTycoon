@@ -230,6 +230,16 @@ public class Hive : MonoBehaviour
     [SerializeField]
     Material selectedMaterial;
 
+    [SerializeField]
+    Material selectedMaterial2;
+
+    [SerializeField]
+    Material selectedMaterial3;
+
+    private int detailsIndex = 0;
+    private List<string> details = new List<string>();
+    private EventCallback<WheelEvent, QueenBee> cycleDetails;
+
     public int Size
     {
         get { return size; }
@@ -418,6 +428,7 @@ public class Hive : MonoBehaviour
         lightTint = new StyleColor(lightTintColor);
 
         assignQueen = new Clickable(OpenQueenTab);
+        cycleDetails = new EventCallback<WheelEvent, QueenBee>(OnDetailWheel);
 
         CalcEfficiency();
 
@@ -938,7 +949,7 @@ public class Hive : MonoBehaviour
             return;
 
         combMeter.style.top = 210 - (comb / (combSizeCap * 5) * 210);
-        if (hiveEfficency != 0)
+        if (maxHoneyProduction != 0)
             nectarMeter.style.top = 210 - (nectarGain / maxHoneyProduction * 210);
         else
             nectarMeter.style.top = 210;
@@ -950,7 +961,7 @@ public class Hive : MonoBehaviour
 
     private void UpdateMeterLabels()
     {
-        if (hiveEfficency != 0)
+        if (maxHoneyProduction != 0)
             nectarHover.Q<Label>("Percent").text = (Mathf.Round(nectarGain / maxHoneyProduction * 100 * 10) / 10.0f).ToString() + "%";
         else
             nectarHover.Q<Label>("Percent").text = "0%";
@@ -978,6 +989,7 @@ public class Hive : MonoBehaviour
             yield break;
         }
 
+        queenClick.UnregisterCallback(cycleDetails);
         queen.transferComplete = false;
         StartCoroutine(queen.TransferStats(q));
         Destroy(q.gameObject);
@@ -1022,6 +1034,8 @@ public class Hive : MonoBehaviour
             CureCondition("Indulged");
 
         UpdateMeters();
+        SetDetailsList(queen);
+        queenClick.RegisterCallback(cycleDetails, queen);
     }
 
     //Load queen from save doesn't require transfering stats
@@ -1034,6 +1048,7 @@ public class Hive : MonoBehaviour
         }
         //else
         //    Condition = "Dead";
+        queenClick.UnregisterCallback(cycleDetails);
         queenHex.style.backgroundImage = queenSprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
         game = GameObject.Find("GameController").GetComponent<GameController>();
@@ -1047,6 +1062,9 @@ public class Hive : MonoBehaviour
         CalcHoneyStats();
         UpdateMeters();
         EnableHarvestButtons();
+
+        SetDetailsList(queen);
+        queenClick.RegisterCallback(cycleDetails, queen);
 
         if (activePopup != null)
         {
@@ -1277,7 +1295,16 @@ public class Hive : MonoBehaviour
         foreach (Tile t in tileRadius)
         {
             t.lastMaterial = t.GetComponent<MeshRenderer>().material;
-            t.GetComponent<MeshRenderer>().material = selectedMaterial;
+            int shareCount = 0;
+            foreach (Hive h in player.hives)
+                if (h != this && h.tileRadius.Contains(t))
+                    shareCount++;
+            if (shareCount == 0)
+                t.GetComponent<MeshRenderer>().material = selectedMaterial;
+            else if (shareCount == 1)
+                t.GetComponent<MeshRenderer>().material = selectedMaterial2;
+            else
+                t.GetComponent<MeshRenderer>().material = selectedMaterial3;
         }
     }
 
@@ -1432,16 +1459,17 @@ public class Hive : MonoBehaviour
         CustomVisualElement target = e.currentTarget as CustomVisualElement;
         if (target.ContainsPoint(e.localPosition))
         {
+            player.hiveScrollLock = true;
             if (hoverTemplate == null)
             {
                 hoverTemplate = queenUI.Instantiate();
                 document.rootVisualElement.Q("Base").Add(hoverTemplate);
-                VisualElement popup = hoverTemplate.Q<VisualElement>("Popup");
+                VisualElement popup = hoverTemplate.Q<VisualElement>("PopupRoot");
 
                 //Resolved style is NaN until updated
                 popup.RegisterCallback((GeometryChangedEvent evt) => {
                     hoverTemplate.style.position = Position.Absolute;
-                    hoverTemplate.style.left = e.position.x - popup.resolvedStyle.width;
+                    hoverTemplate.style.left = document.rootVisualElement.Q("Left").resolvedStyle.width + document.rootVisualElement.Q("Center").resolvedStyle.width + template.resolvedStyle.width / 2 - popup.resolvedStyle.width;
                     hoverTemplate.style.top = Screen.height - e.position.y - popup.resolvedStyle.height / 1.5f;
                 });
 
@@ -1464,6 +1492,7 @@ public class Hive : MonoBehaviour
             {
                 document.rootVisualElement.Q("Base").Remove(hoverTemplate);
                 hoverTemplate = null;
+                player.hiveScrollLock = false;
             }
         }
     }
@@ -1474,7 +1503,30 @@ public class Hive : MonoBehaviour
         {
             document.rootVisualElement.Q("Base").Remove(hoverTemplate);
             hoverTemplate = null;
+            player.hiveScrollLock = false;
         }
+    }
+
+    private void OnDetailWheel(WheelEvent e, QueenBee queen)
+    {
+        if (hoverTemplate != null)
+        {
+            detailsIndex++;
+            if (detailsIndex > details.Count - 1)
+                detailsIndex = 0;
+            Label tip = hoverTemplate.Q<Label>("Tip");
+            tip.text = details[detailsIndex];
+        }
+    }
+
+    private void SetDetailsList(QueenBee queen)
+    {
+        detailsIndex = 0;
+        details.Clear();
+        details.Add(tracker.speciesDetails[queen.species]);
+        details.Add(tracker.flowerDetails[queen.favorite]);
+        foreach (string s in queen.quirks)
+            details.Add(tracker.quirkDescriptions[s]);
     }
 
     private void OnAfflictionHover(PointerEnterEvent e)
