@@ -722,6 +722,7 @@ MonoBehaviour:
   queenUI: {fileID: 9197481963319205126, guid: e245947465bf3cd45a1b4793dd8b6307, type: 3}
   flowerUI: {fileID: 9197481963319205126, guid: 41289ee943797054c89352f188954b6a, type: 3}
   toolUI: {fileID: 9197481963319205126, guid: 178d772e79dc46244a65ca7a161feebd, type: 3}
+  hiveDetailsUI: {fileID: 9197481963319205126, guid: f8218eab6b624644985f06af82cdb38b, type: 3}
   beeNames: []
   toolNames:
   - Hive Tool
@@ -1170,6 +1171,7 @@ MonoBehaviour:
   moneyEarned: 0
   moneySpent: 0
   shovelsPerTurn: 3
+  hiveScrollLock: 0
   fromSave: 0
 --- !u!4 &1759206123
 Transform:
@@ -1600,7 +1602,6 @@ MonoBehaviour:
   toolID: 0
   usesPerTurn: 0
   usesLeft: 0
-  canRemoveSupers: 0
 --- !u!1001 &8228312832242615336
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -323,7 +323,7 @@ public class QueenChooser : MonoBehaviour
             possibilites.Remove(queen.species);
             int savedI = queenOptions.Count - 1;
 
-            banner.RegisterCallback((PointerEnterEvent e) =>{
+            banner.RegisterCallback((PointerEnterEvent e) => {
                 banner.style.unityBackgroundImageTintColor = Color.white;
                 foreach (VisualElement child in banner.Children())
                 {

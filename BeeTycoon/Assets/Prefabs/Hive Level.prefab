@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2857035910002507021}
   - component: {fileID: -2104867899478328420}
   m_Layer: 2
-  m_Name: HiveLevel
+  m_Name: Hive Level
   m_TagString: Super
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

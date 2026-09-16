@@ -1,8 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
@@ -67,7 +65,7 @@ public class PlayerController : MonoBehaviour
     private bool pickedUpThisFrame = false;
     private Tile storedTile;
 
-    private int money = 0;
+    private int money = 25;
     private int royalJelly = 3;
     private int vouchers = 5;
     public int moneyEarned = 0;
@@ -152,6 +150,8 @@ public class PlayerController : MonoBehaviour
 
             if (honeyMarket.marketOpen)
                 honeyMarket.marketTemplate.Q<Label>("MoneyLabel").text = "$" + money;
+            if (game.CurrentState != GameStates.TurnEnd)
+                ui.rootVisualElement.Q<VisualElement>("Fill").style.height = ((float)money / game.Quota) * 250f;
 
             if (value < 0)
                 moneySpent += value;
@@ -487,7 +487,7 @@ public class PlayerController : MonoBehaviour
                         }
                         else if (selectedItem.tag == "Insulation")
                         {
-                            if (!h.hasReducer)
+                            if (!h.hasInsulation)
                             {
                                 h.hasInsulation = true;
                             }

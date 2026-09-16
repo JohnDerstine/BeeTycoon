@@ -258,7 +258,7 @@ public class GameController : MonoBehaviour
         GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>().ResetToStart();
         year = 1;
         turn = 1;
-        quota = 0;
+        quota = 25;
         previousQuota = 0;
         season = "spring";
     }
@@ -309,7 +309,7 @@ public class GameController : MonoBehaviour
         ReloadUI();
         SetToolUsesLabels();
 
-        Quota = 0;
+        Quota = 25;
 
         map.GameStart(false);
         nectar.GameStart();
@@ -340,6 +340,8 @@ public class GameController : MonoBehaviour
     {
         turnButton = document.rootVisualElement.Q<CustomVisualElement>("TurnButton");
         turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
+        document.rootVisualElement.Q<VisualElement>("Fill").style.height = ((float)player.Money / Quota) * 250;
+        document.rootVisualElement.Q<Label>("TimeLabel").text = (4 - turn).ToString();
     }
 
     private void UpdateLabels()
@@ -353,6 +355,8 @@ public class GameController : MonoBehaviour
         document.rootVisualElement.Q<Label>("Quota").text = "Quota: $" + quota;
         int turns = (season == "winter") ? (1 - ((turn - 1) % 4)) : (4 - ((turn - 1) % 4));
         document.rootVisualElement.Q<Label>("Turns").text = "Due in " + turns + " turns";
+
+        document.rootVisualElement.Q<Label>("MeterQuota").text = "$" + quota;
     }
 
     private IEnumerator NextTurn()
@@ -447,6 +451,9 @@ public class GameController : MonoBehaviour
                     map.IncreaseMapSize("right");
                 else if (year == 4)
                     map.IncreaseMapSize("down");
+
+                foreach (Hive h in player.hives)
+                    h.hasInsulation = false;
             }
             else
             {

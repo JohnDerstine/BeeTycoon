@@ -1,9 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.UIElements;
-using static UnityEngine.GridBrushBase;
 
 public class HexMenu : MonoBehaviour
 {
@@ -32,6 +30,9 @@ public class HexMenu : MonoBehaviour
 
     [SerializeField]
     private VisualTreeAsset toolUI;
+
+    [SerializeField]
+    private VisualTreeAsset hiveDetailsUI;
 
     private List<List<string>> stringList = new List<List<string>>();
 
@@ -692,13 +693,10 @@ public class HexMenu : MonoBehaviour
         }
         else if (num == 2)
         {
-            //hoverTemplate = hexMenuLabel.Instantiate();
-            //hoverTemplate.pickingMode = PickingMode.Ignore;
-            //hoverTemplate.style.position = Position.Absolute;
-            //hoverTemplate.style.left = e.position.x;
-            //hoverTemplate.style.top = e.position.y;
-            //hoverTemplate.Q<Label>().text = stringList[num][index];
-            //document.rootVisualElement.Q("Base").Add(hoverTemplate);
+            if (target.ContainsPoint(e.localPosition))
+            {
+                OnHiveMove(e, objectList[num][index].name);
+            }
         }
         else if (num == 3)
         {
@@ -723,6 +721,37 @@ public class HexMenu : MonoBehaviour
             document.rootVisualElement.Q("Base").Remove(hoverTemplate);
             hoverTemplate = null;
         }
+    }
+
+    private void OnHiveMove(PointerMoveEvent e, string name)
+    {
+        CustomVisualElement target = e.currentTarget as CustomVisualElement;
+        if (target.ContainsPoint(e.localPosition) && hoverTemplate == null)
+        {
+            hoverTemplate = hiveDetailsUI.Instantiate();
+            VisualElement popup = hoverTemplate.Q<VisualElement>("hiveTTContainer");
+
+            popup.Q<Label>("Title").text = name;
+            popup.Q<Label>("Description").text = unlocks.hiveDetails[name];
+
+            hoverTemplate.style.position = Position.Absolute;
+            hoverTemplate.pickingMode = PickingMode.Ignore;
+            popup.pickingMode = PickingMode.Ignore;
+
+            document.rootVisualElement.Q<VisualElement>("Base").Add(hoverTemplate);
+
+            VisualElement hex = e.target as VisualElement;
+            hoverTemplate.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                hoverTemplate.style.top = (Screen.height / 2) - (hoverTemplate.resolvedStyle.height / 2);
+                if (hex.worldBound.x < Screen.width - (Screen.width / 2.5f))
+                    hoverTemplate.style.left = hex.worldBound.x + hex.resolvedStyle.width;
+                else
+                    hoverTemplate.style.left = hex.worldBound.x - (hoverTemplate.resolvedStyle.width);
+            });
+        }
+        else if (!target.ContainsPoint(e.localPosition) && hoverTemplate != null)
+            Leave();
     }
 
     private void OnFlowerMove(PointerMoveEvent e, FlowerType f)

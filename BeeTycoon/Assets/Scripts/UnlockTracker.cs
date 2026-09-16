@@ -122,7 +122,7 @@ public class UnlockTracker : MonoBehaviour
     public Dictionary<string, string> speciesDetails = new Dictionary<string, string>()
     {
         {"Italian", "Italian honey bees increase their maximum honey production by 10% for each Italian colony."},
-        {"Russian", "Russian honey bees don't share flowers in their radius with other species, taking all the nectar for themselves. When mutlile Russian colonies share a flower, they all get the maximum benefit."},
+        {"Russian", "Russian honey bees don't share flowers in their radius with other species, taking all the nectar for themselves. When multiple Russian colonies share a flower, they all get the maximum benefit."},
         {"Japanese", "Japanese honey bees have a 33% chance to cure themselves of a negative condition each turn. Other hives in their radius have a 10% chance to gain this passive when cured of a negative condition."},
         {"Carniolan", "Carniolan honey bees provide a calming effect to other hives in their radius, reducing the other hives' stress by 1."},
         {"Caucasian", "Caucasian honey bees prefer open space. When over half the tiles in their radius are empty, all flowers in their radius produce double the nectar. This effect persists for other hives who score those flowers."},
@@ -154,6 +154,17 @@ public class UnlockTracker : MonoBehaviour
         {FlowerType.PitcherPlant, "Pitcher Plants produce 1 lb of nectar. When not scored, pitcher plants save their nectar. Up to 3 lbs can be saved."},
         {FlowerType.Lavendar, "Lavendars produce 0.15 lbs of nectar. If the hive is above 0 stress, apply the soothing condition. Otherwise, produce an additional 0.10 lbs of nectar."},
         {FlowerType.Hibiscus, "Produces 0.20 lbs of nectar for each condition the hive has."},
+    };
+
+    public Dictionary<string, string> hiveDetails = new Dictionary<string, string>()
+    {
+        {"Hive", "A new hive for a new queen."},
+        {"Hive Level", "Increases target hive's size by 1. Size increases a hive's comb and maximum population."},
+        {"Hive Stand", "Inreases hive efficiency by 10%"},
+        {"Enterance Reducer", "Makes hive immune to mice, moths, and attacking swarms. Breaks in winter."},
+        {"Sugar Water", "Adds 25% of max honey production to honey produced for the next 4 turns."},
+        {"Insulation", "Prevents hive from freezing in winter. Breaks after winter."},
+        {"Mite Repellant", "Cures hive of the 'mites' affliction"}
     };
 
     public List<FlowerType> ownedFlowers = new List<FlowerType>();
