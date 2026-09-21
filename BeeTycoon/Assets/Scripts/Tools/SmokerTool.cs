@@ -53,5 +53,12 @@ public class SmokerTool : ToolScript
     public override void TurnReset()
     {
         usesLeft = usesPerTurn;
+        SpawnPips("Smoker",usesPerTurn);
+    }
+
+    public void Use()
+    {
+        usesLeft--;
+        RemovePip("Smoker");
     }
 }

@@ -56,5 +56,12 @@ public class HiveTool : ToolScript
     public override void TurnReset()
     {
         usesLeft = usesPerTurn;
+        SpawnPips("HiveTool", usesPerTurn);
+    }
+
+    public void Use()
+    {
+        usesLeft--;
+        RemovePip("HiveTool");
     }
 }

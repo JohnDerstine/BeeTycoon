@@ -309,6 +309,9 @@ public class GameController : MonoBehaviour
         ReloadUI();
         SetToolUsesLabels();
 
+        document.rootVisualElement.Q<Label>("GoalLabel").text = Descriptions[title.text];
+        document.rootVisualElement.Q<Label>("GoalLabel").text = document.rootVisualElement.Q<Label>("GoalLabel").text.Replace("*", Levels[title.text][selectedDifficulty - 1]);
+
         Quota = 25;
 
         map.GameStart(false);
@@ -340,7 +343,7 @@ public class GameController : MonoBehaviour
     {
         turnButton = document.rootVisualElement.Q<CustomVisualElement>("TurnButton");
         turnButton.AddManipulator(new Clickable(e => StartCoroutine(NextTurn())));
-        document.rootVisualElement.Q<VisualElement>("Fill").style.height = ((float)player.Money / Quota) * 250;
+        document.rootVisualElement.Q<VisualElement>("Fill").style.height = Mathf.Clamp(((float)player.Money / Quota) * 250, 0 ,250);
         document.rootVisualElement.Q<Label>("TimeLabel").text = (4 - turn).ToString();
     }
 

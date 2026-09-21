@@ -45,5 +45,12 @@ public class ShovelTool : ToolScript
     public override void TurnReset()
     {
         usesLeft = usesPerTurn;
+        SpawnPips("Shovel", usesPerTurn);
+    }
+
+    public void Use()
+    {
+        usesLeft--;
+        RemovePip("Shovel");
     }
 }

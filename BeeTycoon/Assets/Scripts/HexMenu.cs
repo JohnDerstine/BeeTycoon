@@ -156,7 +156,7 @@ public class HexMenu : MonoBehaviour
         {
             selectedHex = value;
             if (value != null)
-                selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
+                selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 0.95f);
         }
     }
 
@@ -285,9 +285,9 @@ public class HexMenu : MonoBehaviour
         foreach (CustomVisualElement t in tabs)
         {
             if (t != tab)
-                t.style.unityBackgroundImageTintColor = new Color(0.5f, 0.5f, 0.5f, 1);
+                t.style.unityBackgroundImageTintColor = new Color(0.5f, 0.5f, 0.5f, 0.95f);
             else
-                t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
+                t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 0.95f);
         }
 
         //Separate calculations for first item of each row
@@ -471,7 +471,7 @@ public class HexMenu : MonoBehaviour
         else
         {
             foreach (CustomVisualElement t in tabs)
-                t.style.unityBackgroundImageTintColor = Color.white;
+                t.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
             foreach (CustomVisualElement hex in tabHexes)
                 left.Remove(hex);
 
@@ -500,7 +500,7 @@ public class HexMenu : MonoBehaviour
         document.GetComponent<AudioSource>().Play();
         if (selectedHex != null)
         {
-            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
+            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 0.95f);
             selectedHex = null;
 
             if (player.SelectedItem == item)
@@ -563,14 +563,14 @@ public class HexMenu : MonoBehaviour
             OpenTab(1, open2, false);
         }
 
-        hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 1f);
+        hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 0.95f);
         selectedHex = hex;
     }
 
     public void UnhighlightHex()
     {
         if (selectedHex != null)
-            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
+            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 0.95f);
     }
 
     //Check to see if a Queen was selected from the shop, after clicking on the HiveUI queen button
@@ -860,8 +860,8 @@ public class HexMenu : MonoBehaviour
                 {
                     VisualElement shovelElem = document.rootVisualElement.Q("Shovel");
                     shovelElem.Q<Label>("Uses").text = tool.GetComponent<ShovelTool>().usesPerTurn.ToString();
-                    shovelElem.style.unityBackgroundImageTintColor = Color.white;
-                    shovelElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                    shovelElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
+                    shovelElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
                 }
                 break;
             case "Dolly":
@@ -869,8 +869,8 @@ public class HexMenu : MonoBehaviour
                 {
                     VisualElement dollyElem = document.rootVisualElement.Q("Dolly");
                     dollyElem.Q<Label>("Uses").text = tool.GetComponent<DollyTool>().usesPerTurn.ToString();
-                    dollyElem.style.unityBackgroundImageTintColor = Color.white;
-                    dollyElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                    dollyElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
+                    dollyElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
                 }
                 break;
             case "Smoker":
@@ -878,8 +878,8 @@ public class HexMenu : MonoBehaviour
                 {
                     VisualElement smokerElem = document.rootVisualElement.Q("Smoker");
                     smokerElem.Q<Label>("Uses").text = tool.GetComponent<SmokerTool>().usesPerTurn.ToString();
-                    smokerElem.style.unityBackgroundImageTintColor = Color.white;
-                    smokerElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                    smokerElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
+                    smokerElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
                 }
                 break;
             case "HiveTool":
@@ -887,8 +887,8 @@ public class HexMenu : MonoBehaviour
                 {
                     VisualElement hiveToolElem = document.rootVisualElement.Q("Hivetool");
                     hiveToolElem.Q<Label>("Uses").text = tool.GetComponent<HiveTool>().usesPerTurn.ToString();
-                    hiveToolElem.style.unityBackgroundImageTintColor = Color.white;
-                    hiveToolElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                    hiveToolElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
+                    hiveToolElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
                 }
                 break;
         }

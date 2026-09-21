@@ -51,5 +51,12 @@ public class DollyTool : ToolScript
     public override void TurnReset()
     {
         usesLeft = usesPerTurn;
+        SpawnPips("Dolly", usesPerTurn);
+    }
+
+    public void Use()
+    {
+        usesLeft--;
+        RemovePip("Dolly");
     }
 }

@@ -65,9 +65,9 @@ public class PlayerController : MonoBehaviour
     private bool pickedUpThisFrame = false;
     private Tile storedTile;
 
-    private int money = 25;
+    private int money = 100;
     private int royalJelly = 3;
-    private int vouchers = 5;
+    private int vouchers = 10;
     public int moneyEarned = 0;
     public int moneySpent = 0;
     public Dictionary<FlowerType, List<float>> inventory = new Dictionary<FlowerType, List<float>>();
@@ -151,7 +151,7 @@ public class PlayerController : MonoBehaviour
             if (honeyMarket.marketOpen)
                 honeyMarket.marketTemplate.Q<Label>("MoneyLabel").text = "$" + money;
             if (game.CurrentState != GameStates.TurnEnd)
-                ui.rootVisualElement.Q<VisualElement>("Fill").style.height = ((float)money / game.Quota) * 250f;
+                ui.rootVisualElement.Q<VisualElement>("Fill").style.height = Mathf.Clamp(((float)money / game.Quota) * 250f, 0, 250);
 
             if (value < 0)
                 moneySpent += value;

@@ -268,7 +268,7 @@ public class ToolManager : MonoBehaviour
                 player.CheckForFavoriteFlowerUpdates();
                 Destroy(objectToMove);
 
-                shovel.usesLeft--;
+                shovel.Use();
                 VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
                 shovelElem.Q<Label>("Uses").text = shovel.usesLeft.ToString();
                 if (shovel.usesLeft == 0)
@@ -291,7 +291,7 @@ public class ToolManager : MonoBehaviour
                             storedTile.FlowerObject = null;
                             player.CheckForFavoriteFlowerUpdates();
 
-                            shovel.usesLeft--;
+                            shovel.Use();
                             VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
                             shovelElem.Q<Label>("Uses").text = shovel.usesLeft.ToString();
                             if (shovel.usesLeft == 0)
@@ -310,7 +310,7 @@ public class ToolManager : MonoBehaviour
                             t.special = true;
                             storedTile.special = false;
 
-                            shovel.usesLeft--;
+                            shovel.Use();
                             VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
                             shovelElem.Q<Label>("Uses").text = shovel.usesLeft.ToString();
                             if (shovel.usesLeft == 0)
@@ -330,7 +330,7 @@ public class ToolManager : MonoBehaviour
                         h.transform.position = t.transform.position;
                         h.transform.position += new Vector3(0, 0.5f, 0);
 
-                        dolly.usesLeft--;
+                        dolly.Use();
                         VisualElement dollyElem = document.rootVisualElement.Q<VisualElement>("Dolly");
                         dollyElem.Q<Label>("Uses").text = dolly.usesLeft.ToString();
                         if (dolly.usesLeft == 0)
@@ -378,7 +378,7 @@ public class ToolManager : MonoBehaviour
                         if (smoker.calming && !h.conditions.Contains("Relaxed"))
                             h.AddCondition("Relaxed");
 
-                        smoker.usesLeft--;
+                        smoker.Use();
                         VisualElement smokerlElem = document.rootVisualElement.Q<VisualElement>("Smoker");
                         smokerlElem.Q<Label>("Uses").text = smoker.usesLeft.ToString();
                         if (smoker.usesLeft == 0)
@@ -388,7 +388,7 @@ public class ToolManager : MonoBehaviour
                     {
                         h.CureCondition("Glued");
 
-                        hiveTool.usesLeft--;
+                        hiveTool.Use();
                         VisualElement hiveToolElem = document.rootVisualElement.Q<VisualElement>("Hivetool");
                         hiveToolElem.Q<Label>("Uses").text = hiveTool.usesLeft.ToString();
                         if (hiveTool.usesLeft == 0)
