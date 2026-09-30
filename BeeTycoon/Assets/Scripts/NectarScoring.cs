@@ -57,18 +57,53 @@ public class NectarScoring : MonoBehaviour
     VisualElement total;
     Label totalAmount;
 
-    const int cloverValue = 10;
-    const int alfalfaValue = 20;
-    const int buckwheatValue = 10;
-    const int fireweedValue = 30;
-    const int goldenrodValue = 50;
-    const int dandelionValue = 10;
-    const int sunflowerValue = 5;
-    const int orangeValue = 50;
-    const int daisyValue = 50;
-    const int thistleValue = 0;
-    const int blueberryValue = 180;
-    const int tupeloValue = 80;
+    Dictionary<FlowerType, int> gainValues = new Dictionary<FlowerType, int>()
+    {
+        {FlowerType.Clover, 10},
+        {FlowerType.Alfalfa, 20},
+        {FlowerType.Buckwheat, 10},
+        {FlowerType.Goldenrod, 50},
+        {FlowerType.Fireweed, 30},
+        {FlowerType.Dandelion, 10},
+        {FlowerType.Sunflower, 5},
+        {FlowerType.Daisy, 50},
+        {FlowerType.Thistle, 0},
+        {FlowerType.Blueberry, 180},
+        {FlowerType.Orange, 50},
+        {FlowerType.Tupelo, 80},
+        {FlowerType.Tulip, 100},
+        {FlowerType.TulipPoplar, 10},
+        {FlowerType.Hydrangea, 40},
+        {FlowerType.WaterLily, 100},
+        {FlowerType.Sundew, 50},
+        {FlowerType.PitcherPlant, 100},
+        {FlowerType.Lavendar, 25},
+        {FlowerType.Hibiscus, 20},
+    };
+
+    Dictionary<FlowerType, int> spriteIndecies = new Dictionary<FlowerType, int>()
+    {
+        {FlowerType.Clover, 0},
+        {FlowerType.Alfalfa, 1},
+        {FlowerType.Buckwheat, 2},
+        {FlowerType.Goldenrod, 3},
+        {FlowerType.Fireweed, 4},
+        {FlowerType.Dandelion, 5},
+        {FlowerType.Sunflower, 6},
+        {FlowerType.Daisy, 7},
+        {FlowerType.Thistle, 8},
+        {FlowerType.Blueberry, 9},
+        {FlowerType.Orange, 10},
+        {FlowerType.Tupelo, 11},
+        {FlowerType.Tulip, -1},
+        {FlowerType.TulipPoplar, 12},
+        {FlowerType.Hydrangea, 13},
+        {FlowerType.WaterLily, 14},
+        {FlowerType.Sundew, 15},
+        {FlowerType.PitcherPlant, 16},
+        {FlowerType.Lavendar, 17},
+        {FlowerType.Hibiscus, 18},
+    };
 
     public int dandelionScaling = 0;
 
@@ -82,11 +117,19 @@ public class NectarScoring : MonoBehaviour
 
     TemplateContainer multiplierContainer;
 
+    public FlowerType tulipType = FlowerType.Empty;
+
     public void GameStart()
     {
         hexMenu = GameObject.Find("HexMenu").GetComponent<HexMenu>();
         player = GameObject.Find("PlayerController").GetComponent<PlayerController>();
         basePitch = source.pitch;
+
+        do
+        {
+            tulipType = (FlowerType)UnityEngine.Random.Range(2, 22);
+        } while (tulipType == FlowerType.Tulip);
+        Debug.Log(tulipType);
     }
 
     private float DurationCalc(float duration)
@@ -197,6 +240,30 @@ public class NectarScoring : MonoBehaviour
                         break;
                     case FlowerType.Thistle:
                         StartCoroutine(GetThistleValue(t, duration, player.hives[i]));
+                        break;
+                    case FlowerType.Tulip:
+                        StartCoroutine(GetTulipValue(t, duration, player.hives[i]));
+                        break;
+                    case FlowerType.TulipPoplar:
+                        StartCoroutine(GetTulipPoplarValue(t, duration, player.hives[i]));
+                        break;
+                    case FlowerType.Hydrangea:
+                        StartCoroutine(GetHydrangeaValue(t, duration, player.hives[i]));
+                        break;
+                    case FlowerType.WaterLily:
+                        StartCoroutine(GetWaterLilyValue(t, duration, player.hives[i]));
+                        break;
+                    case FlowerType.Sundew:
+                        StartCoroutine(GetSundewValue(t, duration, player.hives[i]));
+                        break;
+                    case FlowerType.PitcherPlant:
+                        StartCoroutine(GetPitcherPlantValue(t, duration, player.hives[i]));
+                        break;
+                    case FlowerType.Lavendar:
+                        StartCoroutine(GetLavendarValue(t, duration, player.hives[i]));
+                        break;
+                    case FlowerType.Hibiscus:
+                        StartCoroutine(GetHibiscusValue(t, duration, player.hives[i]));
                         break;
                 }
 
@@ -474,7 +541,8 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetCloverValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(0);
+        FlowerType flower = FlowerType.Clover;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -483,17 +551,17 @@ public class NectarScoring : MonoBehaviour
         List<Tile> diagClover = map.GetDiagonalFlowers(FlowerType.Clover, t.x, t.y);
 
         //Animate flower
-        StartCoroutine(t.Animate(FlowerType.Clover, 1, duration, true, source, h));
-        int gain = (adjClover.Count + diagClover.Count) * cloverValue;
-        gain = ApplyModifierValues(FlowerType.Clover, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = (adjClover.Count + diagClover.Count) * gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Clover, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         //Animate related flowers
         foreach (Tile adjT in adjClover)
-            StartCoroutine(adjT.Animate(FlowerType.Clover, 0.3f, duration, false, source, h));
+            StartCoroutine(adjT.Animate(flower, 0.3f, duration, false, source, h));
         foreach (Tile diagT in diagClover)
-            StartCoroutine(diagT.Animate(FlowerType.Clover, 0.3f, duration, false, source, h));
+            StartCoroutine(diagT.Animate(flower, 0.3f, duration, false, source, h));
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -507,22 +575,23 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetAlfalfaValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(1);
+        FlowerType flower = FlowerType.Alfalfa;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
 
-        List<Tile> diagAlfalfa = map.GetDiagonalFlowers(FlowerType.Alfalfa, t.x, t.y);
+        List<Tile> diagAlfalfa = map.GetDiagonalFlowers(flower, t.x, t.y);
 
-        StartCoroutine(t.Animate(FlowerType.Alfalfa, 1, duration, true, source, h));
-        int gain = diagAlfalfa.Count * alfalfaValue;
-        gain = ApplyModifierValues(FlowerType.Alfalfa, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = diagAlfalfa.Count * gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Alfalfa, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         //Animate related flowers
         foreach (Tile tDiag in diagAlfalfa)
-            StartCoroutine(tDiag.Animate(FlowerType.Alfalfa, 0.3f, duration, false, source, h));
+            StartCoroutine(tDiag.Animate(flower, 0.3f, duration, false, source, h));
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -534,16 +603,17 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetBuckwheatValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(2);
+        FlowerType flower = FlowerType.Buckwheat;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
 
-        StartCoroutine(t.Animate(FlowerType.Buckwheat, 1, duration, true, source, h));
-        int gain = buckwheatValue;
-        gain = ApplyModifierValues(FlowerType.Buckwheat, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Buckwheat, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -553,16 +623,17 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetFireweedValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(4);
+        FlowerType flower = FlowerType.Fireweed;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
 
-        StartCoroutine(t.Animate(FlowerType.Fireweed, 1, duration, true, source, h));
-        int gain = fireweedValue;
-        gain = ApplyModifierValues(FlowerType.Fireweed, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Fireweed, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -572,16 +643,17 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetGoldenrodValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(3);
+        FlowerType flower = FlowerType.Goldenrod;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
 
-        StartCoroutine(t.Animate(FlowerType.Goldenrod, 1, duration, true, source, h));
-        int gain = goldenrodValue;
-        gain = ApplyModifierValues(FlowerType.Goldenrod, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Goldenrod, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -591,16 +663,17 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetDandelionValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(5);
+        FlowerType flower = FlowerType.Dandelion;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
 
-        StartCoroutine(t.Animate(FlowerType.Dandelion, 1, duration, true, source, h));
-        int gain = dandelionValue + dandelionScaling;
-        gain = ApplyModifierValues(FlowerType.Dandelion, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower] + dandelionScaling;
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Dandelion, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -610,7 +683,8 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetSunflowerValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(6);
+        FlowerType flower = FlowerType.Sunflower;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -618,11 +692,11 @@ public class NectarScoring : MonoBehaviour
         List<Tile> adjEmpty = map.GetAdjacentFlowers(FlowerType.Empty, t.x, t.y);
         List<Tile> diagEmpty = map.GetDiagonalFlowers(FlowerType.Empty, t.x, t.y);
 
-        StartCoroutine(t.Animate(FlowerType.Sunflower, 1, duration, true, source, h));
-        int gain = (adjEmpty.Count + diagEmpty.Count) * sunflowerValue;
-        gain = ApplyModifierValues(FlowerType.Sunflower, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = (adjEmpty.Count + diagEmpty.Count) * gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Sunflower, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -632,16 +706,17 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetOrangeValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(10);
+        FlowerType flower = FlowerType.Orange;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
 
-        StartCoroutine(t.Animate(FlowerType.Orange, 1, duration, true, source, h));
-        int gain = orangeValue;
-        gain = ApplyModifierValues(FlowerType.Orange, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Orange, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -651,7 +726,8 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetDaisyValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(7);
+        FlowerType flower = FlowerType.Daisy;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -672,11 +748,11 @@ public class NectarScoring : MonoBehaviour
             }
         }
 
-        StartCoroutine(t.Animate(FlowerType.Daisy, 1, duration, true, source, h));
-        int gain = daisyValue * uniqueFlowers;
-        gain = ApplyModifierValues(FlowerType.Daisy, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower] * uniqueFlowers;
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Daisy, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -686,7 +762,8 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetThistleValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(8);
+        FlowerType flower = FlowerType.Thistle;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -706,11 +783,11 @@ public class NectarScoring : MonoBehaviour
 
         Tile randTile = validTiles[UnityEngine.Random.Range(0, validTiles.Count)];
 
-        StartCoroutine(t.Animate(FlowerType.Thistle, 1, duration, true, source, h));
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
         int gain = randTile.lastGain * 3;
-        gain = ApplyModifierValues(FlowerType.Thistle, adjTiles, diagTiles, gain, h, t);
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Thistle, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         randTile.lastGain = 0;
         randTile.Flower = FlowerType.Empty;
@@ -723,7 +800,8 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetBlueberryValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(9);
+        FlowerType flower = FlowerType.Blueberry;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
@@ -731,12 +809,12 @@ public class NectarScoring : MonoBehaviour
         int gain = 0;
         if (game.Season == "summer")
         {
-            gain = blueberryValue;
+            gain = gainValues[flower];
         }
-        gain = ApplyModifierValues(FlowerType.Blueberry, adjTiles, diagTiles, gain, h, t);
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        StartCoroutine(t.Animate(FlowerType.Blueberry, 1, duration, true, source, h));
-        FlowerValueHelper(t, gain, duration, FlowerType.Blueberry, h);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;
@@ -746,16 +824,205 @@ public class NectarScoring : MonoBehaviour
 
     private IEnumerator GetTupeloValue(Tile t, float duration, Hive h)
     {
-        UpdateNectarUI(11);
+        FlowerType flower = FlowerType.Tupelo;
+        UpdateNectarUI(spriteIndecies[flower]);
 
         List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
         List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
 
-        StartCoroutine(t.Animate(FlowerType.Tupelo, 1, duration, true, source, h));
-        int gain = tupeloValue;
-        gain = ApplyModifierValues(FlowerType.Tupelo, adjTiles, diagTiles, gain, h, t);
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
         gain = CalcHiveSharing(t, gain, h);
-        FlowerValueHelper(t, gain, duration, FlowerType.Tupelo, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
+
+        yield return new WaitWhile(() => !t.completed);
+        t.completed = false;
+        AdjustPitch();
+        calced = true;
+    }
+
+    private IEnumerator GetTulipValue(Tile t, float duration, Hive h)
+    {
+        Debug.Log(tulipType);
+        UpdateNectarUI(spriteIndecies[tulipType]);
+
+        List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
+        List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
+
+        int gain = gainValues[FlowerType.Tulip];
+        gain = ApplyModifierValues(FlowerType.Tulip, adjTiles, diagTiles, gain, h, t);
+        gain = CalcHiveSharing(t, gain, h);
+        StartCoroutine(t.Animate(tulipType, 1, duration, true, source, h));
+        FlowerValueHelper(t, gain, duration, tulipType, h);
+
+        yield return new WaitWhile(() => !t.completed);
+        t.completed = false;
+        AdjustPitch();
+        calced = true;
+    }
+
+    private IEnumerator GetTulipPoplarValue(Tile t, float duration, Hive h)
+    {
+        FlowerType flower = FlowerType.TulipPoplar;
+        UpdateNectarUI(spriteIndecies[flower]);
+
+        List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
+        List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
+
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
+
+        yield return new WaitWhile(() => !t.completed);
+        t.completed = false;
+        AdjustPitch();
+        calced = true;
+    }
+
+    private IEnumerator GetHydrangeaValue(Tile t, float duration, Hive h)
+    {
+        FlowerType flower = FlowerType.TulipPoplar;
+        UpdateNectarUI(spriteIndecies[flower]);
+
+        List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
+        List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
+
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+
+        bool water = false;
+        foreach (Tile aT in adjTiles)
+            if (aT.water)
+                water = true;
+        foreach (Tile dT in diagTiles)
+            if (dT.water)
+                water = true;
+        if (water)
+            gain *= 3;
+
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
+
+        yield return new WaitWhile(() => !t.completed);
+        t.completed = false;
+        AdjustPitch();
+        calced = true;
+    }
+
+    private IEnumerator GetWaterLilyValue(Tile t, float duration, Hive h)
+    {
+        FlowerType flower = FlowerType.WaterLily;
+        UpdateNectarUI(spriteIndecies[flower]);
+
+        List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
+        List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
+
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
+
+        yield return new WaitWhile(() => !t.completed);
+        t.completed = false;
+        AdjustPitch();
+        calced = true;
+    }
+
+    private IEnumerator GetSundewValue(Tile t, float duration, Hive h)
+    {
+        FlowerType flower = FlowerType.Sundew;
+        UpdateNectarUI(spriteIndecies[flower]);
+
+        List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
+        List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
+
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
+
+        yield return new WaitWhile(() => !t.completed);
+        t.completed = false;
+        AdjustPitch();
+        calced = true;
+    }
+
+    private IEnumerator GetPitcherPlantValue(Tile t, float duration, Hive h)
+    {
+        FlowerType flower = FlowerType.PitcherPlant;
+        UpdateNectarUI(spriteIndecies[flower]);
+
+        List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
+        List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
+
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        float distance = Mathf.Sqrt((float)Math.Pow(h.x - t.x, 2) + (float)Math.Pow(h.y - t.y, 2));
+        int gain = Mathf.RoundToInt(gainValues[flower] * (1 / distance));
+
+        int hiveCount = 1;
+        foreach (Tile aT in adjTiles)
+            if (aT.HasHive && aT.hive.queen != null)
+                hiveCount++;
+        gain *= hiveCount;
+
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
+
+        h.population -= Mathf.RoundToInt(300 * (1 / distance));
+
+        yield return new WaitWhile(() => !t.completed);
+        t.completed = false;
+        AdjustPitch();
+        calced = true;
+    }
+
+    private IEnumerator GetLavendarValue(Tile t, float duration, Hive h)
+    {
+        FlowerType flower = FlowerType.Lavendar;
+        UpdateNectarUI(spriteIndecies[flower]);
+
+        List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
+        List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
+
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower];
+
+        if (h.StressLevel >= 0)
+            gain *= 2;
+        else if (h.StressLevel < 0 && !h.conditions.Contains("Soothed"))
+            h.AddCondition("Soothed");
+
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
+
+        yield return new WaitWhile(() => !t.completed);
+        t.completed = false;
+        AdjustPitch();
+        calced = true;
+    }
+
+    private IEnumerator GetHibiscusValue(Tile t, float duration, Hive h)
+    {
+        FlowerType flower = FlowerType.Sundew;
+        UpdateNectarUI(spriteIndecies[flower]);
+
+        List<Tile> adjTiles = map.GetAdjacentTiles(t.x, t.y);
+        List<Tile> diagTiles = map.GetDiagonalTiles(t.x, t.y);
+
+        StartCoroutine(t.Animate(flower, 1, duration, true, source, h));
+        int gain = gainValues[flower] * h.conditions.Count();
+
+        gain = ApplyModifierValues(flower, adjTiles, diagTiles, gain, h, t);
+        gain = CalcHiveSharing(t, gain, h);
+        FlowerValueHelper(t, gain, duration, flower, h);
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;

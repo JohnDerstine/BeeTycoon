@@ -230,6 +230,7 @@ public class QueenChooser : MonoBehaviour
                         possibilites.Add(kvp.Key);
                 }
                 queen.species = possibilites[Random.Range(0, possibilites.Count)];
+                queen.GetSpeciesIcon();
                 item.AddManipulator(new Clickable(e => SelectQueenShop(queen, item)));
                 item.RegisterCallback<PointerMoveEvent>(e => OnQueenMove(e, queen));
             }
@@ -320,6 +321,8 @@ public class QueenChooser : MonoBehaviour
             QueenBee queen = q.GetComponent<QueenBee>();
             queenOptions.Add(queen);
             queen.species = possibilites[Random.Range(0, possibilites.Count)];
+            queen.GetSpeciesIcon();
+            queenElem.Q<VisualElement>("Icon").style.backgroundImage = queen.speciesSprite;
             possibilites.Remove(queen.species);
             int savedI = queenOptions.Count - 1;
 
@@ -629,7 +632,7 @@ public class QueenChooser : MonoBehaviour
             VisualElement popup = hoverTemp.Q<VisualElement>("Popup");
 
             //Display Info about queen
-            hoverTemp.Q<VisualElement>("Icon").style.backgroundImage = queenSprite;
+            hoverTemp.Q<VisualElement>("Icon").style.backgroundImage = queen.speciesSprite;
             hoverTemp.Q<Label>("Species").text = "Species: " + queen.species;
             hoverTemp.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
             hoverTemp.Q<Label>("Favorite").text = "Favorite Flower: " + queen.favorite.ToString();

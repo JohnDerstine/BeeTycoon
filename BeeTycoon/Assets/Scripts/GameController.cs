@@ -308,6 +308,7 @@ public class GameController : MonoBehaviour
         CurrentState = GameStates.Start;
         ReloadUI();
         SetToolUsesLabels();
+        toolManager.TurnReset();
 
         document.rootVisualElement.Q<Label>("GoalLabel").text = Descriptions[title.text];
         document.rootVisualElement.Q<Label>("GoalLabel").text = document.rootVisualElement.Q<Label>("GoalLabel").text.Replace("*", Levels[title.text][selectedDifficulty - 1]);
@@ -537,21 +538,11 @@ public class GameController : MonoBehaviour
         {
             if (tools[i].Level > 0)
             {
-                if (i == 0)
-                    toolElems[i].Q<Label>("Uses").text = toolManager.shovel.usesPerTurn.ToString();
-                else if (i == 1)
-                    toolElems[i].Q<Label>("Uses").text = toolManager.dolly.usesPerTurn.ToString();
-                else if (i == 2)
-                    toolElems[i].Q<Label>("Uses").text = toolManager.smoker.usesPerTurn.ToString();
-                else if (i == 3)
-                    toolElems[i].Q<Label>("Uses").text = toolManager.hiveTool.usesPerTurn.ToString();
-
                 toolElems[i].style.unityBackgroundImageTintColor = Color.white;
                 toolElems[i].Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
             }
             else
             {
-                toolElems[i].Q<Label>("Uses").text = "";
                 toolElems[i].style.unityBackgroundImageTintColor = new Color(0.57f, 0.57f, 0.57f);
                 toolElems[i].Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(0.57f, 0.57f, 0.57f);
             }

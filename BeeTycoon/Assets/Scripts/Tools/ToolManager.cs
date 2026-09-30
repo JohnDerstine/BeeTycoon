@@ -270,7 +270,6 @@ public class ToolManager : MonoBehaviour
 
                 shovel.Use();
                 VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
-                shovelElem.Q<Label>("Uses").text = shovel.usesLeft.ToString();
                 if (shovel.usesLeft == 0)
                     SetDepletedUI(shovelElem);
 
@@ -293,7 +292,6 @@ public class ToolManager : MonoBehaviour
 
                             shovel.Use();
                             VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
-                            shovelElem.Q<Label>("Uses").text = shovel.usesLeft.ToString();
                             if (shovel.usesLeft == 0)
                                 SetDepletedUI(shovelElem);
 
@@ -312,7 +310,6 @@ public class ToolManager : MonoBehaviour
 
                             shovel.Use();
                             VisualElement shovelElem = document.rootVisualElement.Q<VisualElement>("Shovel");
-                            shovelElem.Q<Label>("Uses").text = shovel.usesLeft.ToString();
                             if (shovel.usesLeft == 0)
                                 SetDepletedUI(shovelElem);
 
@@ -332,7 +329,6 @@ public class ToolManager : MonoBehaviour
 
                         dolly.Use();
                         VisualElement dollyElem = document.rootVisualElement.Q<VisualElement>("Dolly");
-                        dollyElem.Q<Label>("Uses").text = dolly.usesLeft.ToString();
                         if (dolly.usesLeft == 0)
                             SetDepletedUI(dollyElem);
 
@@ -380,7 +376,6 @@ public class ToolManager : MonoBehaviour
 
                         smoker.Use();
                         VisualElement smokerlElem = document.rootVisualElement.Q<VisualElement>("Smoker");
-                        smokerlElem.Q<Label>("Uses").text = smoker.usesLeft.ToString();
                         if (smoker.usesLeft == 0)
                             SetDepletedUI(smokerlElem);
                     }
@@ -390,7 +385,6 @@ public class ToolManager : MonoBehaviour
 
                         hiveTool.Use();
                         VisualElement hiveToolElem = document.rootVisualElement.Q<VisualElement>("Hivetool");
-                        hiveToolElem.Q<Label>("Uses").text = hiveTool.usesLeft.ToString();
                         if (hiveTool.usesLeft == 0)
                             SetDepletedUI(hiveToolElem);
                     }
@@ -401,9 +395,11 @@ public class ToolManager : MonoBehaviour
 
     private void SetDepletedUI(VisualElement elem)
     {
-        elem.Q<Label>("Uses").text = "";
         elem.style.unityBackgroundImageTintColor = new Color(0.57f, 0.57f, 0.57f);
         elem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(0.57f, 0.57f, 0.57f);
+        UnityEngine.Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
+        player.SelectedItem = null;
+        player.selectedItemSprite = null;
     }
 
     private void CleanUpShovel(Tile t = null)

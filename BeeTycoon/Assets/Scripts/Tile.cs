@@ -104,6 +104,8 @@ public class Tile : MonoBehaviour
         yield return new WaitWhile(() => !appearComplete);
         appearComplete = false;
         flower = f;
+        if (flower == FlowerType.Sundew)
+            water = true;
         busy = false;
         yield return null;
     }
@@ -115,6 +117,8 @@ public class Tile : MonoBehaviour
         yield return new WaitWhile(() => !disappearComplete);
         disappearComplete = false;
         Destroy(flowerObject);
+        if (flower == FlowerType.Sundew)
+            water = false;
         flower = f;
         busy = false;
         yield return null;
@@ -217,7 +221,7 @@ public class Tile : MonoBehaviour
 
     public IEnumerator Animate(FlowerType fType, float strength, float duration, bool primary, AudioSource audio, Hive h)
     {
-        if (flower != fType)
+        if (flower != fType && flower != FlowerType.Tulip)
             yield return new WaitForEndOfFrame();
         else
         {

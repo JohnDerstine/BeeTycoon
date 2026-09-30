@@ -99,6 +99,13 @@ public class HoneyMarket : MonoBehaviour
             marketValues[FlowerType.Blueberry][2] = 8;
             marketValues[FlowerType.Orange][2] = 6;
             marketValues[FlowerType.Tupelo][2] = 8;
+            marketValues[FlowerType.TulipPoplar][2] = 50;
+            marketValues[FlowerType.Hydrangea][2] = 10;
+            marketValues[FlowerType.WaterLily][2] = 10;
+            marketValues[FlowerType.Sundew][2] = 10;
+            marketValues[FlowerType.PitcherPlant][2] = 10;
+            marketValues[FlowerType.Lavendar][2] = 10;
+            marketValues[FlowerType.Hibiscus][2] = 10;
 
             ResetToBaseValue();
             UpdateMarket();

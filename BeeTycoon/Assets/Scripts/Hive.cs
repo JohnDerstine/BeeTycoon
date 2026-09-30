@@ -994,10 +994,11 @@ public class Hive : MonoBehaviour
         StartCoroutine(queen.TransferStats(q));
         Destroy(q.gameObject);
         empty = false;
-        queenHex.style.backgroundImage = queenSprite;
-        queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
 
         yield return new WaitWhile(() => !queen.transferComplete);
+
+        queenHex.style.backgroundImage = queen.speciesSprite;
+        queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
 
         while (conditions.Count > 0)
             CureCondition(conditions[0]);
@@ -1049,7 +1050,8 @@ public class Hive : MonoBehaviour
         //else
         //    Condition = "Dead";
         queenClick.UnregisterCallback(cycleDetails);
-        queenHex.style.backgroundImage = queenSprite;
+        queen.GetSpeciesIcon();
+        queenHex.style.backgroundImage = queen.speciesSprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
         game = GameObject.Find("GameController").GetComponent<GameController>();
         tracker = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
@@ -1473,7 +1475,7 @@ public class Hive : MonoBehaviour
                     hoverTemplate.style.top = Screen.height - e.position.y - popup.resolvedStyle.height / 1.5f;
                 });
 
-                popup.Q<VisualElement>("Icon").style.backgroundImage = queenHex.style.backgroundImage;
+                popup.Q<VisualElement>("Icon").style.backgroundImage = queen.speciesSprite;
                 popup.Q<Label>("Species").text = "Species: " + queen.species;
                 popup.Q<Label>("Age").text = "Favorite Flower: " + queen.favorite.ToString();
                 VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");

@@ -20,6 +20,8 @@ public class QueenBee : MonoBehaviour
 
     public bool japaneseInherited = false;
 
+    public Texture2D speciesSprite;
+
     void Start()
     {
         unlocks = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
@@ -74,7 +76,43 @@ public class QueenBee : MonoBehaviour
         favorite = newQueen.favorite;
         species = newQueen.species;
         quirks = newQueen.quirks;
+        GetSpeciesIcon();
         nullQueen = false;
         transferComplete = true;
+    }
+
+    public void GetSpeciesIcon()
+    {
+        unlocks = GameObject.Find("UnlockTracker").GetComponent<UnlockTracker>();
+        switch (species)
+        {
+            case "Italian":
+                speciesSprite = unlocks.ItalianIcon;
+                break;
+            case "Russian":
+                speciesSprite = unlocks.RussianIcon;
+                break;
+            case "Japanese":
+                speciesSprite = unlocks.JapaneseIcon;
+                break;
+            case "Caucasian":
+                speciesSprite = unlocks.CaucasianIcon;
+                break;
+            case "Cordovan":
+                speciesSprite = unlocks.CordovanIcon;
+                break;
+            case "Carniolan":
+                speciesSprite = unlocks.CarniolanIcon;
+                break;
+            case "Himalayan":
+                speciesSprite = unlocks.HimalayanIcon;
+                break;
+            case "Buckfast":
+                speciesSprite = unlocks.BuckfastIcon;
+                break;
+            case "Killer":
+                speciesSprite = unlocks.KillerIcon;
+                break;
+        }
     }
 }

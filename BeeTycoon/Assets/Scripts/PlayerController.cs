@@ -277,7 +277,9 @@ public class PlayerController : MonoBehaviour
 
                         if (hoverObject.GetComponent<Cost>().tree && (t.y == map.mapHeight - 1 || t.x == map.mapWidth - 1 ||  !t.Check234() || t.HasHive || t.Flower != FlowerType.Empty))
                             activeHolo.GetComponent<MeshRenderer>().material = redHolo;
-                        else if (t.HasHive || t.Flower != FlowerType.Empty || !t.alive || t.water)
+                        else if (hoverObject.GetComponent<Cost>().ftype == FlowerType.WaterLily && t.water && t.Flower == FlowerType.Empty)
+                            activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
+                        else if (t.HasHive || t.Flower != FlowerType.Empty || !t.alive || hoverObject.GetComponent<Cost>().ftype == FlowerType.WaterLily)
                             activeHolo.GetComponent<MeshRenderer>().material = redHolo;
                         else
                             activeHolo.GetComponent<MeshRenderer>().material = greenHolo;
@@ -338,14 +340,14 @@ public class PlayerController : MonoBehaviour
             //If a tile is clicked while holding a placeable object, place the object
             if (Physics.Raycast(ray, out var tileHit, 1000, LayerMask.GetMask("Tile")))
             {
-                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t) && t.alive && !t.water && !t.special)
+                if (tileHit.collider.gameObject.TryGetComponent<Tile>(out Tile t) && t.alive && !t.special)
                 {
                     if (hoverObject != null && hoverObject.tag == "Placeable")
                     {
                         hoverObject.transform.position = t.gameObject.transform.position;
                         if (hoverObject.TryGetComponent(out Hive h))
                         {
-                            if (t.Flower == FlowerType.Empty && !t.HasHive)
+                            if (t.Flower == FlowerType.Empty && !t.HasHive && !t.water)
                             {
                                 hoverObject.transform.position += new Vector3(0, 0.5f, 0);
                                 hives.Add(h);
@@ -364,7 +366,7 @@ public class PlayerController : MonoBehaviour
                         }
                         else if (hoverObject.TryGetComponent<Cost>(out Cost c))
                         {
-                            if (c.ftype != FlowerType.Empty && c.ftype != FlowerType.Orange && c.ftype != FlowerType.Tupelo && t.Flower == FlowerType.Empty && !t.HasHive && !t.busy)
+                            if (c.ftype != FlowerType.Empty && c.ftype != FlowerType.WaterLily && c.ftype != FlowerType.Orange && c.ftype != FlowerType.Tupelo && t.Flower == FlowerType.Empty && !t.HasHive && !t.busy)
                             {
                                 if (Vouchers < c.Price)
                                     return;
@@ -386,11 +388,17 @@ public class PlayerController : MonoBehaviour
                                     hexMenu.OpenTab(3, hexMenu.open4, false);
                                 }
                             }
-                            else if (c.ftype != FlowerType.Empty && t.Flower == FlowerType.Empty && !t.HasHive && !t.busy) //tree check //this is done really bad, will redo this at some point
+                            else if (c.ftype != FlowerType.Empty && t.Flower == FlowerType.Empty && !t.HasHive && !t.busy && c.ftype != FlowerType.WaterLily) //tree check //this is done really bad, will redo this at some point
                             {
                                 if (t.y != map.mapHeight && t.x != map.mapWidth)
                                 {
+                                    if (Vouchers < c.Price)
+                                        return;
+
                                     t.Flower = c.ftype;
+
+                                    CheckForFavoriteFlowerUpdates();
+
                                     if (hexMenu.flowersOwned[c.ftype] <= 0)
                                     {
                                         Vouchers = -c.Price;
@@ -403,6 +411,29 @@ public class PlayerController : MonoBehaviour
                                         hexMenu.RefreshMenuLists();
                                         hexMenu.OpenTab(3, hexMenu.open4, false);
                                     }
+                                }
+                            }
+                            else if (c.ftype == FlowerType.WaterLily && !t.HasHive && !t.busy && (t.Flower == FlowerType.Empty && t.water))//(t.Flower == FlowerType.Sundew || t.Flower == FlowerType.Empty && t.water))
+                            {
+                                if (Vouchers < c.Price)
+                                    return;
+
+                                t.Flower = FlowerType.Empty;
+                                t.Flower = c.ftype;
+
+                                CheckForFavoriteFlowerUpdates();
+
+                                if (hexMenu.flowersOwned[c.ftype] <= 0)
+                                {
+                                    Vouchers = -c.Price;
+                                    hexMenu.RefreshMenuLists();
+                                    hexMenu.OpenTab(3, hexMenu.open4, false);
+                                }
+                                else
+                                {
+                                    hexMenu.flowersOwned[c.ftype]--;
+                                    hexMenu.RefreshMenuLists();
+                                    hexMenu.OpenTab(3, hexMenu.open4, false);
                                 }
                             }
 

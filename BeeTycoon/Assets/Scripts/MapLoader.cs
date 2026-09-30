@@ -305,7 +305,7 @@ public class MapLoader : MonoBehaviour
                 {
                     tiles[i, j].GetComponent<MeshRenderer>().materials = m;
                     tiles[i, j].water = true;
-                    tiles[i, j].alive = false;
+                    //tiles[i, j].alive = false;
                 }
             }
         }
@@ -326,7 +326,7 @@ public class MapLoader : MonoBehaviour
                 {
                     tiles[j, i].GetComponent<MeshRenderer>().materials = m;
                     tiles[j, i].water = true;
-                    tiles[j, i].alive = false;
+                    //tiles[j, i].alive = false;
                 }
             }
         }
@@ -508,7 +508,7 @@ public class MapLoader : MonoBehaviour
                         while (!possible)
                         {
                             rand = (FlowerType)Random.Range(2, values.Length);
-                            if ((i != mapWidth - 1 && j != mapHeight - 1) || (rand != FlowerType.Orange && rand != FlowerType.Tupelo))
+                            if ((i != mapWidth - 1 && j != mapHeight - 1) || (rand != FlowerType.Orange && rand != FlowerType.Tupelo && rand != FlowerType.WaterLily && rand != FlowerType.TulipPoplar))
                                 possible = true;
                         }
                         tiles[i, j].Flower = rand;
@@ -519,7 +519,7 @@ public class MapLoader : MonoBehaviour
                         while (!possible)
                         {
                             rand = hexMenu.availableFTypes[Random.Range(0, hexMenu.availableFTypes.Count)];
-                            if ((i != mapWidth - 1 && j != mapHeight - 1 && tiles[i,j].Check234()) || (rand != FlowerType.Orange && rand != FlowerType.Tupelo))
+                            if ((i != mapWidth - 1 && j != mapHeight - 1 && tiles[i,j].Check234()) || (rand != FlowerType.Orange && rand != FlowerType.Tupelo && rand != FlowerType.WaterLily && rand != FlowerType.TulipPoplar))
                                 possible = true;
                         }
                         tiles[i, j].Flower = rand;

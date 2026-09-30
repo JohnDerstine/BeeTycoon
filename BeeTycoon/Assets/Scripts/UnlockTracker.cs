@@ -27,6 +27,8 @@ public class UnlockTracker : MonoBehaviour
         {"SizeSelect", false},
         {"Composte", false},
         {"ToolSelect", false},
+        {"Bonus", false},
+        {"HiddenFlower", false}
     };
 
     public Dictionary<string, bool> toolUpgrades = new Dictionary<string, bool>()
@@ -48,41 +50,57 @@ public class UnlockTracker : MonoBehaviour
     public Dictionary<FlowerType, bool> Stage12Flowers = new Dictionary<FlowerType, bool>()
     {
         {FlowerType.Clover, false},
-        {FlowerType.Buckwheat, false},
+        {FlowerType.Daisy, false},
         {FlowerType.Alfalfa, false},
         {FlowerType.Goldenrod, false},
         {FlowerType.Sunflower, false},
         {FlowerType.Orange, false},
+        {FlowerType.Lavendar, false},
+        {FlowerType.Tulip, false},
+        {FlowerType.Sundew, false},
+        {FlowerType.Hydrangea, false}
     };
 
     public Dictionary<FlowerType, bool> Stage34Flowers = new Dictionary<FlowerType, bool>()
     {
         {FlowerType.Fireweed, false},
         {FlowerType.Dandelion, false},
-        {FlowerType.Daisy, false},
+        {FlowerType.Buckwheat, false},
         {FlowerType.Thistle, false},
         {FlowerType.Blueberry, false},
         {FlowerType.Tupelo, false},
+        {FlowerType.TulipPoplar, false},
+        {FlowerType.WaterLily, false},
+        {FlowerType.PitcherPlant, false},
+        {FlowerType.Hibiscus, false}
     };
 
     public Dictionary<FlowerType, bool> Stage12FlowersUnlocked = new Dictionary<FlowerType, bool>()
     {
         {FlowerType.Clover, true},
-        {FlowerType.Buckwheat, true},
+        {FlowerType.Daisy, true},
         {FlowerType.Alfalfa, true},
         {FlowerType.Goldenrod, true},
         {FlowerType.Sunflower, true},
         {FlowerType.Orange, true},
+        {FlowerType.Lavendar, false},
+        {FlowerType.Tulip, false},
+        {FlowerType.Sundew, false},
+        {FlowerType.Hydrangea, false}
     };
 
     public Dictionary<FlowerType, bool> Stage34FlowersUnlocked = new Dictionary<FlowerType, bool>()
     {
         {FlowerType.Fireweed, true},
         {FlowerType.Dandelion, true},
-        {FlowerType.Daisy, true},
+        {FlowerType.Buckwheat, true},
         {FlowerType.Thistle, true},
         {FlowerType.Blueberry, true},
         {FlowerType.Tupelo, true},
+        {FlowerType.TulipPoplar, false},
+        {FlowerType.WaterLily, false},
+        {FlowerType.PitcherPlant, false},
+        {FlowerType.Hibiscus, false}
     };
 
     //Add negative quirks that are opposite of 5 base
@@ -170,6 +188,35 @@ public class UnlockTracker : MonoBehaviour
     public List<FlowerType> ownedFlowers = new List<FlowerType>();
 
     public int stage = 0;
+
+    [SerializeField]
+    public Texture2D ItalianIcon;
+
+    [SerializeField]
+    public Texture2D JapaneseIcon;
+
+    [SerializeField]
+    public Texture2D RussianIcon;
+
+    [SerializeField]
+    public Texture2D CaucasianIcon;
+
+    [SerializeField]
+    public Texture2D CordovanIcon;
+
+    [SerializeField]
+    public Texture2D CarniolanIcon;
+
+    [SerializeField]
+    public Texture2D BuckfastIcon;
+
+    [SerializeField]
+    public Texture2D HimalayanIcon;
+
+    [SerializeField]
+    public Texture2D KillerIcon;
+
+    //public Dictionary<string, Texture2D> speciesIcons = new Dictionary<string, Texture2D>();
 
     public List<FlowerType> GetUnlockedFlowers()
     {

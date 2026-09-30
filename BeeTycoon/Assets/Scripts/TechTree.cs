@@ -47,11 +47,11 @@ public class TechTree : MonoBehaviour
         {"HoneySelect", new string[0]},
         {"Carniolan", new string[] {"HoneySelect"} },
         {"Caucasian", new string[] {"HoneySelect"} },
-        {"SizeSelect", new string[] {"Caucasian", "Carniolan"} },
-        {"Himalayan", new string[] { "SizeSelect" } },
-        {"Cordovan", new string[] { "SizeSelect" } },
-        {"Buckfast", new string[] { "SizeSelect" } },
-        {"Killer", new string[] { "SizeSelect" } },
+        {"Bonus", new string[] {"Caucasian", "Carniolan"} },
+        {"Himalayan", new string[] { "Bonus" } },
+        {"Cordovan", new string[] { "Bonus" } },
+        {"Buckfast", new string[] { "Bonus" } },
+        {"Killer", new string[] { "Bonus" } },
         {"ToolSelect", new string[0]},
         {"Shovel1", new string[] { "ToolSelect" } },
         {"Smoker1", new string[] { "ToolSelect" } },
@@ -69,19 +69,20 @@ public class TechTree : MonoBehaviour
         {"Tulip", new string[] { "FlowerSelect" } },
         {"Sundew", new string[] { "FlowerSelect" } },
         {"Composte", new string[] { "FlowerSelect" } },
-        {"Rose", new string[] { "FlowerSelect" } },
+        {"Hydrangea", new string[] { "FlowerSelect" } },
         {"Lavendar", new string[] { "FlowerSelect" } },
         {"TulipPoplar", new string[] { "Tulip" } },
         {"PitcherPlant", new string[] { "Sundew" } },
-        {"Quince", new string[] { "Rose" } },
-        {"Hibiscus", new string[] { "Lavendar" } }
+        {"WaterLily", new string[] { "Hydrangea" } },
+        {"Hibiscus", new string[] { "Lavendar" } },
+        {"HiddenFlower", new string[] {"Hibiscus", "WaterLily", "PitcherPlant", "TulipPoplar" } }
     };
 
     Dictionary<string, string> nodeDescs = new Dictionary<string, string>() {
         {"HoneySelect", "Adds chance for 5 lbs of honey to appear as an option in choice selection screens"},
         {"Carniolan", "A species of bee known for their exception sprint-time build up. 100% increased comb construction in spring"},
         {"Caucasian", "A species of bee known for having the longest tongue and being docile. 10% increased nectar gain, and immune to aggrevated affliction"},
-        {"SizeSelect", "WIP: Regular customers will now have specialized orders for you. Completing them will earn growing rewards over time"},
+        {"Bonus", "Start the game with an extra 2 Royal Jellies."},
         {"Himalayan", "A rare species of bee that excels at gathering one type of honey. All honey produced is considered high quality"},
         {"Cordovan", "A fully yellow bee that is known for its passiveness. Other hives will not attack these bees"},
         {"Buckfast", "A new species of bee bred to be immune to the varroa mite. Immune to the mites affliction"},
@@ -103,12 +104,13 @@ public class TechTree : MonoBehaviour
         {"Tulip", "WIP"},
         {"Sundew", "WIP"},
         {"Composte", "A permament upgrade to your plot. When moving flowers with a shovel, you can remove them permanently by moving them to the composte"},
-        {"Rose", "WIP"},
+        {"Hydrangea", "WIP"},
         {"Lavendar", "WIP"},
         {"TulipPoplar", "WIP"},
         {"PitcherPlant", "WIP"},
-        {"Quince", "WIP"},
-        {"Hibiscus", "WIP"}
+        {"WaterLily", "WIP"},
+        {"Hibiscus", "WIP"},
+        {"HiddenFlower", "WIP"},
     };
 
     //Position and rotation for enhanced frames
@@ -341,21 +343,21 @@ public class TechTree : MonoBehaviour
         switch (tech)
         {
             case "Tulip":
-                return FlowerType.Empty;
+                return FlowerType.Tulip;
             case "TulipPoplar":
-                return FlowerType.Empty;
+                return FlowerType.TulipPoplar;
             case "Sundew":
-                return FlowerType.Empty;
+                return FlowerType.Sundew;
             case "PitcherPlant":
-                return FlowerType.Empty;
-            case "Rose":
-                return FlowerType.Empty;
-            case "Quince":
-                return FlowerType.Empty;
+                return FlowerType.PitcherPlant;
+            case "Hydrangea":
+                return FlowerType.Hydrangea;
+            case "WaterLily":
+                return FlowerType.WaterLily;
             case "Lavendar":
-                return FlowerType.Empty;
+                return FlowerType.Lavendar;
             case "Hibiscus":
-                return FlowerType.Empty;
+                return FlowerType.Hibiscus;
             default:
                 return FlowerType.Empty;
         }

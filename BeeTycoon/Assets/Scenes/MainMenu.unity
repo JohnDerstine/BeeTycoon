@@ -213,6 +213,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ownedFlowers: 
   stage: 0
+  ItalianIcon: {fileID: 2800000, guid: d794b4b9be42e824f883ecaf14cd324c, type: 3}
+  JapaneseIcon: {fileID: 2800000, guid: 121df38ad2a64234f99536bc191ed629, type: 3}
+  RussianIcon: {fileID: 2800000, guid: 91f6256987e5dba469ed516b1631c748, type: 3}
+  CaucasianIcon: {fileID: 2800000, guid: d2ce9f4de40149b4ebd58538a11ff24f, type: 3}
+  CordovanIcon: {fileID: 2800000, guid: 5d4bd6754a468dd45b5ceb9c569eafb4, type: 3}
+  CarniolanIcon: {fileID: 2800000, guid: 51801bded94523647822ad3b8db4ac27, type: 3}
+  BuckfastIcon: {fileID: 2800000, guid: 7d8341285879f5a43af7769e891c470c, type: 3}
+  HimalayanIcon: {fileID: 2800000, guid: 303732711217a804aa226f318d975bde, type: 3}
+  KillerIcon: {fileID: 2800000, guid: e2f9d14d767d4304abff96b355fce31c, type: 3}
 --- !u!4 &720647230
 Transform:
   m_ObjectHideFlags: 0
@@ -768,6 +777,14 @@ MonoBehaviour:
   - {fileID: 8871483576634703786, guid: 2e048d65849e18b4f9a66c52762d9b5a, type: 3}
   - {fileID: 2475174566886137573, guid: 6b30ffde024d12c489e2849c9f1b3fc2, type: 3}
   - {fileID: 6942034762535838934, guid: cf38f405eeec21345a0aaf75cc4a76f4, type: 3}
+  - {fileID: 6363023309280345267, guid: f7fe65987754c31488a113f1b3b59316, type: 3}
+  - {fileID: 3525249389475857063, guid: 0a0e643c5e1b2cb4089e78f18d53d2c3, type: 3}
+  - {fileID: 1329755104825016213, guid: 2aa09e6637098d14f808fcb969007f77, type: 3}
+  - {fileID: 5242569738072718990, guid: 512f59969c77be04ab18dde9d08c23dd, type: 3}
+  - {fileID: 2474412618406569837, guid: bcfb7323596eaac419307ebcbcfa4760, type: 3}
+  - {fileID: 7825834359855453763, guid: 527ac25a4dd38d247a5886f5f24eb559, type: 3}
+  - {fileID: 3970347602041953160, guid: 49d479cb503e7104dbfbaa3f0aaeac03, type: 3}
+  - {fileID: 82377590443639454, guid: 34c11824140df7e49957fa0cf60a7697, type: 3}
   game: {fileID: 2079847517}
   document: {fileID: 1944616203}
   hive: {fileID: 8631668248818954614, guid: 6be2c764dfd44a34a86830c656730b1a, type: 3}
@@ -989,6 +1006,7 @@ MonoBehaviour:
   honeySprite: {fileID: 2800000, guid: 95d9997ccce6aa046898a9e8bd880124, type: 3}
   dandelionScaling: 0
   multiplierLabel: {fileID: 0}
+  tulipType: 0
 --- !u!1 &1944616202
 GameObject:
   m_ObjectHideFlags: 0

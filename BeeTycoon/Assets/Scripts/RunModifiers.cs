@@ -22,6 +22,14 @@ public class RunModifiers : MonoBehaviour
         {FlowerType.Thistle, new List<string>() { "purple", "short"} },
         {FlowerType.Blueberry, new List<string>() { "white", "short"} },
         {FlowerType.Tupelo, new List<string>() { "purple", "tall", "tree"} },
+        {FlowerType.Tulip, new List<string>() { "purple", "pink", "yellow", "white", "short" } },
+        {FlowerType.TulipPoplar, new List<string>() { "yellow", "tall", "tree"} },
+        {FlowerType.Hydrangea, new List<string>() { "pink", "tall"} },
+        {FlowerType.WaterLily, new List<string>() { "pink", "short"} },
+        {FlowerType.Sundew, new List<string>() {"short"} },
+        {FlowerType.PitcherPlant, new List<string>() {"tall"} },
+        {FlowerType.Lavendar, new List<string>() { "purple", "short"} },
+        {FlowerType.Hibiscus, new List<string>() { "pink", "yellow", "tall"} },
     };
 
 

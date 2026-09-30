@@ -20,6 +20,9 @@ public class HexMenu : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset hexMenuLabel;
 
+    [SerializeField]
+    private Texture2D voucherSprite;
+
     private Glossary glossary;
 
     [SerializeField]
@@ -402,11 +405,14 @@ public class HexMenu : MonoBehaviour
     private int SetHexImageObject(VisualElement icon, Label costLabel, int num, int index)
     {
         icon.styleSheets.Add(itemStyle);
-        icon.style.backgroundImage = spriteList[num][index];
         costLabel.styleSheets.Add(costStyle);
         Cost cost = objectList[num][index].GetComponent<Cost>();
+        if (num != 0)
+            icon.style.backgroundImage = spriteList[num][index];
+        else
+            icon.style.backgroundImage = objectList[num][index].GetComponent<QueenBee>().speciesSprite;
         int price = cost.Price;
-        if (num == 2 && objectList[num][index].GetComponent<Cost>().Purchased)
+        if (num == 2 && cost.Purchased)
         {
             costLabel.text = "Owned";
             return 0;
@@ -416,7 +422,14 @@ public class HexMenu : MonoBehaviour
             costLabel.text = flowersOwned[cost.ftype] + " free";
             return 0;
         }
-        costLabel.text = (price == 0) ? "Owned" : "$" + price;
+        costLabel.text = (price == 0) ? "Owned" : price.ToString();
+        if (costLabel.text != "Owned")
+        {
+            costLabel.style.backgroundImage = voucherSprite;
+            costLabel.style.unityBackgroundImageTintColor = new Color(.9f, .9f, .9f);
+        }
+        else
+            costLabel.style.backgroundImage = null;
         return price;
     }
 
@@ -667,7 +680,7 @@ public class HexMenu : MonoBehaviour
                     SetDetailsList(queen);
 
                     //Update tooltip text to reflect queen stats
-                    popup.Q<VisualElement>("Icon").style.backgroundImage = sprite;
+                    popup.Q<VisualElement>("Icon").style.backgroundImage = queen.speciesSprite;
                     popup.Q<Label>("Species").text = "Species: " + queen.species;
                     popup.Q<Label>("Age").text = "Radius Type: " + queen.radiusType;
                     VisualElement quirkContainer = popup.Q<VisualElement>("QuirkContainer");
@@ -1062,6 +1075,7 @@ public class HexMenu : MonoBehaviour
         queen.nullQueen = false;
         queen.finishedGenerating = true;
         queen.species = data.species[i];
+        queen.GetSpeciesIcon();
         queen.radiusType = data.radiusType[i];
 
         int count = 0;
