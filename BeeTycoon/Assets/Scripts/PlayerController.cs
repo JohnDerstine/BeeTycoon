@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Xml.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -37,12 +38,6 @@ public class PlayerController : MonoBehaviour
 
     [SerializeField]
     private VisualTreeAsset hiveUI;
-
-    [SerializeField]
-    private Material darkHive;
-
-    [SerializeField]
-    private Material lightHive;
 
     private Glossary glossary;
 
@@ -88,7 +83,12 @@ public class PlayerController : MonoBehaviour
         set
         {
             foreach (Hive h in hives)
-                h.gameObject.GetComponent<MeshRenderer>().material = lightHive;
+            {
+                if (!h.isDead)
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor;
+                else
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = Color.white;
+            }
             selectedItem = value;
             if (value == null)// && selectedItem != null)
             {
@@ -166,7 +166,8 @@ public class PlayerController : MonoBehaviour
         set
         {
             royalJelly = value;
-            rjLabel.text = royalJelly.ToString();
+            if (game != null)
+                rjLabel.text = royalJelly.ToString();
         }
     }
 
@@ -238,7 +239,8 @@ public class PlayerController : MonoBehaviour
 
         if (Input.GetMouseButtonDown(1))
         {
-            SelectedItem = null;
+            if (SelectedItem != null)
+                SelectedItem = null;
             hexMenu.UnhighlightHex();
         }
 
@@ -506,8 +508,8 @@ public class PlayerController : MonoBehaviour
                             if (!h.hasStand)
                             {
                                 h.hasStand = true;
-                                Instantiate(standObject, h.transform.position, Quaternion.identity);
-                                h.transform.position += Vector3.up;
+                                h.stand = Instantiate(standObject, new Vector3(h.transform.position.x, 0, h.transform.position.z), Quaternion.identity);
+                                h.transform.position += new Vector3(0, 0.5f, 0);
                             }
                         }
                         else if (selectedItem.tag == "Repellant")
@@ -543,47 +545,50 @@ public class PlayerController : MonoBehaviour
         {
             case "HiveTool":
                 if (!h.conditions.Contains("Glued"))
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
                 break;
             case "Smoker":
                 if (!h.conditions.Contains("Aggrevated"))
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
                 break;
             case "Insulation":
-                if (!h.hasInsulation)
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                if (h.hasInsulation)
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
                 break;
             case "Repellant":
                 if (h.hasRepellant)
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
                 break;
             case "Reducer":
-                if (!h.hasReducer)
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                if (h.hasReducer)
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
                 break;
             case "Sugar":
-                if (!h.hasSugar)
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                if (h.hasSugar)
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
                 break;
             case "Stand":
-                if (!h.hasStand)
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                if (h.hasStand)
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
                 break;
             case "Super":
                 if (h.Size >= 5)
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
                 break;
             //case "Frame":
             //    if (h.Frames >= 10)
             //        h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
             //    break;
             case "Bee":
-                if (!h.conditions.Contains("Dead"))
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                if (!h.isDead)
+                {
+                    Debug.Log("in");
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
+                }
                 break;
             case "Emergency":
                 if (!h.conditions.Contains("Freezing") && !h.conditions.Contains("Starving"))
-                    h.gameObject.GetComponent<MeshRenderer>().material = darkHive;
+                    h.gameObject.GetComponent<MeshRenderer>().material.color = h.queen.myColor / 2;
                 break;
         }
     }
@@ -609,7 +614,7 @@ public class PlayerController : MonoBehaviour
         //Close any other open hive
         foreach (Hive h in hives)
             if (h.isOpen)
-                CloseHiveUI(h);
+                CloseHiveUI(h, false);
 
         //Check to see if the same hive is being clicked to close the hiveUI
         bool reclicked = false;
@@ -642,10 +647,19 @@ public class PlayerController : MonoBehaviour
         hive.DisplayHiveRadius();
     }
 
-    public void CloseHiveUI(Hive hive)
+    public void CloseHiveUI(Hive hive, bool forceClose)
     {
         if (activeUI == null)
             return;
+
+        if (game.tutorialEnabled && !game.checkpoint1Reached && !forceClose)
+            return;
+
+        if (game.tutorialEnabled && game.checkpoint1Reached && game.firstClose)
+        {
+            game.firstClose = false;
+            StartCoroutine(TutorialContinue());
+        }
 
         hive.CheckCancelAnim();
 
@@ -655,6 +669,59 @@ public class PlayerController : MonoBehaviour
         currentHive = null;
         hive.isOpen = false;
         hive.HideHiveRadius();
+    }
+
+    private IEnumerator TutorialContinue()
+    {
+        GameStates prevState = game.CurrentState;
+        game.CurrentState = GameStates.Tutorial;
+        TemplateContainer tp = game.tutorialPopup.Instantiate();
+        tp.Q<Label>().text = game.TutorialStrings[4];
+        tp.style.position = Position.Absolute;
+        tp.RegisterCallback((GeometryChangedEvent evt) =>
+        {
+            tp.style.left = tp.resolvedStyle.width / 8;
+            tp.style.top = (Screen.height / 2) - (tp.resolvedStyle.height / 2);
+        });
+        ui.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+        yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+        yield return new WaitForSeconds(0.1f);
+        ui.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+
+        game.CurrentState = GameStates.Tutorial;
+        tp = game.tutorialPopup.Instantiate();
+        tp.Q<Label>().text = game.TutorialStrings[5];
+        tp.style.position = Position.Absolute;
+        tp.RegisterCallback((GeometryChangedEvent evt) =>
+        {
+            tp.style.left = tp.resolvedStyle.width / 8;
+            tp.style.top = (Screen.height / 2) - (tp.resolvedStyle.height / 2);
+        });
+        ui.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+        yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+        yield return new WaitForSeconds(0.1f);
+        ui.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+
+        game.CurrentState = prevState;
+        game.checkpoint2Reached = true;
+
+        yield return new WaitWhile(() => !game.checkpoint3Reached);
+
+        prevState = game.CurrentState;
+        game.CurrentState = GameStates.Tutorial;
+        tp = game.tutorialPopup.Instantiate();
+        tp.Q<Label>().text = game.TutorialStrings[6];
+        tp.style.position = Position.Absolute;
+        tp.RegisterCallback((GeometryChangedEvent evt) =>
+        {
+            tp.style.left = Screen.width - (tp.resolvedStyle.width * 1.25f);
+            tp.style.top = Screen.height - (tp.resolvedStyle.height * 3);
+        });
+        ui.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+        yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+        yield return new WaitForSeconds(0.1f);
+        ui.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+        game.CurrentState = prevState;
     }
 
     public void ReloadUI()
@@ -674,7 +741,7 @@ public class PlayerController : MonoBehaviour
             return;
 
         Vector3 cameraPos = Camera.main.transform.position;
-        Vector3 scrollY = new Vector3(0, Input.mouseScrollDelta.y * Time.deltaTime * 75f, 0);
+        Vector3 scrollY = new Vector3(0, Input.mouseScrollDelta.y * Time.deltaTime * 100f, 0);
         if (cameraPos.y - scrollY.y > 2.25f * map.mapWidth)
             Camera.main.transform.position = new Vector3(cameraPos.x, 2.25f * map.mapWidth, cameraPos.z);
         else if (cameraPos.y - scrollY.y < map.mapWidth)
@@ -905,7 +972,7 @@ public class PlayerController : MonoBehaviour
             hive.queen = queen;
             OpenHiveUI(null, hiveUI, hive);
             hive.SetUpTemplate();
-            CloseHiveUI(hive);
+            CloseHiveUI(hive, true);
             hive.LoadPopulate();
             hive.UpdateMeters();
             hives.Add(hive);

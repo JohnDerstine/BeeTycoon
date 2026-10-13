@@ -21,6 +21,7 @@ public class QueenBee : MonoBehaviour
     public bool japaneseInherited = false;
 
     public Texture2D speciesSprite;
+    public Color myColor;
 
     void Start()
     {
@@ -88,30 +89,39 @@ public class QueenBee : MonoBehaviour
         {
             case "Italian":
                 speciesSprite = unlocks.ItalianIcon;
+                myColor = Color.yellow;
                 break;
             case "Russian":
                 speciesSprite = unlocks.RussianIcon;
+                myColor = Color.gray;
                 break;
             case "Japanese":
                 speciesSprite = unlocks.JapaneseIcon;
+                myColor = new Color(0.97f, 0.61f, 1);
                 break;
             case "Caucasian":
                 speciesSprite = unlocks.CaucasianIcon;
+                myColor = Color.white;
                 break;
             case "Cordovan":
                 speciesSprite = unlocks.CordovanIcon;
+                myColor = Color.blue;
                 break;
             case "Carniolan":
                 speciesSprite = unlocks.CarniolanIcon;
+                myColor = new Color(0.61f, 0.2f, 0.77f);
                 break;
             case "Himalayan":
                 speciesSprite = unlocks.HimalayanIcon;
+                myColor = new Color(0.8f, 0.1f, 0.033f);
                 break;
             case "Buckfast":
                 speciesSprite = unlocks.BuckfastIcon;
+                myColor = new Color(0.48f, 0.18f, 0);
                 break;
             case "Killer":
                 speciesSprite = unlocks.KillerIcon;
+                myColor = Color.red;
                 break;
         }
     }

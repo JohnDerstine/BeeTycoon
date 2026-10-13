@@ -10,6 +10,7 @@ public enum GameStates
 {
     Menu,
     Start,
+    Tutorial,
     Running,
     TurnEnd,
     Paused,
@@ -23,6 +24,9 @@ public class GameController : MonoBehaviour
 
     [SerializeField]
     private QueenChooser choices;
+
+    [SerializeField]
+    private UnlockTracker unlocks;
 
     [SerializeField]
     private UIDocument document;
@@ -41,6 +45,12 @@ public class GameController : MonoBehaviour
 
     [SerializeField]
     private VisualTreeAsset deckUI;
+
+    [SerializeField]
+    public VisualTreeAsset tutorialGraphic;
+
+    [SerializeField]
+    public VisualTreeAsset tutorialPopup;
 
     private PlayerController player;
     private HexMenu hexMenu;
@@ -94,7 +104,35 @@ public class GameController : MonoBehaviour
 
     private int previousMoney;
 
-    private int techPoints = 3;
+    private int techPoints = 4;
+
+    public bool tutorialEnabled = true;
+
+    public bool checkpoint1Reached = false;
+    public bool checkpoint2Reached = false;
+    public bool checkpoint3Reached = false;
+    public bool firstClose = true;
+
+    private List<string> tutorialStrings = new List<string>()
+    {
+        "Welcome! This is the plot of land you recently inherited from your grandfather. With your debt growing and your previous entrepreneurial ventures failing, you have deemed picking up your grandfathers beekeeping buisness as your last chance.\n\n Your goal is to optimize and grow the plot for your hives, sell honey, and meet your quota deadlines until you reach your end goal.\n\nIn this instance, your end goal will be to reach year 5.\n\n(Click to Continue)",
+        "These are queen bees. They dictate many things about a hive! Hovering over the queens will give you more details.\n\nChoose a queen to get started!",
+        "Assign the queen to your hive",
+        "The hive interface has lots of important information, be sure to check it regularly! The stress tab is especially important to manage. Clicking on the '!' hex will open it",
+        "These tabs on the side are your shop. Everything costs vouchers. You earn 1 voucher each turn, per populated hive.",
+        "Before you click next turn, use the shovel tool at the bottom to move flowers into your hive's radius. You can check how each flower produces nectar by going to the flower tab and hovering over each one.",
+        "This shows you your quota, how many turns left to reach it, and your current progress.",
+        "Go to your hive and click any of the harvest buttons to harvest honey.\n\n When approaching Winter, you may not want to choose 'Large Harvest', because bees eat honey to survive!",
+        "When you are ready to sell, click the truck, select the type of honey you harvested, and click the amount you want to sell.",
+        "Lastly, after reaching a quota, you will get a special shop where you can purchase run modifiers! You can view all modifiers you have by clicking on the Shed."
+    };
+
+    public List<string> TutorialStrings
+    {
+        get { return tutorialStrings; }
+    }
+
+    public bool firstPopulate = true;
 
     private Label description;
     private Label title;
@@ -142,11 +180,14 @@ public class GameController : MonoBehaviour
         get { return currentState; }
         set
         {
-            if (value == GameStates.Start)
+            GameStates prev = currentState;
+            currentState = value;
+            if (value == GameStates.Start && prev != GameStates.Tutorial)
             {
+                //StartCoroutine(choices.CreateYearReward());
                 StartCoroutine(choices.CreateBundles());
             }
-            currentState = value;
+
         }
     }
 
@@ -301,6 +342,7 @@ public class GameController : MonoBehaviour
         honeyMarket = GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>();
         toolManager = GameObject.Find("ToolManager").GetComponent<ToolManager>();
         eventController = GameObject.Find("EventController").GetComponent<GameEventController>();
+
         document.visualTreeAsset = gameUI;
         document.GetComponent<Glossary>().GameLoaded();
         honeyMarket.GameLoaded();
@@ -314,6 +356,9 @@ public class GameController : MonoBehaviour
         document.rootVisualElement.Q<Label>("GoalLabel").text = document.rootVisualElement.Q<Label>("GoalLabel").text.Replace("*", Levels[title.text][selectedDifficulty - 1]);
 
         Quota = 25;
+
+        if (unlocks.majorTechs["Bonus"])
+            player.RoyalJelly += 2;
 
         map.GameStart(false);
         nectar.GameStart();
@@ -363,24 +408,26 @@ public class GameController : MonoBehaviour
         document.rootVisualElement.Q<Label>("MeterQuota").text = "$" + quota;
     }
 
+    private bool CheckPopulated()
+    {
+        foreach (Hive h in player.hives)
+            if (h.queen != null && !h.queen.nullQueen)
+                return true;
+        return false;
+    }
+
     private IEnumerator NextTurn()
     {
         //Don't let player go next turn if the last turn is still processing
-        if (CurrentState == GameStates.TurnEnd || CurrentState == GameStates.Paused)
+        if (CurrentState == GameStates.TurnEnd || CurrentState == GameStates.Paused || CurrentState == GameStates.Tutorial || !CheckPopulated() || !checkpoint2Reached)
             yield break;
         document.GetComponent<AudioSource>().Play();
 
         player.CenterCamera();
 
-        player.CloseHiveUI(player.currentHive);
+        player.CloseHiveUI(player.currentHive, true);
         hexMenu.CloseTab();
         honeyMarket.CloseMarket();
-
-        //Updated hive count for scoring
-        nectar.populatedHives = 0;
-        foreach (Hive h in player.hives)
-            if (!h.queen.nullQueen)
-                nectar.populatedHives++;
 
         CurrentState = GameStates.TurnEnd;
         turn++;
@@ -493,8 +540,6 @@ public class GameController : MonoBehaviour
         //if (year == 1 && season == "summer")
         //    Quota = 25;
 
-        toolManager.TurnReset();
-
         if (turnCallback != null)
             turnCallback();
 
@@ -521,7 +566,10 @@ public class GameController : MonoBehaviour
         player.OnTurnIncrement();
         SetToolUsesLabels();
 
+        toolManager.TurnReset();
+
         CurrentState = GameStates.Running;
+        checkpoint3Reached = true;
     }
 
     private void SetToolUsesLabels()

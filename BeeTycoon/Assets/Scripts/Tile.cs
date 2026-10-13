@@ -214,7 +214,7 @@ public class Tile : MonoBehaviour
     {
         List<Tile> tiles234 = new List<Tile>() { map.tiles[x + 1, y], map.tiles[x, y + 1], map.tiles[x + 1, y + 1] };
         foreach (Tile t in tiles234)
-            if (t.hasHive || t.flower != FlowerType.Empty || !t.alive)
+            if (t.hasHive || t.flower != FlowerType.Empty || !t.alive || t.water)
                 return false;
         return true;
     }

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using System.Linq;
 using Unity.VisualScripting;
+using TMPro;
 
 public class MapLoader : MonoBehaviour
 {
@@ -83,6 +84,8 @@ public class MapLoader : MonoBehaviour
     private GameObject fog2;
     private GameObject fog3;
     private GameObject fog4;
+
+    public List<string> expansions = new List<string>();
 
     public bool generating;
 
@@ -499,7 +502,7 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                if (tiles[i, j].alive && Random.Range(0, spawnChance) == 0)
+                if (tiles[i, j].alive && !tiles[i, j].water && !tiles[i,j].HasHive && Random.Range(0, spawnChance) == 0)
                 {
                     bool possible = false;
                     if (game.CurrentState == GameStates.Menu && tiles[i, j].Flower == FlowerType.Empty)
@@ -519,7 +522,7 @@ public class MapLoader : MonoBehaviour
                         while (!possible)
                         {
                             rand = hexMenu.availableFTypes[Random.Range(0, hexMenu.availableFTypes.Count)];
-                            if ((i != mapWidth - 1 && j != mapHeight - 1 && tiles[i,j].Check234()) || (rand != FlowerType.Orange && rand != FlowerType.Tupelo && rand != FlowerType.WaterLily && rand != FlowerType.TulipPoplar))
+                            if (((i != mapWidth - 1 && j != mapHeight - 1 && tiles[i,j].Check234()) || (rand != FlowerType.Orange && rand != FlowerType.Tupelo && rand != FlowerType.TulipPoplar)) && rand != FlowerType.WaterLily)
                                 possible = true;
                         }
                         tiles[i, j].Flower = rand;
@@ -548,7 +551,8 @@ public class MapLoader : MonoBehaviour
         {
             for (int j = 0; j < mapHeight; j++)
             {
-                tiles[i, j].Flower = FlowerType.Empty;
+                if (GetAdjacentFlowers(FlowerType.Tupelo, i, j).Count == 0)
+                    tiles[i, j].Flower = FlowerType.Empty;
             }
         }
     }
@@ -563,21 +567,37 @@ public class MapLoader : MonoBehaviour
         return count;
     }
 
+    private bool CheckConvertValid(Tile t)
+    {
+        if (t.Flower == FlowerType.Tupelo || t.Flower == FlowerType.Orange || t.Flower == FlowerType.TulipPoplar || t.Flower == FlowerType.Fireweed || t.Flower == FlowerType.Empty)
+            return false;
+        if (t.HasHive)
+            return false;
+        if (t.water)
+            return false;
+        if (t.special)
+            return false;
+        if (GetAdjacentFlowers(FlowerType.Tupelo, t.x, t.y).Count > 0)
+            return false;
+
+        return true;
+    }
+
     #region GetTileHelpers
     private void ConvertAdjacentFlowers(List<Tile> validTiles, FlowerType fType, int chance)
     {
         foreach (Tile t in validTiles)
         {
-            if (t.x + 1 < mapWidth && tiles[t.x + 1, t.y].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Tupelo && tiles[t.x + 1, t.y].Flower != FlowerType.Orange && tiles[t.x + 1, t.y].Flower != FlowerType.Fireweed && !tiles[t.x + 1, t.y].HasHive) //Fired weed exception
+            if (t.x + 1 < mapWidth && CheckConvertValid(tiles[t.x + 1, t.y]))
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x + 1, t.y].Flower = fType;
-            if (t.x - 1 >= 0 && tiles[t.x - 1, t.y].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Tupelo && tiles[t.x + 1, t.y].Flower != FlowerType.Orange && tiles[t.x - 1, t.y].Flower != FlowerType.Fireweed && !tiles[t.x - 1, t.y].HasHive)
+            if (t.x - 1 >= 0 && CheckConvertValid(tiles[t.x - 1, t.y]))
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x - 1, t.y].Flower = fType;
-            if (t.y + 1 < mapHeight && tiles[t.x, t.y + 1].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Tupelo && tiles[t.x + 1, t.y].Flower != FlowerType.Orange && tiles[t.x, t.y + 1].Flower != FlowerType.Fireweed && !tiles[t.x, t.y + 1].HasHive)
+            if (t.y + 1 < mapHeight && CheckConvertValid(tiles[t.x, t.y + 1]))
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y + 1].Flower = fType;
-            if (t.y - 1 >= 0 && tiles[t.x, t.y - 1].Flower != FlowerType.Empty && tiles[t.x + 1, t.y].Flower != FlowerType.Tupelo && tiles[t.x + 1, t.y].Flower != FlowerType.Orange && tiles[t.x, t.y - 1].Flower != FlowerType.Fireweed && !tiles[t.x, t.y - 1].HasHive)
+            if (t.y - 1 >= 0 && CheckConvertValid(tiles[t.x, t.y - 1]))
                 if (Random.Range(0, chance) == 0)
                     tiles[t.x, t.y - 1].Flower = fType;
         }
@@ -748,6 +768,7 @@ public class MapLoader : MonoBehaviour
 
     public void IncreaseMapSize(string dir)
     {
+        expansions.Add(dir);
         if (dir == "right")
             IncreaseHelper(0, 6, 1, 11, true);
         else if (dir == "left")

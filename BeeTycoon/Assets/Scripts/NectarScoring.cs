@@ -40,7 +40,6 @@ public class NectarScoring : MonoBehaviour
 
     PlayerController player;
     private HexMenu hexMenu;
-    public int populatedHives;
 
     private List<int> usedSprites = new List<int>();
 
@@ -129,7 +128,6 @@ public class NectarScoring : MonoBehaviour
         {
             tulipType = (FlowerType)UnityEngine.Random.Range(2, 22);
         } while (tulipType == FlowerType.Tulip);
-        Debug.Log(tulipType);
     }
 
     private float DurationCalc(float duration)
@@ -191,107 +189,105 @@ public class NectarScoring : MonoBehaviour
             }
         }
 
-        for (int i = 0; i < populatedHives; i++)
+        for (int i = 0; i < player.hives.Count; i++)
         {
-            float duration = 0.5f;
-            source.pitch = basePitch;
-            player.hives[i].ResetNectarGains();
-            player.hives[i].DisplayHiveRadius();
-            popUp.DisplayPercent(player.hives[i]);
-            //DisplayHiveMultiplier(player.hives[i]);
-            foreach (Tile t in player.hives[i].tileRadius)
+            if (!player.hives[i].isDead)
             {
-                switch (t.Flower)
+                float duration = 0.5f;
+                source.pitch = basePitch;
+                player.hives[i].ResetNectarGains();
+                player.hives[i].DisplayHiveRadius();
+                popUp.DisplayPercent(player.hives[i]);
+                //DisplayHiveMultiplier(player.hives[i]);
+                foreach (Tile t in player.hives[i].tileRadius)
                 {
-                    case FlowerType.Empty:
-                        break;
-                    case FlowerType.Clover:
-                        StartCoroutine(GetCloverValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Alfalfa:
-                        StartCoroutine(GetAlfalfaValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Buckwheat:
-                        StartCoroutine(GetBuckwheatValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Fireweed:
-                        StartCoroutine(GetFireweedValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Goldenrod:
-                        StartCoroutine(GetGoldenrodValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Dandelion:
-                        StartCoroutine(GetDandelionValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Sunflower:
-                        StartCoroutine(GetSunflowerValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Orange:
-                        StartCoroutine(GetOrangeValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Daisy:
-                        StartCoroutine(GetDaisyValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Blueberry:
-                        StartCoroutine(GetBlueberryValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Tupelo:
-                        StartCoroutine(GetTupeloValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Thistle:
-                        StartCoroutine(GetThistleValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Tulip:
-                        StartCoroutine(GetTulipValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.TulipPoplar:
-                        StartCoroutine(GetTulipPoplarValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Hydrangea:
-                        StartCoroutine(GetHydrangeaValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.WaterLily:
-                        StartCoroutine(GetWaterLilyValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Sundew:
-                        StartCoroutine(GetSundewValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.PitcherPlant:
-                        StartCoroutine(GetPitcherPlantValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Lavendar:
-                        StartCoroutine(GetLavendarValue(t, duration, player.hives[i]));
-                        break;
-                    case FlowerType.Hibiscus:
-                        StartCoroutine(GetHibiscusValue(t, duration, player.hives[i]));
-                        break;
-                }
+                    switch (t.Flower)
+                    {
+                        case FlowerType.Empty:
+                            break;
+                        case FlowerType.Clover:
+                            StartCoroutine(GetCloverValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Alfalfa:
+                            StartCoroutine(GetAlfalfaValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Buckwheat:
+                            StartCoroutine(GetBuckwheatValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Fireweed:
+                            StartCoroutine(GetFireweedValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Goldenrod:
+                            StartCoroutine(GetGoldenrodValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Dandelion:
+                            StartCoroutine(GetDandelionValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Sunflower:
+                            StartCoroutine(GetSunflowerValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Orange:
+                            StartCoroutine(GetOrangeValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Daisy:
+                            StartCoroutine(GetDaisyValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Blueberry:
+                            StartCoroutine(GetBlueberryValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Tupelo:
+                            StartCoroutine(GetTupeloValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Thistle:
+                            StartCoroutine(GetThistleValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Tulip:
+                            StartCoroutine(GetTulipValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.TulipPoplar:
+                            StartCoroutine(GetTulipPoplarValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Hydrangea:
+                            StartCoroutine(GetHydrangeaValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.WaterLily:
+                            StartCoroutine(GetWaterLilyValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Sundew:
+                            StartCoroutine(GetSundewValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.PitcherPlant:
+                            StartCoroutine(GetPitcherPlantValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Lavendar:
+                            StartCoroutine(GetLavendarValue(t, duration, player.hives[i]));
+                            break;
+                        case FlowerType.Hibiscus:
+                            StartCoroutine(GetHibiscusValue(t, duration, player.hives[i]));
+                            break;
+                    }
 
-                if (t.Flower != FlowerType.Empty)
-                {
-                    yield return new WaitWhile(() => !popUp.complete);
-                    popUp.complete = false;
+                    if (t.Flower != FlowerType.Empty)
+                    {
+                        yield return new WaitWhile(() => !popUp.complete);
+                        popUp.complete = false;
 
-                    yield return new WaitWhile(() => !calced);
-                    calced = false;
-                    duration = DurationCalc(duration);
+                        yield return new WaitWhile(() => !calced);
+                        calced = false;
+                        duration = DurationCalc(duration);
+                    }
                 }
+                yield return new WaitForSeconds(1.5f);//give time for globs to finish going to hive
+                player.hives[i].HideHiveRadius();
+                document.rootVisualElement.Q<VisualElement>("NectarColumn").Clear();
+                document.rootVisualElement.Q<VisualElement>("Modifiers").Clear();
+                usedSprites.Clear();
+                modElems.Clear();
+                totalAmountGained = 0;
             }
-            yield return new WaitForSeconds(1.5f);//give time for globs to finish going to hive
-            player.hives[i].HideHiveRadius();
-            document.rootVisualElement.Q<VisualElement>("NectarColumn").Clear();
-            document.rootVisualElement.Q<VisualElement>("Modifiers").Clear();
-            usedSprites.Clear();
-            modElems.Clear();
-            totalAmountGained = 0;
         }
 
         game.nectarCollectingFinished = true;
-
-        populatedHives = 0;
-        foreach (Hive h in player.hives)
-            if (!h.queen.nullQueen)
-                populatedHives++;
 
         yield return new WaitForSeconds(0.25f);
 
@@ -790,7 +786,8 @@ public class NectarScoring : MonoBehaviour
         FlowerValueHelper(t, gain, duration, flower, h);
 
         randTile.lastGain = 0;
-        randTile.Flower = FlowerType.Empty;
+        if (map.GetAdjacentFlowers(FlowerType.Tupelo, t.x, t.y).Count == 0)
+            randTile.Flower = FlowerType.Empty;
 
         yield return new WaitWhile(() => !t.completed);
         t.completed = false;

@@ -151,7 +151,7 @@ public class UnlockTracker : MonoBehaviour
     };
 
     public Dictionary<FlowerType, string> flowerDetails = new Dictionary<FlowerType, string>()
-    { 
+    {
         {FlowerType.Clover, "Clovers produce 0.10 lbs of nectar for each adjacent or diagonal clover."},
         {FlowerType.Alfalfa, "Alfalfas produce 0.20 lbs of nectar for each diagonal alfalfa."},
         {FlowerType.Buckwheat, "Buckwheats produce 0.10 lbs of nectar, and has a 1 in 7 chance to spread to tiles adjacent to it."},
@@ -169,7 +169,7 @@ public class UnlockTracker : MonoBehaviour
         {FlowerType.Hydrangea, "Hydrangeas produce 0.30 lbs of nectar, and produce 3x that when adjacent to water."},
         {FlowerType.WaterLily, "Water Lillies produce 0.50 lbs of nectar and can be place on water."},
         {FlowerType.Sundew, "Sundews produce 0.20 lbs of nectar. Any tiles with a sundew counts as 'water'."},
-        {FlowerType.PitcherPlant, "Pitcher Plants produce 1 lb of nectar. When not scored, pitcher plants save their nectar. Up to 3 lbs can be saved."},
+        {FlowerType.PitcherPlant, "Pitcher Plants produce more nectar the close they are to the hive, capping at 1 lb. This value is then multiplied by the number of adjacent hives + 1. The hive also loses population based on distance, capped at 300 per flower."},
         {FlowerType.Lavendar, "Lavendars produce 0.15 lbs of nectar. If the hive is above 0 stress, apply the soothing condition. Otherwise, produce an additional 0.10 lbs of nectar."},
         {FlowerType.Hibiscus, "Produces 0.20 lbs of nectar for each condition the hive has."},
     };
@@ -221,7 +221,7 @@ public class UnlockTracker : MonoBehaviour
     public List<FlowerType> GetUnlockedFlowers()
     {
         List<FlowerType> unlockedFlowers = new List<FlowerType>();
-        foreach(KeyValuePair<FlowerType, bool> kvp in Stage12FlowersUnlocked)
+        foreach (KeyValuePair<FlowerType, bool> kvp in Stage12FlowersUnlocked)
             if (kvp.Value)
                 unlockedFlowers.Add(kvp.Key);
 
@@ -286,6 +286,39 @@ public class UnlockTracker : MonoBehaviour
 
         GameObject.Find("HoneyMarket").GetComponent<HoneyMarket>().AddHoneyCards(availableFlowers);
         return availableFlowers;
+    }
+
+    public FlowerType UnlockHiddenFlower()
+    {
+        List<FlowerType> possible = new List<FlowerType>();
+        if (stage <= 2)
+        {
+            foreach (KeyValuePair<FlowerType, bool> kvp in Stage12Flowers)
+            {
+                if (!kvp.Value && Stage12FlowersUnlocked[kvp.Key])
+                {
+                    possible.Add(kvp.Key);
+                }
+            }
+            FlowerType f = possible[Random.Range(0, possible.Count)];
+            Stage12Flowers[f] = true;
+            ownedFlowers.Add(f);
+            return f;
+        }
+        else
+        {
+            foreach (KeyValuePair<FlowerType, bool> kvp in Stage34Flowers)
+            {
+                if (!kvp.Value && Stage34FlowersUnlocked[kvp.Key])
+                {
+                    possible.Add(kvp.Key);
+                }
+            }
+            FlowerType f = possible[Random.Range(0, possible.Count)];
+            Stage34Flowers[f] = true;
+            ownedFlowers.Add(f);
+            return f;
+        }
     }
 
     public void ResetToStart()

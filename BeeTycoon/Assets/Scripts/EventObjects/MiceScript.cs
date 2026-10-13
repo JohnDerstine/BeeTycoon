@@ -41,7 +41,7 @@ public class MiceScript : EventObject
         turnsActive++;
         foreach (Hive h in player.hives)
         {
-            if (h.tileRadius.Contains(spawnTile) && !h.tileRadius.Contains(pepperTile))
+            if (!h.isDead && h.tileRadius.Contains(spawnTile) && !h.tileRadius.Contains(pepperTile))
             {
                 h.AddCondition("Mice");
             }

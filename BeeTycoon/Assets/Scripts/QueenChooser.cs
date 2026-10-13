@@ -19,6 +19,9 @@ public class QueenChooser : MonoBehaviour
     private GameController game;
 
     [SerializeField]
+    private MapLoader map;
+
+    [SerializeField]
     private Texture2D testQueenSprite;
 
     [SerializeField]
@@ -65,6 +68,15 @@ public class QueenChooser : MonoBehaviour
 
     [SerializeField]
     private VisualTreeAsset shopContainer;
+
+    [SerializeField]
+    private VisualTreeAsset choices3;
+
+    [SerializeField]
+    private VisualTreeAsset choices4;
+
+    [SerializeField]
+    private VisualTreeAsset plotExpansion;
 
     [SerializeField]
     private UIDocument document;
@@ -286,8 +298,166 @@ public class QueenChooser : MonoBehaviour
         isChoosing = false;
     }
 
+    public IEnumerator CreateYearReward()
+    {
+        if (tracker.majorTechs["HiddenFlower"])
+            template = choices4.Instantiate();
+        else
+            template = choices3.Instantiate();
+
+        container = template.Q<VisualElement>("Container");
+        template.style.position = Position.Absolute;
+        template.style.flexDirection = FlexDirection.Row;
+        template.style.justifyContent = Justify.FlexStart;
+        container.style.justifyContent = Justify.SpaceAround;
+        document.rootVisualElement.Q<VisualElement>("Base").Add(template);
+
+        document.rootVisualElement.Q<VisualElement>("Left").visible = false;
+        document.rootVisualElement.Q<VisualElement>("Right").visible = false;
+        document.rootVisualElement.Q<VisualElement>("Center").visible = false;
+        document.rootVisualElement.Q<VisualElement>("Toolbar").visible = false;
+
+        VisualElement banner1 = container.Q<VisualElement>("Banner1");
+        VisualElement banner2 = container.Q<VisualElement>("Banner2");
+        VisualElement banner3 = container.Q<VisualElement>("Banner3");
+
+        List<VisualElement> banners = new List<VisualElement>() { banner1, banner2, banner3 };
+        if (tracker.majorTechs["HiddenFlower"])
+        {
+            VisualElement banner4 = container.Q<VisualElement>("Banner4");
+            banners.Add(banner4);
+        }
+
+        if (map.expansions.Count == 3)
+        {
+            Color color = new Color(0.4f, 0.4f, 0.4f);
+            banner1.style.unityBackgroundImageTintColor = color;
+            banner1.Q<VisualElement>("Hex").style.unityBackgroundImageTintColor = color;
+            banner1.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = color;
+            banner1.Q<Label>().visible = true;
+            banner1.Q<Label>().text = "Maximum Size\nReached";
+            banner1.Q<Label>().style.color = Color.red / 1.25f;
+        }    
+
+        int index = 0;
+        foreach (VisualElement banner in banners)
+        {
+            if (banner != banner1 || map.expansions.Count < 3)
+            {
+                banner.RegisterCallback((PointerEnterEvent e) =>
+                {
+                    banner.style.unityBackgroundImageTintColor = Color.white;
+                    banner.Q<VisualElement>("Hex").style.unityBackgroundImageTintColor = Color.white;
+                    banner.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.white;
+                    banner.Q<Label>().visible = true;
+                });
+
+                banner.RegisterCallback((PointerLeaveEvent e) =>
+                {
+                    banner.style.unityBackgroundImageTintColor = Color.gray;
+                    banner.Q<VisualElement>("Hex").style.unityBackgroundImageTintColor = Color.gray;
+                    banner.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = Color.gray;
+                    banner.Q<Label>().visible = false;
+                });
+
+                switch (index)
+                {
+                    case 0:
+                        banner.RegisterCallback((ClickEvent e) =>
+                        {
+                            document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
+                            template = plotExpansion.Instantiate();
+                            template.style.position = Position.Absolute;
+                            template.style.flexDirection = FlexDirection.Row;
+                            template.style.justifyContent = Justify.FlexStart;
+                            foreach (string s in map.expansions)
+                            {
+                                VisualElement ve = template.Q<VisualElement>(s);
+                                if (ve != null)
+                                    template.Remove(ve);
+                            }
+
+                            foreach (VisualElement ve in template.Children())
+                            {
+                                ve.RegisterCallback((PointerEnterEvent e) =>
+                                {
+                                    ve.style.unityBackgroundImageTintColor = Color.gray * 1.5f;
+                                });
+                                ve.RegisterCallback((PointerLeaveEvent e) =>
+                                {
+                                    ve.style.unityBackgroundImageTintColor = Color.white;
+                                });
+                                ve.RegisterCallback((ClickEvent e) =>
+                                {
+                                    map.IncreaseMapSize(ve.name);
+                                    selectionActive = false;
+                                });
+                            }
+
+                            document.rootVisualElement.Q<VisualElement>("Base").Add(template);
+                        });
+                        break;
+                    case 1:
+                        banner.RegisterCallback((ClickEvent e) =>
+                        {
+                            player.Vouchers = 5;
+                            selectionActive = false;
+                        });
+                        break;
+                    case 2:
+                        banner.RegisterCallback((ClickEvent e) =>
+                        {
+                            player.RoyalJelly += 3;
+                            selectionActive = false;
+                        });
+                        break;
+                    case 3:
+                        banner.RegisterCallback((ClickEvent e) =>
+                        {
+                            FlowerType f = tracker.UnlockHiddenFlower();
+                            hexMenu.AddFlowerToShop(f);
+                            selectionActive = false;
+                        });
+                        break;
+                }
+            }
+            index++;
+        }
+
+        selectionActive = true;
+        yield return new WaitWhile(() => selectionActive);
+
+        document.rootVisualElement.Q<VisualElement>("Left").visible = true;
+        document.rootVisualElement.Q<VisualElement>("Right").visible = true;
+        document.rootVisualElement.Q<VisualElement>("Center").visible = true;
+        document.rootVisualElement.Q<VisualElement>("Toolbar").visible = true;
+
+        if (game.CurrentState == GameStates.Start)
+            game.CurrentState = GameStates.Running;
+
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
+    }
+
     public IEnumerator CreateBundles()
     {
+        if (game.tutorialEnabled)
+        {
+            GameStates prevState = game.CurrentState;
+            game.CurrentState = GameStates.Tutorial;
+            TemplateContainer tp = game.tutorialPopup.Instantiate();
+            tp.Q<Label>().text = game.TutorialStrings[0];
+            tp.style.position = Position.Absolute;
+            tp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                tp.style.left = (Screen.width / 2) - (tp.resolvedStyle.width / 2);
+                tp.style.top = (Screen.height / 2) - (tp.resolvedStyle.height / 2);
+            });
+            document.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+            yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+            yield return new WaitForSeconds(0.1f);
+            document.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+            game.CurrentState = prevState;
+        }
         template = choicesContainer.Instantiate();
         container = template.Q<VisualElement>("Container");
         template.style.position = Position.Absolute;
@@ -347,7 +517,7 @@ public class QueenChooser : MonoBehaviour
             banner.RegisterCallback<ClickEvent>(e => SelectQueen(savedI));
             queenElem.RegisterCallback<PointerMoveEvent>(e => OnQueenMove(e, queen));
 
-            if (true)//tracker.majorTechs["FlowerSelect"])
+            if (tracker.majorTechs["FlowerSelect"])
             {
                 FlowerType rand = tracker.ownedFlowers[Random.Range(0, tracker.ownedFlowers.Count())];
 
@@ -359,7 +529,7 @@ public class QueenChooser : MonoBehaviour
                 banner.Add(elem);
             }
 
-            if (true)//tracker.majorTechs["ToolSelect"])
+            if (tracker.majorTechs["ToolSelect"])
             {
                 Tool rand = toolManager.GetUnmaxedTools()[Random.Range(0, toolManager.GetUnmaxedTools().Count)];
 
@@ -371,18 +541,82 @@ public class QueenChooser : MonoBehaviour
                 banner.Add(elem);
             }
         }
+
+        if (game.tutorialEnabled)
+        {
+            GameStates prevState = game.CurrentState;
+            game.CurrentState = GameStates.Tutorial;
+            TemplateContainer tp = game.tutorialPopup.Instantiate();
+            tp.Q<Label>().text = game.TutorialStrings[1];
+            tp.style.position = Position.Absolute;
+            tp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                tp.style.left = (Screen.width / 2) - (tp.resolvedStyle.width / 2);
+                tp.style.top = (Screen.height / 2) - (tp.resolvedStyle.height / 2);
+            });
+            document.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+
+            yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+            yield return new WaitForSeconds(0.1f);
+
+            document.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+            game.CurrentState = prevState;
+        }
+
         selectionActive = true;
         yield return new WaitWhile(() => selectionActive);
+
+        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
+
+        if (game.tutorialEnabled)
+        {
+            GameStates prevState = game.CurrentState;
+            game.CurrentState = GameStates.Tutorial;
+            TemplateContainer tp = game.tutorialGraphic.Instantiate();
+            tp.style.position = Position.Absolute;
+            tp.style.width = Screen.width;
+            tp.style.height = Screen.height;
+            tp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                tp.style.left = (Screen.width / 2) - (tp.resolvedStyle.width / 2);
+                tp.style.top = (Screen.height / 2) - (tp.resolvedStyle.height / 2);
+            });
+            document.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+
+            yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+            yield return new WaitForSeconds(0.1f);
+
+            document.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+            game.CurrentState = prevState;
+        }
 
         document.rootVisualElement.Q<VisualElement>("Left").visible = true;
         document.rootVisualElement.Q<VisualElement>("Right").visible = true;
         document.rootVisualElement.Q<VisualElement>("Center").visible = true;
         document.rootVisualElement.Q<VisualElement>("Toolbar").visible = true;
 
-        if (game.CurrentState == GameStates.Start)
-            game.CurrentState = GameStates.Running;
+        if (game.tutorialEnabled)
+        {
+            GameStates prevState = game.CurrentState;
+            game.CurrentState = GameStates.Tutorial;
+            TemplateContainer tp = game.tutorialPopup.Instantiate();
+            tp.Q<Label>().text = game.TutorialStrings[2];
+            tp.style.position = Position.Absolute;
+            tp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                tp.style.left = tp.resolvedStyle.width / 8;
+                tp.style.top = tp.resolvedStyle.height / 2;
+            });
+            document.rootVisualElement.Q<VisualElement>("Base").Add(tp);
 
-        document.rootVisualElement.Q<VisualElement>("Base").Remove(template);
+            yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+            yield return new WaitForSeconds(0.1f);
+
+            document.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+            game.CurrentState = prevState;
+        }
+
+        game.CurrentState = GameStates.Running;
     }
 
     private void ResetRNGOptions()
@@ -404,6 +638,9 @@ public class QueenChooser : MonoBehaviour
 
     private void SelectFlower(FlowerType f)
     {
+        if (game.CurrentState == GameStates.Tutorial)
+            return;
+
         hexMenu.flowersOwned[f] += 5;
         queenOptions.Clear();
         document.rootVisualElement.Q<VisualElement>("Container").Clear();
@@ -419,6 +656,9 @@ public class QueenChooser : MonoBehaviour
 
     private void SelectTool(Tool tool)
     {
+        if (game.CurrentState == GameStates.Tutorial)
+            return;
+
         ToolScript toolScript = toolManager.GetToolFromTag(tool.ToString());
         if (toolScript.Level == 0)
             toolScript.gameObject.GetComponent<Cost>().Purchased = true;
@@ -430,6 +670,9 @@ public class QueenChooser : MonoBehaviour
 
     private void SelectQueen(int num)
     {
+        if (game.CurrentState == GameStates.Tutorial)
+            return;
+
         document.GetComponent<AudioSource>().Play();
         selectionActive = false;
         for (int i = 0; i < queenOptions.Count; i++)
@@ -623,6 +866,9 @@ public class QueenChooser : MonoBehaviour
 
     private void OnQueenMove(PointerMoveEvent e, QueenBee queen)
     {
+        if (game.CurrentState == GameStates.Tutorial)
+            return;
+
         VisualElement targetTemplate = e.currentTarget as VisualElement;
         CustomVisualElement target = targetTemplate.Q<CustomVisualElement>("Item");
         if (target.ContainsPoint(e.localPosition) && hoverTemp == null)
@@ -709,6 +955,9 @@ public class QueenChooser : MonoBehaviour
 
     private void OnFlowerMove(PointerMoveEvent e, FlowerType f)
     {
+        if (game.CurrentState == GameStates.Tutorial)
+            return;
+
         VisualElement targetTemplate = e.currentTarget as VisualElement;
         CustomVisualElement target = targetTemplate.Q<CustomVisualElement>("Item");
         if (target.ContainsPoint(e.localPosition) && hoverTemp == null)
@@ -742,6 +991,9 @@ public class QueenChooser : MonoBehaviour
 
     private void OnToolMove(PointerMoveEvent e, Tool rand)
     {
+        if (game.CurrentState == GameStates.Tutorial)
+            return;
+
         VisualElement targetTemplate = e.currentTarget as VisualElement;
         CustomVisualElement target = targetTemplate.Q<CustomVisualElement>("Item");
         if (target.ContainsPoint(e.localPosition) && hoverTemp == null)

@@ -159,7 +159,7 @@ public class HexMenu : MonoBehaviour
         {
             selectedHex = value;
             if (value != null)
-                selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 0.95f);
+                selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
         }
     }
 
@@ -198,15 +198,7 @@ public class HexMenu : MonoBehaviour
 
         List<int> flowers = unlocks.GetNextFlowers();
         foreach (int i in flowers)
-        {
-            availableFTypes.Add((FlowerType)(i + 2));
-            flowerObjectList.Insert(0, allFlowerObjects[i]);
-            flowerObjectList[0].GetComponent<Cost>().ftype = (FlowerType)(i + 2);
-            flowerSprites.Insert(0, allFlowerSprites[i]);
-            flowerObjectList[0].GetComponent<Cost>().Price = unlocks.stage;
-            flowerNames.Insert(0, FTypeToString((FlowerType)(i + 2)));
-            tab4ItemCount++;
-        }
+            AddFlowerToShop((FlowerType)(i + 2));
 
         RefreshMenuLists();
     }
@@ -221,6 +213,19 @@ public class HexMenu : MonoBehaviour
             ActivateTool(toolObjectList[1], toolSprites[1]);
         if (Input.GetKeyDown(KeyCode.Alpha4))
             ActivateTool(toolObjectList[0], toolSprites[0]);
+    }
+
+    public void AddFlowerToShop(FlowerType f)
+    {
+        availableFTypes.Add(f);
+        flowerObjectList.Insert(0, allFlowerObjects[(int)(f - 2)]);
+        flowerObjectList[0].GetComponent<Cost>().ftype = f;
+        flowerSprites.Insert(0, allFlowerSprites[(int)(f - 2)]);
+        flowerObjectList[0].GetComponent<Cost>().Price = unlocks.stage;
+        flowerNames.Insert(0, FTypeToString(f));
+        tab4ItemCount++;
+
+        RefreshMenuLists();
     }
 
     private string FTypeToString(FlowerType f)
@@ -288,9 +293,9 @@ public class HexMenu : MonoBehaviour
         foreach (CustomVisualElement t in tabs)
         {
             if (t != tab)
-                t.style.unityBackgroundImageTintColor = new Color(0.5f, 0.5f, 0.5f, 0.95f);
+                t.style.unityBackgroundImageTintColor = new Color(0.5f, 0.5f, 0.5f, 1f);
             else
-                t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 0.95f);
+                t.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
         }
 
         //Separate calculations for first item of each row
@@ -406,6 +411,8 @@ public class HexMenu : MonoBehaviour
     {
         icon.styleSheets.Add(itemStyle);
         costLabel.styleSheets.Add(costStyle);
+        costLabel.pickingMode = PickingMode.Ignore;
+        icon.pickingMode = PickingMode.Ignore;
         Cost cost = objectList[num][index].GetComponent<Cost>();
         if (num != 0)
             icon.style.backgroundImage = spriteList[num][index];
@@ -484,7 +491,7 @@ public class HexMenu : MonoBehaviour
         else
         {
             foreach (CustomVisualElement t in tabs)
-                t.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
+                t.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1f);
             foreach (CustomVisualElement hex in tabHexes)
                 left.Remove(hex);
 
@@ -513,7 +520,7 @@ public class HexMenu : MonoBehaviour
         document.GetComponent<AudioSource>().Play();
         if (selectedHex != null)
         {
-            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 0.95f);
+            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
             selectedHex = null;
 
             if (player.SelectedItem == item)
@@ -533,10 +540,7 @@ public class HexMenu : MonoBehaviour
             List<int> flowers = unlocks.GetNextFlowers();
             foreach (int i in flowers)
             {
-                flowerObjectList.Insert(0, allFlowerObjects[i]);
-                flowerSprites.Insert(0, allFlowerSprites[i]);
-                flowerNames.Insert(0, FTypeToString((FlowerType)i));
-                tab4ItemCount++;
+                AddFlowerToShop((FlowerType)i);
             }
             item.GetComponent<Cost>().Price *= 2;
             RefreshMenuLists();
@@ -576,14 +580,14 @@ public class HexMenu : MonoBehaviour
             OpenTab(1, open2, false);
         }
 
-        hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 0.95f);
+        hex.style.unityBackgroundImageTintColor = new Color(0.65f, 0.65f, 0.65f, 1f);
         selectedHex = hex;
     }
 
     public void UnhighlightHex()
     {
         if (selectedHex != null)
-            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 0.95f);
+            selectedHex.style.unityBackgroundImageTintColor = new Color(1f, 1f, 1f, 1f);
     }
 
     //Check to see if a Queen was selected from the shop, after clicking on the HiveUI queen button
@@ -605,6 +609,7 @@ public class HexMenu : MonoBehaviour
         }
         hive.CloseQueenSelection();
         RefreshMenuLists();
+        player.SelectedItem = null;
     }
 
     //Cancel queen selection from HiveUI queen button
@@ -756,7 +761,7 @@ public class HexMenu : MonoBehaviour
             VisualElement hex = e.target as VisualElement;
             hoverTemplate.RegisterCallback((GeometryChangedEvent evt) =>
             {
-                hoverTemplate.style.top = (Screen.height / 2) - (hoverTemplate.resolvedStyle.height / 2);
+                hoverTemplate.style.top = hex.resolvedStyle.top;
                 if (hex.worldBound.x < Screen.width - (Screen.width / 2.5f))
                     hoverTemplate.style.left = hex.worldBound.x + hex.resolvedStyle.width;
                 else
@@ -873,8 +878,8 @@ public class HexMenu : MonoBehaviour
                 {
                     VisualElement shovelElem = document.rootVisualElement.Q("Shovel");
                     shovelElem.Q<Label>("Uses").text = tool.GetComponent<ShovelTool>().usesPerTurn.ToString();
-                    shovelElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
-                    shovelElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
+                    shovelElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1f);
+                    shovelElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1f);
                 }
                 break;
             case "Dolly":
@@ -882,8 +887,8 @@ public class HexMenu : MonoBehaviour
                 {
                     VisualElement dollyElem = document.rootVisualElement.Q("Dolly");
                     dollyElem.Q<Label>("Uses").text = tool.GetComponent<DollyTool>().usesPerTurn.ToString();
-                    dollyElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
-                    dollyElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
+                    dollyElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1f);
+                    dollyElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1f);
                 }
                 break;
             case "Smoker":
@@ -891,8 +896,8 @@ public class HexMenu : MonoBehaviour
                 {
                     VisualElement smokerElem = document.rootVisualElement.Q("Smoker");
                     smokerElem.Q<Label>("Uses").text = tool.GetComponent<SmokerTool>().usesPerTurn.ToString();
-                    smokerElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
-                    smokerElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
+                    smokerElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1f);
+                    smokerElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1f);
                 }
                 break;
             case "HiveTool":
@@ -900,8 +905,8 @@ public class HexMenu : MonoBehaviour
                 {
                     VisualElement hiveToolElem = document.rootVisualElement.Q("Hivetool");
                     hiveToolElem.Q<Label>("Uses").text = tool.GetComponent<HiveTool>().usesPerTurn.ToString();
-                    hiveToolElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
-                    hiveToolElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 0.95f);
+                    hiveToolElem.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1f);
+                    hiveToolElem.Q<VisualElement>("Icon").style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1f);
                 }
                 break;
         }

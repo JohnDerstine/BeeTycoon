@@ -325,7 +325,10 @@ public class ToolManager : MonoBehaviour
                         h.x = t.x;
                         h.y = t.y;
                         h.transform.position = t.transform.position;
-                        h.transform.position += new Vector3(0, 0.5f, 0);
+                        float height = (h.hasStand) ? 1 : 0.5f;
+                        h.transform.position += new Vector3(0, height, 0);
+                        if (h.hasStand)
+                            h.stand.transform.position = t.transform.position;
 
                         dolly.Use();
                         VisualElement dollyElem = document.rootVisualElement.Q<VisualElement>("Dolly");
@@ -456,9 +459,13 @@ public class ToolManager : MonoBehaviour
 
                 if (objectToMove.TryGetComponent<Hive>(out Hive h))
                 {
+                    float height = (h.hasStand) ? 1 : 0.5f;
+                    objectToMove.transform.position += new Vector3(0, height, 0);
                     h.HideHiveRadius();
                     h.GetTileRadius(t.x, t.y);
                     h.DisplayHiveRadius();
+                    if (h.hasStand)
+                        h.stand.transform.position = t.gameObject.transform.position;
                 }
             }
         }

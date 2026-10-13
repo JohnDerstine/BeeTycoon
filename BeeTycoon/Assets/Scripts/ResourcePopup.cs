@@ -18,6 +18,9 @@ public class ResourcePopup : MonoBehaviour
     private VisualTreeAsset honeyGlobIcon;
 
     [SerializeField]
+    private Texture2D royalJelly;
+
+    [SerializeField]
     private VisualTreeAsset percentLabel;
 
     public bool complete;
@@ -66,10 +69,11 @@ public class ResourcePopup : MonoBehaviour
         get { return percent; }
         set
         {
+            Debug.Log(value + " " + value/100 + " " + percent + " " + Mathf.CeilToInt(percent / 100));
             if (value / 100 > Mathf.CeilToInt(percent / 100) && Mathf.CeilToInt(percent / 100) != 0)
             {
                 AudioSource hiveSource = currentHive.GetComponent<AudioSource>();
-                popupSource.pitch = 1f; // Should probably make seperate audio source
+                popupSource.pitch = 1f; // Should probably make seperate audio source                                                                                                                                                           
                 popupSource.PlayOneShot(percentAudio, 1f);
                 SpawnRJPopup();
                 GameObject.Find("PlayerController").GetComponent<PlayerController>().RoyalJelly++;
@@ -85,6 +89,7 @@ public class ResourcePopup : MonoBehaviour
         RJ.style.position = Position.Absolute;
         RJ.Q("Glob").style.width = 128;
         RJ.Q("Glob").style.height = 128;
+        RJ.Q("Glob").style.backgroundImage = royalJelly;
         document.rootVisualElement.Q<VisualElement>("Base").Add(RJ);
 
         Vector3 position = currentHive.transform.position;
@@ -134,9 +139,10 @@ public class ResourcePopup : MonoBehaviour
     {
         currentHive.SetStatsModifiers();
         accumulatedNectar += amount;
+        if (currentHive.maxHoneyProduction == 0)
+            currentHive.SetMaxHoneyProduction();
         Percent = (accumulatedNectar * .01f / currentHive.maxHoneyProduction) * 100;
-        if (currentHive.maxHoneyProduction != 0)
-            activePercent.Q<Label>().text = Mathf.RoundToInt(percent).ToString() + "%"; //0.01f is conversion rate
+        activePercent.Q<Label>().text = Mathf.RoundToInt(percent).ToString() + "%"; //0.01f is conversion rate
 
         float colorValue = percent / 100;
 

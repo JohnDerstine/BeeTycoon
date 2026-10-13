@@ -76,9 +76,6 @@ public class Hive : MonoBehaviour
     [SerializeField]
     private VisualTreeAsset StressPanel;
 
-    [SerializeField]
-    private Material Highlight;
-
     private Texture2D currentIcon;
 
     private ToolManager toolManager;
@@ -86,7 +83,6 @@ public class Hive : MonoBehaviour
     public TemplateContainer template;
     private TemplateContainer hoverTemplate;
     private TemplateContainer tooltip;
-    public bool empty = true;
     public bool placed;
 
     public int x;
@@ -240,6 +236,10 @@ public class Hive : MonoBehaviour
     private List<string> details = new List<string>();
     private EventCallback<WheelEvent, QueenBee> cycleDetails;
 
+    public bool isDead = true;
+
+    public GameObject stand;
+
     public int Size
     {
         get { return size; }
@@ -261,12 +261,11 @@ public class Hive : MonoBehaviour
             placed = value;
             if (value)
             {
-                //if (queen.nullQueen)
-                //    Condition = "Dead";
+                isDead = true;
                 player.OpenHiveUI(template, hiveUI, this);
 
                 if (game.CurrentState != GameStates.Running)
-                    player.CloseHiveUI(this);
+                    player.CloseHiveUI(this, true);
             }
         }
     }
@@ -333,7 +332,8 @@ public class Hive : MonoBehaviour
 
             if (stressLevel >= 5) //Kill hive if stress >= 5
             {
-                empty = true;
+                isDead = true;
+                queen.nullQueen = true; //unknown if this is needed
 
                 if (activePopup != null)
                 {
@@ -341,17 +341,23 @@ public class Hive : MonoBehaviour
                     activePopup = null;
                 }
 
+                conditions.Clear();
+                randConditions.Clear();
+                foreach (string s in baseRandConditions)
+                    randConditions.Add(s);
+
+                population = 5000;
+
                 activePopup = afflictionPopupUI.Instantiate();
                 activePopup.Q<VisualElement>("Icon").style.backgroundImage = afflictionIcons[5];
                 AdjustPopupTransform();
                 activePopup.style.position = Position.Absolute;
                 activePopup.style.flexGrow = 0;
-                document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
+                document.rootVisualElement.Q<VisualElement>("Base").Insert(0, activePopup);
                 activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
 
                 queenHex.style.backgroundImage = deadSprite;
                 queenClick.UnregisterCallback<PointerMoveEvent>(OnQueenMove);
-
             }
         }
     }
@@ -438,7 +444,7 @@ public class Hive : MonoBehaviour
         AdjustPopupTransform();
         activePopup.style.position = Position.Absolute;
         activePopup.style.flexGrow = 0;
-        document.rootVisualElement.Q<VisualElement>("Base").Add(activePopup);
+        document.rootVisualElement.Q<VisualElement>("Base").Insert(0, activePopup);
         activePopup.RegisterCallback<PointerDownEvent>(GlossaryOpen);
     }
 
@@ -478,7 +484,7 @@ public class Hive : MonoBehaviour
             }
             else if (isOpen && player.SelectedItem == null && !GameObject.Find("UIDocument").GetComponent<Glossary>().open)
             {
-                player.CloseHiveUI(this);
+                player.CloseHiveUI(this, false);
             }
         }
 
@@ -487,7 +493,7 @@ public class Hive : MonoBehaviour
             if (stressContainer != null)
                 CloseStressWindow();
             else
-                player.CloseHiveUI(this);
+                player.CloseHiveUI(this, false);
         }
 
         if (Input.GetKeyDown(KeyCode.L))
@@ -617,9 +623,14 @@ public class Hive : MonoBehaviour
         return true;
     }
 
+    public void SetMaxHoneyProduction()
+    {
+        maxHoneyProduction = maxHoneyBase * hiveEfficency * GetItalianMult() * greedy * GetCordovanMult() * GetHimalayanMult();
+    }
+
     public void UpdateHive()
     {
-        if (empty)
+        if (isDead)
             return;
 
         if (hasRepellant)
@@ -658,7 +669,7 @@ public class Hive : MonoBehaviour
             float buckGain = buckfastGains.Values.Sum() * conversionRate;
 
             float italian = (queen.species == "Italian") ? 1.25f : 1;
-            maxHoneyProduction = maxHoneyBase * hiveEfficency * GetItalianMult() * greedy * GetCordovanMult() * GetHimalayanMult();
+            SetMaxHoneyProduction();
             storagePerComb = (baseStoragePerComb + industrious) * hiveEfficency;
 
             float possibleHoney = nectarGain;
@@ -992,13 +1003,17 @@ public class Hive : MonoBehaviour
         queenClick.UnregisterCallback(cycleDetails);
         queen.transferComplete = false;
         StartCoroutine(queen.TransferStats(q));
+        gameObject.GetComponent<MeshRenderer>().material.color = queen.myColor;
         Destroy(q.gameObject);
-        empty = false;
 
         yield return new WaitWhile(() => !queen.transferComplete);
+        isDead = false;
 
         queenHex.style.backgroundImage = queen.speciesSprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
+
+        if (!isOpen)
+            player.OpenHiveUI(template, hiveUI, this);
 
         while (conditions.Count > 0)
             CureCondition(conditions[0]);
@@ -1037,6 +1052,29 @@ public class Hive : MonoBehaviour
         UpdateMeters();
         SetDetailsList(queen);
         queenClick.RegisterCallback(cycleDetails, queen);
+
+        if (game.tutorialEnabled && game.firstPopulate)
+        {
+            GameStates prevState = game.CurrentState;
+            game.CurrentState = GameStates.Tutorial;
+            TemplateContainer tp = game.tutorialPopup.Instantiate();
+            tp.Q<Label>().text = game.TutorialStrings[3];
+            tp.style.position = Position.Absolute;
+            tp.RegisterCallback((GeometryChangedEvent evt) =>
+            {
+                tp.style.left = (Screen.width / 2) - (tp.resolvedStyle.width / 2) - 50;
+                tp.style.top = (Screen.height / 2) - (tp.resolvedStyle.height / 2);
+            });
+            document.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+
+            yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+            yield return new WaitForSeconds(0.1f);
+
+            document.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+            game.CurrentState = prevState;
+            game.checkpoint1Reached = true;
+            player.CloseHiveUI(this, false);
+        }
     }
 
     //Load queen from save doesn't require transfering stats
@@ -1044,11 +1082,9 @@ public class Hive : MonoBehaviour
     {
         if (queen.nullQueen == false)
         {
-            empty = false;
+            isDead = false;
             //Condition = "Healthy";
         }
-        //else
-        //    Condition = "Dead";
         queenClick.UnregisterCallback(cycleDetails);
         queen.GetSpeciesIcon();
         queenHex.style.backgroundImage = queen.speciesSprite;
@@ -1151,17 +1187,22 @@ public class Hive : MonoBehaviour
         if (!placed)
             return;
 
-        document.GetComponent<AudioSource>().Play();
-
-        player.OpenHiveUI(template, hiveUI, this);
-        SetUpTemplate();
+        if (game.CurrentState == GameStates.Running)
+        {
+            document.GetComponent<AudioSource>().Play();
+            player.OpenHiveUI(template, hiveUI, this);
+            SetUpTemplate();
+        }
     }
 
     public void childOnMouseDown()
     {
-        document.GetComponent<AudioSource>().Play();
-        player.OpenHiveUI(template, hiveUI, this);
-        SetUpTemplate();
+        if (game.CurrentState == GameStates.Running)
+        {
+            document.GetComponent<AudioSource>().Play();
+            player.OpenHiveUI(template, hiveUI, this);
+            SetUpTemplate();
+        }
     }
 
     private void DisableHarvestButtons()
@@ -1284,7 +1325,7 @@ public class Hive : MonoBehaviour
             template.Q<VisualElement>("FlowerInfo").RegisterCallback<PointerDownEvent>(e => FlowersReference(e));
 
             exit = template.Q<VisualElement>("Close");
-            exit.AddManipulator(new Clickable(() => player.CloseHiveUI(this)));
+            exit.AddManipulator(new Clickable(() => player.CloseHiveUI(this, false)));
 
             if (queen == null)
                 queen = GetComponent<QueenBee>();

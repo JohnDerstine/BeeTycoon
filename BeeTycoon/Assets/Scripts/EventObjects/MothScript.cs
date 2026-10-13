@@ -18,7 +18,7 @@ public class MothScript : EventObject
         turnsActive++;
         foreach (Hive h in player.hives)
         {
-            if (h.tileRadius.Contains(spawnTile) && !map.IsOnBorder(map.tiles[h.x, h.y]))
+            if (!h.isDead && h.tileRadius.Contains(spawnTile) && !map.IsOnBorder(map.tiles[h.x, h.y]))
             {
                 h.AddCondition("Moths");
             }

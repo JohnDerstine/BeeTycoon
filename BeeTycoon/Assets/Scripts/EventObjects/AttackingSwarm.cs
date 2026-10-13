@@ -30,7 +30,7 @@ public class AttackingSwarm : EventObject
 
         foreach (Hive h in player.hives)
         {
-            if (h.tileRadius.Contains(spawnTile) && !CheckHiveOverlap(h))
+            if (!h.isDead && h.tileRadius.Contains(spawnTile) && !CheckHiveOverlap(h))
             {
                 h.AddCondition("Swarmed");
             }

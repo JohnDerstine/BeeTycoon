@@ -38,7 +38,7 @@ public class FungusScript : EventObject
         turnsActive++;
         foreach (Hive h in player.hives)
         {
-            if (h.tileRadius.Contains(spawnTile) && CheckWater(h))
+            if (!h.isDead && h.tileRadius.Contains(spawnTile) && CheckWater(h))
             {
                 h.AddCondition("Fungus");
             }

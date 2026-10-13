@@ -279,6 +279,7 @@ public class Glossary : MonoBehaviour
 
     private void OpenTab(string tabName)
     {
+        return;
         document.GetComponent<AudioSource>().Play();
         //Change shading of tab and unshade previous tab
         if (currentTab != null)
