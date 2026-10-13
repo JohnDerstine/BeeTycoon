@@ -1,14 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Xml.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UIElements;
-using UnityEngine.XR;
-using static UnityEngine.GraphicsBuffer;
-using static UnityEngine.GridBrushBase;
 
 public class QueenChooser : MonoBehaviour
 {
@@ -440,6 +435,11 @@ public class QueenChooser : MonoBehaviour
 
     public IEnumerator CreateBundles()
     {
+        document.rootVisualElement.Q<VisualElement>("Left").visible = false;
+        document.rootVisualElement.Q<VisualElement>("Right").visible = false;
+        document.rootVisualElement.Q<VisualElement>("Center").visible = false;
+        document.rootVisualElement.Q<VisualElement>("Toolbar").visible = false;
+
         if (game.tutorialEnabled)
         {
             GameStates prevState = game.CurrentState;
@@ -465,11 +465,6 @@ public class QueenChooser : MonoBehaviour
         template.style.justifyContent = Justify.FlexStart;
         container.style.justifyContent = Justify.SpaceAround;
         document.rootVisualElement.Q<VisualElement>("Base").Add(template);
-
-        document.rootVisualElement.Q<VisualElement>("Left").visible = false;
-        document.rootVisualElement.Q<VisualElement>("Right").visible = false;
-        document.rootVisualElement.Q<VisualElement>("Center").visible = false;
-        document.rootVisualElement.Q<VisualElement>("Toolbar").visible = false;
 
         VisualElement banner1 = container.Q<VisualElement>("Banner1");
         VisualElement banner2 = container.Q<VisualElement>("Banner2");
@@ -591,9 +586,16 @@ public class QueenChooser : MonoBehaviour
         }
 
         document.rootVisualElement.Q<VisualElement>("Left").visible = true;
-        document.rootVisualElement.Q<VisualElement>("Right").visible = true;
         document.rootVisualElement.Q<VisualElement>("Center").visible = true;
-        document.rootVisualElement.Q<VisualElement>("Toolbar").visible = true;
+        document.rootVisualElement.Q<VisualElement>("Right").visible = true;
+
+        if (game.tutorialEnabled)
+        {
+            document.rootVisualElement.Q<VisualElement>("RightGroup").visible = false;
+            document.rootVisualElement.Q<CustomVisualElement>("tab2").visible = false;
+            document.rootVisualElement.Q<CustomVisualElement>("tab3").visible = false;
+            document.rootVisualElement.Q<CustomVisualElement>("tab4").visible = false;
+        }
 
         if (game.tutorialEnabled)
         {
@@ -615,6 +617,9 @@ public class QueenChooser : MonoBehaviour
             document.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
             game.CurrentState = prevState;
         }
+
+        if (!game.tutorialEnabled)
+            document.rootVisualElement.Q<VisualElement>("Toolbar").visible = true;
 
         game.CurrentState = GameStates.Running;
     }

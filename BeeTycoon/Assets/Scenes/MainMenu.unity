@@ -1282,10 +1282,11 @@ MonoBehaviour:
   year: 1
   nectarCollectingFinished: 0
   flowerAdvanceFinished: 0
-  tutorialEnabled: 1
+  tutorialEnabled: 0
   checkpoint1Reached: 0
   checkpoint2Reached: 0
   checkpoint3Reached: 0
+  checkpoint4Reached: 0
   firstClose: 1
   firstPopulate: 1
 --- !u!114 &2079847518

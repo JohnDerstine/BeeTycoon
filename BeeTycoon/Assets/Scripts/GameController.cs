@@ -106,11 +106,12 @@ public class GameController : MonoBehaviour
 
     private int techPoints = 4;
 
-    public bool tutorialEnabled = true;
+    public bool tutorialEnabled = false;
 
     public bool checkpoint1Reached = false;
     public bool checkpoint2Reached = false;
     public bool checkpoint3Reached = false;
+    public bool checkpoint4Reached = false;
     public bool firstClose = true;
 
     private List<string> tutorialStrings = new List<string>()
@@ -401,9 +402,9 @@ public class GameController : MonoBehaviour
         string adjustedSeason = Season.ToString();
         adjustedSeason = adjustedSeason.Substring(0, 1).ToUpper() + adjustedSeason.Substring(1);
         //document.rootVisualElement.Q<Label>("TurnCount").text = adjustedSeason + " " + year + " Turn " + turn;
-        document.rootVisualElement.Q<Label>("Quota").text = "Quota: $" + quota;
+        //document.rootVisualElement.Q<Label>("Quota").text = "Quota: $" + quota;
         int turns = (season == "winter") ? (1 - ((turn - 1) % 4)) : (4 - ((turn - 1) % 4));
-        document.rootVisualElement.Q<Label>("Turns").text = "Due in " + turns + " turns";
+        //document.rootVisualElement.Q<Label>("Turns").text = "Due in " + turns + " turns";
 
         document.rootVisualElement.Q<Label>("MeterQuota").text = "$" + quota;
     }
@@ -419,7 +420,7 @@ public class GameController : MonoBehaviour
     private IEnumerator NextTurn()
     {
         //Don't let player go next turn if the last turn is still processing
-        if (CurrentState == GameStates.TurnEnd || CurrentState == GameStates.Paused || CurrentState == GameStates.Tutorial || !CheckPopulated() || !checkpoint2Reached)
+        if (CurrentState == GameStates.TurnEnd || CurrentState == GameStates.Paused || CurrentState == GameStates.Tutorial || !CheckPopulated() || (!checkpoint2Reached && tutorialEnabled))
             yield break;
         document.GetComponent<AudioSource>().Play();
 
@@ -476,7 +477,7 @@ public class GameController : MonoBehaviour
 
             map.SeasonRecolor();
             previousMoney = player.Money;
-            player.Money = -Quota / 2;
+            player.Money = -Quota;
             if (player.Money < 0)
             {
                 CurrentState = GameStates.End;
@@ -540,9 +541,6 @@ public class GameController : MonoBehaviour
         //if (year == 1 && season == "summer")
         //    Quota = 25;
 
-        if (turnCallback != null)
-            turnCallback();
-
         StartCoroutine(eventController.SpawnMapEvent());
         yield return new WaitWhile(() => !eventController.allComplete);
         eventController.allComplete = false;
@@ -569,6 +567,8 @@ public class GameController : MonoBehaviour
         toolManager.TurnReset();
 
         CurrentState = GameStates.Running;
+        if (turnCallback != null)
+            turnCallback();
         checkpoint3Reached = true;
     }
 

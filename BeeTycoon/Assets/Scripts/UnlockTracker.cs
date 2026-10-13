@@ -147,7 +147,7 @@ public class UnlockTracker : MonoBehaviour
         {"Himalayan", "Himalayan honey bees' maximum honey production is increased by 25%, and all honey is treated as pure when there are no other hives in their radius."},
         {"Cordovan", "Cordovan honey bees recieve -50% maximum honey production. For each other populated hive you own, increase this hive's maixmum honey product by 25%, up to +150%."},
         {"Buckfast", "Buckfast honey bees' honey type and purity are dictated only by the flowers diagonal and adjacent to the hive. All other flowers are scored normally."},
-        {"Killer", "Killer honey bees do not halt production at stress level 4. Additionally, increase nectar gained from flowers by 50% for each stress level."}
+        {"Killer", "Killer honey bees do not halt production at stress level 4. Additionally, increase nectar gained from flowers by 50% for each stress level. If a killer bee hive is present on the map, all other hives gain 1 stress."}
     };
 
     public Dictionary<FlowerType, string> flowerDetails = new Dictionary<FlowerType, string>()
@@ -182,7 +182,8 @@ public class UnlockTracker : MonoBehaviour
         {"Enterance Reducer", "Makes hive immune to mice, moths, and attacking swarms. Breaks in winter."},
         {"Sugar Water", "Adds 25% of max honey production to honey produced for the next 4 turns."},
         {"Insulation", "Prevents hive from freezing in winter. Breaks after winter."},
-        {"Mite Repellant", "Cures hive of the 'mites' affliction"}
+        {"Mite Repellant", "Cures hive of the 'mites' affliction"},
+        {"Next Stage", "Unlocks 3 random flowers for the rest of the run."}
     };
 
     public List<FlowerType> ownedFlowers = new List<FlowerType>();

@@ -673,6 +673,10 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator TutorialContinue()
     {
+        ui.rootVisualElement.Q<CustomVisualElement>("tab2").visible = true;
+        ui.rootVisualElement.Q<CustomVisualElement>("tab3").visible = true;
+        ui.rootVisualElement.Q<CustomVisualElement>("tab4").visible = true;
+
         GameStates prevState = game.CurrentState;
         game.CurrentState = GameStates.Tutorial;
         TemplateContainer tp = game.tutorialPopup.Instantiate();
@@ -687,6 +691,9 @@ public class PlayerController : MonoBehaviour
         yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
         yield return new WaitForSeconds(0.1f);
         ui.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+
+        ui.rootVisualElement.Q<VisualElement>("Toolbar").visible = true;
+        ui.rootVisualElement.Q<VisualElement>("RightGroup").visible = true;
 
         game.CurrentState = GameStates.Tutorial;
         tp = game.tutorialPopup.Instantiate();
@@ -716,6 +723,50 @@ public class PlayerController : MonoBehaviour
         {
             tp.style.left = Screen.width - (tp.resolvedStyle.width * 1.25f);
             tp.style.top = Screen.height - (tp.resolvedStyle.height * 3);
+        });
+        ui.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+        yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+        yield return new WaitForSeconds(0.1f);
+        ui.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+
+        tp = game.tutorialPopup.Instantiate();
+        tp.Q<Label>().text = game.TutorialStrings[7];
+        tp.style.position = Position.Absolute;
+        tp.RegisterCallback((GeometryChangedEvent evt) =>
+        {
+            tp.style.left = (Screen.width / 2) - (tp.resolvedStyle.width / 2);
+            tp.style.top = (Screen.height / 2) - (tp.resolvedStyle.height / 2);
+        });
+        ui.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+        yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+        yield return new WaitForSeconds(0.1f);
+        ui.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+        game.CurrentState = prevState;
+
+        yield return new WaitWhile(() => !game.checkpoint4Reached);
+        prevState = game.CurrentState;
+        game.CurrentState = GameStates.Tutorial;
+        tp = game.tutorialPopup.Instantiate();
+        tp.Q<Label>().text = game.TutorialStrings[8];
+        tp.style.position = Position.Absolute;
+        tp.RegisterCallback((GeometryChangedEvent evt) =>
+        {
+            tp.style.left = (Screen.width / 2) - (tp.resolvedStyle.width / 2);
+            tp.style.top = (Screen.height / 2) - (tp.resolvedStyle.height / 2);
+        });
+        ui.rootVisualElement.Q<VisualElement>("Base").Add(tp);
+        yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));
+        yield return new WaitForSeconds(0.1f);
+        ui.rootVisualElement.Q<VisualElement>("Base").Remove(tp);
+
+        game.CurrentState = GameStates.Tutorial;
+        tp = game.tutorialPopup.Instantiate();
+        tp.Q<Label>().text = game.TutorialStrings[9];
+        tp.style.position = Position.Absolute;
+        tp.RegisterCallback((GeometryChangedEvent evt) =>
+        {
+            tp.style.left = (Screen.width / 2) - (tp.resolvedStyle.width / 2);
+            tp.style.top = (Screen.height / 2) - (tp.resolvedStyle.height / 2);
         });
         ui.rootVisualElement.Q<VisualElement>("Base").Add(tp);
         yield return new WaitWhile(() => !Input.GetMouseButtonDown(0));

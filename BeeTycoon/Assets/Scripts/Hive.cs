@@ -139,9 +139,53 @@ public class Hive : MonoBehaviour
         { "Undisturbed", -1},
         { "Relaxed", -1},
         { "Calm", -1},
+        { "Soothed", -1},
         { "Indulged", -1},
         { "Carniolan", - 1}
     };
+
+    private Dictionary<string, string> conditionSources = new Dictionary<string, string>()
+    {
+        { "Mice", "Mice Nest Event"},
+        { "Mites", "Naturally Occurs"},
+        { "Moths", "Moth Swarm Event"},
+        { "Fungus", "Fungal Bloom Event"},
+        { "Aggrevated", "Naturally Occurs"},
+        { "Glued", "Naturally Occurs"},
+        { "Freezing", "Low Population"},
+        { "Starving", "Low Honey Reserves"},
+        { "Defending", "Nearby Stressed Hive"},
+        { "Swarmed", "Attacking Swarm Event"},
+        { "Killer", "Killer Bees Present"},
+        { "Undisturbed", "3 Turns Since Last Harvest"},
+        { "Relaxed", "Smoker"},
+        { "Calm", "Quirk"},
+        { "Soothed", "Proximity to Lavendar"},
+        { "Indulged", "Adjacent to Favorite Flower"},
+        { "Carniolan", "Proximity to Carniolan Hive"}
+    };
+
+    private Dictionary<string, string> conditionRemedies = new Dictionary<string, string>()
+    {
+        { "Mice", "Peppermint/Entrance Reducer"},
+        { "Mites", "Mite Repellant"},
+        { "Moths", "Move Hive From Border"},
+        { "Fungus", "Move Hive From Water"},
+        { "Aggrevated", "Smoker"},
+        { "Glued", "Hive Tool"},
+        { "Freezing", "Insulation"},
+        { "Starving", "Harvest Less"},
+        { "Defending", "Manage Nearby Hives"},
+        { "Swarmed", "Capture Swarm/Move Hive"},
+        { "Killer", "N/A"},
+        { "Undisturbed", "N/A"},
+        { "Relaxed", "N/A"},
+        { "Calm", "N/A"},
+        { "Soothed", "N/A"},
+        { "Indulged", "N/A"},
+        { "Carniolan", "N/A"}
+    };
+
     private bool attacking;
 
 
@@ -287,6 +331,7 @@ public class Hive : MonoBehaviour
         get { return stressLevel; }
         set
         {
+            Debug.Log(stressLevel + " " + value);
             if (stressLevel != value)//spawn popup bubble
             {
                 if (activePopup != null)
@@ -517,14 +562,15 @@ public class Hive : MonoBehaviour
     {
         Vector3 worldPos = gameObject.transform.position;
         worldPos = Camera.main.WorldToScreenPoint(worldPos);
-        worldPos.x -= activePopup.resolvedStyle.width * 0.5f;
-        worldPos.y += activePopup.resolvedStyle.width;
-        activePopup.style.top = Screen.height - worldPos.y;
-        activePopup.style.left = worldPos.x;
-        activePopup.Q<VisualElement>("Background").style.width = 128 / (Camera.main.transform.position.y / 17);
-        activePopup.Q<VisualElement>("Background").style.height = 128 / (Camera.main.transform.position.y / 17);
-        activePopup.Q<VisualElement>("Icon").style.width = 56 / (Camera.main.transform.position.y / 17);
-        activePopup.Q<VisualElement>("Icon").style.height = 56 / (Camera.main.transform.position.y / 17);
+        worldPos.x -= Mathf.RoundToInt(activePopup.resolvedStyle.width * 0.5f);
+        worldPos.y += Mathf.RoundToInt(activePopup.resolvedStyle.width);
+        activePopup.style.top = Mathf.RoundToInt(Screen.height - worldPos.y);
+        activePopup.style.left = Mathf.RoundToInt(worldPos.x);
+        activePopup.Q<VisualElement>("Background").style.width = Mathf.RoundToInt(128 / (Camera.main.transform.position.y / 17));
+        activePopup.Q<VisualElement>("Background").style.height = Mathf.RoundToInt(128 / (Camera.main.transform.position.y / 17));
+        activePopup.Q<VisualElement>("Icon").style.width = Mathf.RoundToInt(56 / (Camera.main.transform.position.y / 17));
+        activePopup.Q<VisualElement>("Icon").style.height = Mathf.RoundToInt(56 / (Camera.main.transform.position.y / 17));
+        activePopup.SendToBack();
     }
 
     public void CloseQueenSelection()
@@ -728,7 +774,6 @@ public class Hive : MonoBehaviour
         {
             player.inventory[honeyType][0] += amount * extractorBonus;
             honey -= amount;
-            Debug.Log(amount);
 
             if (honeyPurity >= .9f)
                 player.inventory[honeyType][3] += amount * extractorBonus;
@@ -741,7 +786,6 @@ public class Hive : MonoBehaviour
         {
             player.inventory[honeyType][0] += amount * extractorBonus;
             honey -= amount;
-            Debug.Log(amount);
             player.inventory[honeyType][2] += amount * extractorBonus;
         }
 
@@ -880,17 +924,26 @@ public class Hive : MonoBehaviour
                 break;
 
             case "L-Shaped":
-                if (rotation == 0 || rotation == 90)
-                    RadiusLoopHelper(1, 1, 2, 4, x, y);
-
-                if (rotation == 90 || rotation == 180)
-                    RadiusLoopHelper(1, 1, 4, 2, x, y);
-
-                if (rotation == 180 || rotation == 270)
-                    RadiusLoopHelper(1, 3, 2, 4, x, y);
-
-                if (rotation == 270 || rotation == 0)
+                if (rotation == 0)
+                {
                     RadiusLoopHelper(3, 1, 4, 2, x, y);
+                    RadiusLoopHelper(1, 1, 2, 4, x, y);
+                }
+                else if (rotation == 90)
+                {
+                    RadiusLoopHelper(1, 1, 2, 4, x, y);
+                    RadiusLoopHelper(1, 1, 4, 2, x, y);
+                }
+                else if (rotation == 180)
+                {
+                    RadiusLoopHelper(1, 1, 4, 2, x, y);
+                    RadiusLoopHelper(1, 3, 2, 4, x, y);
+                }
+                else
+                {
+                    RadiusLoopHelper(3, 1, 4, 2, x, y);
+                    RadiusLoopHelper(1, 3, 2, 4, x, y);
+                }
                 break;
         }
     }
@@ -1003,11 +1056,11 @@ public class Hive : MonoBehaviour
         queenClick.UnregisterCallback(cycleDetails);
         queen.transferComplete = false;
         StartCoroutine(queen.TransferStats(q));
-        gameObject.GetComponent<MeshRenderer>().material.color = queen.myColor;
         Destroy(q.gameObject);
 
         yield return new WaitWhile(() => !queen.transferComplete);
         isDead = false;
+        gameObject.GetComponent<MeshRenderer>().material.color = queen.myColor;
 
         queenHex.style.backgroundImage = queen.speciesSprite;
         queenHex.style.unityBackgroundImageTintColor = new Color(1, 1, 1, 1);
@@ -1029,11 +1082,11 @@ public class Hive : MonoBehaviour
 
         if (queen.species == "Killer")
             foreach (Hive h in player.hives)
-                if (h != this)
+                if (h != this && !h.conditions.Contains("Killer"))
                     h.AddCondition("Killer");
 
         foreach (Hive h in player.hives)
-            if (h != this && h.queen.species == "Killer")
+            if (h != this && h.queen.species == "Killer" && !conditions.Contains("Killer"))
                 AddCondition("Killer");
 
         CalcEfficiency();
@@ -1138,6 +1191,9 @@ public class Hive : MonoBehaviour
         int aggrevatedChance = Random.Range(0, 5 + (int)docile);
         if (!conditions.Contains("Aggrevated") && aggrevatedChance == 0)
             AddCondition("Aggrevated");
+
+        if (Random.Range(0, 20) == 0 && !conditions.Contains("Glued"))
+            AddCondition("Glued");
     }
 
     public void CureCondition(string con)
@@ -1159,9 +1215,10 @@ public class Hive : MonoBehaviour
     {
         List<string> possible = new List<string>();
         foreach (string con in conditions)
-            if (conditionValues[con] < 0)
+            if (conditionValues[con] > 0)
                 possible.Add(con);
-        CureCondition(possible[Random.Range(0, possible.Count)]);
+        if (possible.Count > 0)
+            CureCondition(possible[Random.Range(0, possible.Count)]);
     }
 
     public void AddSugarWater()
@@ -1386,6 +1443,8 @@ public class Hive : MonoBehaviour
 
     private void SelectHarvest(VisualElement clickedElement)
     {
+        if (game.tutorialEnabled)
+            game.checkpoint4Reached = true;
         document.GetComponent<AudioSource>().Play();
         StartCoroutine(ClickResponse(clickedElement));
         float harvestPercentage = 0;
@@ -1450,6 +1509,9 @@ public class Hive : MonoBehaviour
                 stressContainer.Q<VisualElement>("Afflictions1").Add(label);
             else
                 stressContainer.Q<VisualElement>("Afflictions2").Add(label);
+            int storedI = i;
+            label.RegisterCallback<PointerEnterEvent, int>(OnAfflictionHover, storedI);
+            label.RegisterCallback<PointerLeaveEvent>(OnAfflictionExit);
         }
 
         document.rootVisualElement.Q<VisualElement>("Right").Add(stressContainer);
@@ -1572,16 +1634,19 @@ public class Hive : MonoBehaviour
             details.Add(tracker.quirkDescriptions[s]);
     }
 
-    private void OnAfflictionHover(PointerEnterEvent e)
+    private void OnAfflictionHover(PointerEnterEvent e, int storedI)
     {
-        activePopup.RegisterCallback<PointerLeaveEvent>(OnAfflictionExit);
         tooltip = afflictionToolTipUI.Instantiate();
         tooltip.style.position = Position.Absolute;
-        tooltip.style.left = e.position.x;// - tooltip.resolvedStyle.width;
-        tooltip.style.top = e.position.y;//Screen.height - e.position.y;// - tooltip.resolvedStyle.height / 1.5f;
+        //tooltip.RegisterCallback((GeometryChangedEvent evt) =>
+        //{
+            tooltip.style.left = e.position.x - 150;
+            tooltip.style.top = e.position.y;// - tooltip.resolvedStyle.height / 2f;//Screen.height - e.position.y;// - tooltip.resolvedStyle.height / 1.5f;
+        //});
         tooltip.pickingMode = PickingMode.Ignore;
-        //tooltip.Q<Label>("Affliction").text = Condition;
-        tooltip.Q<VisualElement>("Icon").style.backgroundImage = currentIcon;
+        tooltip.Q<Label>("Title").text = conditions[storedI];
+        tooltip.Q<Label>("Source").text = "Source: " + conditionSources[conditions[storedI]];
+        tooltip.Q<Label>("Remedy").text = "Remedy: " + conditionRemedies[conditions[storedI]];
         document.rootVisualElement.Q<VisualElement>("Base").Add(tooltip);
     }
 
@@ -1591,9 +1656,7 @@ public class Hive : MonoBehaviour
         {
             document.rootVisualElement.Q("Base").Remove(tooltip);
             tooltip = null;
-            activePopup.RegisterCallback<PointerEnterEvent>(OnAfflictionHover);
         }
-
     }
 
     private void OnMouseUp()

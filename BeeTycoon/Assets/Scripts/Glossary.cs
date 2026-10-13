@@ -249,26 +249,26 @@ public class Glossary : MonoBehaviour
 
     public void OpenGlossary(string tabName)
     {
-        if (activeGlossary == null)
-        {
-            root = document.rootVisualElement;
-            activeGlossary = glossary.Instantiate();
-            activeGlossary.style.position = Position.Absolute;
-            activeGlossary.style.width = Screen.width;
-            activeGlossary.style.height = Screen.height;
-            activeGlossary.Q<VisualElement>("Afflictions").AddManipulator(new Clickable(e => OpenTab("Afflictions")));
-            activeGlossary.Q<VisualElement>("Species").AddManipulator(new Clickable(e => OpenTab("Species")));
-            activeGlossary.Q<VisualElement>("Flowers").AddManipulator(new Clickable(e => OpenTab("Flowers")));
-            activeGlossary.Q<VisualElement>("Tools").AddManipulator(new Clickable(e => OpenTab("Tools")));
-            activeGlossary.Q<VisualElement>("Hive").AddManipulator(new Clickable(e => OpenTab("Hive")));
-            activeGlossary.Q<VisualElement>("HoneyCycle").AddManipulator(new Clickable(e => OpenTab("HoneyCycle")));
-            activeGlossary.Q<VisualElement>("Seasons").AddManipulator(new Clickable(e => OpenTab("Seasons")));
-            activeGlossary.Q<VisualElement>("HoneyMarket").AddManipulator(new Clickable(e => OpenTab("HoneyMarket")));
-            activeGlossary.Q<VisualElement>("BeeStats").AddManipulator(new Clickable(e => OpenTab("BeeStats")));
-        }
-        root.Q<VisualElement>("Base").Add(activeGlossary);
-        OpenTab(tabName);
-        open = true;
+        //if (activeGlossary == null)
+        //{
+        //    root = document.rootVisualElement;
+        //    activeGlossary = glossary.Instantiate();
+        //    activeGlossary.style.position = Position.Absolute;
+        //    activeGlossary.style.width = Screen.width;
+        //    activeGlossary.style.height = Screen.height;
+        //    activeGlossary.Q<VisualElement>("Afflictions").AddManipulator(new Clickable(e => OpenTab("Afflictions")));
+        //    activeGlossary.Q<VisualElement>("Species").AddManipulator(new Clickable(e => OpenTab("Species")));
+        //    activeGlossary.Q<VisualElement>("Flowers").AddManipulator(new Clickable(e => OpenTab("Flowers")));
+        //    activeGlossary.Q<VisualElement>("Tools").AddManipulator(new Clickable(e => OpenTab("Tools")));
+        //    activeGlossary.Q<VisualElement>("Hive").AddManipulator(new Clickable(e => OpenTab("Hive")));
+        //    activeGlossary.Q<VisualElement>("HoneyCycle").AddManipulator(new Clickable(e => OpenTab("HoneyCycle")));
+        //    activeGlossary.Q<VisualElement>("Seasons").AddManipulator(new Clickable(e => OpenTab("Seasons")));
+        //    activeGlossary.Q<VisualElement>("HoneyMarket").AddManipulator(new Clickable(e => OpenTab("HoneyMarket")));
+        //    activeGlossary.Q<VisualElement>("BeeStats").AddManipulator(new Clickable(e => OpenTab("BeeStats")));
+        //}
+        //root.Q<VisualElement>("Base").Add(activeGlossary);
+        //OpenTab(tabName);
+        //open = true;
     }
 
     public void CloseGlossary()

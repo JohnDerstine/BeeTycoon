@@ -64,12 +64,13 @@ public class ResourcePopup : MonoBehaviour
     const int medium = 10;
     const int large = 100;
 
+    EventCallback<GeometryChangedEvent> callback;
+
     public float Percent
     {
         get { return percent; }
         set
         {
-            Debug.Log(value + " " + value/100 + " " + percent + " " + Mathf.CeilToInt(percent / 100));
             if (value / 100 > Mathf.CeilToInt(percent / 100) && Mathf.CeilToInt(percent / 100) != 0)
             {
                 AudioSource hiveSource = currentHive.GetComponent<AudioSource>();
@@ -87,27 +88,29 @@ public class ResourcePopup : MonoBehaviour
     {
         TemplateContainer RJ = honeyGlobIcon.Instantiate();
         RJ.style.position = Position.Absolute;
-        RJ.Q("Glob").style.width = 128;
-        RJ.Q("Glob").style.height = 128;
+        RJ.Q("Glob").style.width = 72;
+        RJ.Q("Glob").style.height = 72;
         RJ.Q("Glob").style.backgroundImage = royalJelly;
         document.rootVisualElement.Q<VisualElement>("Base").Add(RJ);
 
         Vector3 position = currentHive.transform.position;
         position = Camera.main.WorldToScreenPoint(position);
-        float startTop = Screen.height - position.y;
-        float startLeft = position.x;
+        RJ.style.top = Screen.height - position.y - 36;
+        RJ.style.left = position.x - 36;
 
-        StartCoroutine(UpdateRJ(RJ));
+        StartCoroutine(UpdateRJ(RJ, Screen.height - position.y - 36));
     }
 
-    private IEnumerator UpdateRJ(TemplateContainer RJ)
+    private IEnumerator UpdateRJ(TemplateContainer RJ, float startTop)
     {
         float timeLapsed = 0.0f;
-        float duration = 2.0f;
+        float duration = 1f;
+        float change = 0f;
 
         while (timeLapsed < duration)
         {
-            RJ.style.top = RJ.resolvedStyle.top + 5;
+            change += Time.deltaTime * 100;
+            RJ.style.top = startTop - change;
 
             yield return new WaitForSeconds(Time.deltaTime);
             timeLapsed += Time.deltaTime;

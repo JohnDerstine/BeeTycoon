@@ -725,7 +725,7 @@ public class HexMenu : MonoBehaviour
                     OnFlowerMove(e, f);
                 else
                 {
-                    //Next flower stage popup
+                    OnHiveMove(e, objectList[num][index].name);
                 }
             }
         }

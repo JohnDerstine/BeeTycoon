@@ -9,7 +9,7 @@ public class DollyTool : ToolScript
     public int carryCapcity = 2;
     private List<string> descriptions = new List<string>()
     {
-        "Moves hives from one\ntile to another.\n\n1 Use per turn\n\nCan only carry hives\nup to 2 supers tall",
+        "Moves and rotates hives (Press R to Rotate).\n\n1 Use per turn\n\nCan only carry hives\nup to 2 supers tall",
         "Super carry capacity:\n2 -> 5",
         "Uses per turn:\n1 -> 3"
     };
@@ -26,7 +26,7 @@ public class DollyTool : ToolScript
 
     public override string GetCurrentDescription()
     {
-        return "Moves hives from one\ntile to another.\n\n" + usesPerTurn + " Use per turn\n\nCan only carry hives\nup to " + carryCapcity + " supers tall";
+        return "Moves and rotates hives (Press R to Rotate).\n\n" + usesPerTurn + " Use per turn\n\nCan only carry hives\nup to " + carryCapcity + " supers tall";
     }
 
     public override void Upgrade()
